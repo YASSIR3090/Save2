@@ -1,6 +1,6 @@
-// src/ProductSearch.jsx
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// src/ProductSearch.jsx - IMPROVED & COMPLETE VERSION
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function ProductSearch() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,7 +11,8 @@ function ProductSearch() {
     country: "",
     region: "",
     city: "",
-    inStock: true
+    inStock: true,
+    priceRange: ""
   });
   const [userLocation, setUserLocation] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -19,7 +20,11 @@ function ProductSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Countries and Currencies
   const countries = [
@@ -29,293 +34,164 @@ function ProductSearch() {
     { code: "US", name: "United States", currency: "USD", currencySymbol: "$" },
     { code: "GB", name: "United Kingdom", currency: "GBP", currencySymbol: "£" },
     { code: "EU", name: "European Union", currency: "EUR", currencySymbol: "€" },
-    { code: "JP", name: "Japan", currency: "JPY", currencySymbol: "¥" },
     { code: "CN", name: "China", currency: "CNY", currencySymbol: "¥" },
     { code: "IN", name: "India", currency: "INR", currencySymbol: "₹" },
-    { code: "ZA", name: "South Africa", currency: "ZAR", currencySymbol: "R" },
-    { code: "NG", name: "Nigeria", currency: "NGN", currencySymbol: "₦" },
-    { code: "ET", name: "Ethiopia", currency: "ETB", currencySymbol: "Br" },
-    { code: "RW", name: "Rwanda", currency: "RWF", currencySymbol: "FRw" },
-    { code: "BI", name: "Burundi", currency: "BIF", currencySymbol: "FBu" },
-    { code: "CD", name: "DR Congo", currency: "CDF", currencySymbol: "FC" }
+    { code: "ZA", name: "South Africa", currency: "ZAR", currencySymbol: "R" }
+  ];
+
+  // Price Ranges
+  const priceRanges = [
+    { label: "Any Price", value: "" },
+    { label: "Under $50", value: "0-50" },
+    { label: "$50 - $100", value: "50-100" },
+    { label: "$100 - $200", value: "100-200" },
+    { label: "$200 - $500", value: "200-500" },
+    { label: "Over $500", value: "500-10000" }
   ];
 
   // Regions by Country
   const regionsByCountry = {
-    "Tanzania": ["Dar es Salaam", "Arusha", "Mwanza", "Zanzibar", "Mbeya", "Dodoma", "Morogoro", "Tanga", "Moshi", "Iringa"],
-    "Kenya": ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika", "Malindi", "Kitale"],
-    "Uganda": ["Kampala", "Entebbe", "Jinja", "Gulu", "Mbale", "Lira", "Mbarara"],
-    "United States": ["New York", "California", "Texas", "Florida", "Illinois", "Washington", "Massachusetts"],
-    "United Kingdom": ["London", "Manchester", "Birmingham", "Liverpool", "Glasgow", "Edinburgh"],
-    "European Union": ["Paris", "Berlin", "Rome", "Madrid", "Amsterdam", "Brussels"],
-    "Japan": ["Tokyo", "Osaka", "Kyoto", "Yokohama", "Nagoya", "Sapporo"],
-    "China": ["Beijing", "Shanghai", "Guangzhou", "Shenzhen", "Chengdu", "Hong Kong"],
-    "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata"],
-    "South Africa": ["Johannesburg", "Cape Town", "Durban", "Pretoria", "Port Elizabeth"],
-    "Nigeria": ["Lagos", "Abuja", "Kano", "Ibadan", "Port Harcourt"],
-    "Ethiopia": ["Addis Ababa", "Dire Dawa", "Mekelle", "Adama", "Gondar"],
-    "Rwanda": ["Kigali", "Butare", "Gitarama", "Ruhengeri", "Gisenyi"],
-    "Burundi": ["Bujumbura", "Gitega", "Ngozi", "Rumonge", "Muyinga"],
-    "DR Congo": ["Kinshasa", "Lubumbashi", "Mbuji-Mayi", "Kananga", "Kisangani"]
+    "Tanzania": ["Dar es Salaam", "Arusha", "Mwanza", "Zanzibar", "Mbeya", "Dodoma"],
+    "Kenya": ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret"],
+    "Uganda": ["Kampala", "Entebbe", "Jinja", "Gulu", "Mbale"],
+    "United States": ["New York", "California", "Texas", "Florida", "Illinois"],
+    "United Kingdom": ["London", "Manchester", "Birmingham", "Liverpool"],
+    "China": ["Beijing", "Shanghai", "Guangzhou", "Shenzhen"],
+    "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad"],
+    "South Africa": ["Johannesburg", "Cape Town", "Durban", "Pretoria"]
   };
 
-  // MIFANO YA BIDHAA ZOTE NA BUILDING & HOTEL
-  const sampleElectronics = [
-    {
-      id: "elec-1",
-      name: "Dell Latitude Laptop",
-      category: "Electronics & Devices",
-      price: 1200000,
-      currency: "TZS",
-      currencySymbol: "TSh",
-      stock: 5,
-      business: "TechHub Tanzania",
-      location: { lat: -6.7924, lng: 39.2083 },
-      address: "Samora Avenue, Dar es Salaam",
-      country: "Tanzania",
-      region: "Dar es Salaam",
-      city: "Dar es Salaam",
-      images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-15",
-      description: "High-performance business laptop with latest Intel Core i7 processor",
-      specifications: ["Processor: Intel Core i7-1165G7", "RAM: 16GB DDR4", "Storage: 512GB SSD"],
-      features: ["Backlit Keyboard", "Fingerprint Reader", "Windows 11 Pro"],
-      brand: "Dell",
-      condition: "new",
-      requiresSpecifications: true,
-      rating: 4.5,
-      reviews: 23,
-      type: "product"
-    },
-    {
-      id: "elec-2",
-      name: "iPhone 15 Pro Max",
-      category: "Electronics & Devices",
-      price: 2500000,
-      currency: "TZS",
-      currencySymbol: "TSh",
-      stock: 3,
-      business: "MobileWorld Tanzania",
-      location: { lat: -6.8184, lng: 39.2883 },
-      address: "Mlimani City Mall, Dar es Salaam",
-      country: "Tanzania",
-      region: "Dar es Salaam",
-      city: "Dar es Salaam",
-      images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-14",
-      description: "Latest iPhone with titanium design and advanced camera system",
-      specifications: ["Display: 6.7-inch Super Retina XDR", "Chip: A17 Pro", "Storage: 256GB"],
-      features: ["Titanium Design", "48MP Camera", "5G Connectivity"],
-      brand: "Apple",
-      condition: "new",
-      requiresSpecifications: true,
-      rating: 4.8,
-      reviews: 15,
-      type: "product"
-    },
-    {
-      id: "elec-3",
-      name: "Samsung Galaxy S24",
-      category: "Electronics & Devices",
-      price: 800,
-      currency: "USD",
-      currencySymbol: "$",
-      stock: 8,
-      business: "TechGlobal USA",
-      location: { lat: 40.7128, lng: -74.0060 },
-      address: "Manhattan, New York",
-      country: "United States",
-      region: "New York",
-      city: "New York",
-      images: ["https://images.pexels.com/photos/47261/pexels-photo-47261.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-16",
-      description: "Latest Samsung flagship with AI features",
-      specifications: ["Display: 6.2-inch Dynamic AMOLED", "Chip: Snapdragon 8 Gen 3", "Storage: 256GB"],
-      features: ["AI Photography", "5G Connectivity", "Wireless Charging"],
-      brand: "Samsung",
-      condition: "new",
-      requiresSpecifications: true,
-      rating: 4.6,
-      reviews: 32,
-      type: "product"
-    }
-  ];
-
-  const sampleGeneralGoods = [
-    {
-      id: "gen-1",
-      name: "Men's Running Shoes",
-      category: "General Goods",
-      price: 85000,
-      currency: "TZS",
-      currencySymbol: "TSh",
-      stock: 15,
-      business: "Sports Gear Tanzania",
-      location: { lat: -6.8184, lng: 39.2883 },
-      address: "Mlimani City, Dar es Salaam",
-      country: "Tanzania",
-      region: "Dar es Salaam",
-      city: "Dar es Salaam",
-      images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-14",
-      description: "Comfortable running shoes designed for maximum performance",
-      features: ["Lightweight Design", "Breathable Mesh", "Shock Absorption"],
-      brand: "RunPro",
-      condition: "new",
-      size: "L",
-      color: "Black",
-      material: "Mesh",
-      requiresSpecifications: false,
-      rating: 4.3,
-      reviews: 15,
-      type: "product"
-    },
-    {
-      id: "gen-2",
-      name: "Designer Handbag",
-      category: "General Goods",
-      price: 150000,
-      currency: "TZS",
-      currencySymbol: "TSh",
-      stock: 8,
-      business: "Fashion House Dar",
-      location: { lat: -6.8155, lng: 39.2861 },
-      address: "Masaki, Dar es Salaam",
-      country: "Tanzania",
-      region: "Dar es Salaam",
-      city: "Dar es Salaam",
-      images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-13",
-      description: "Luxury designer handbag made from genuine leather",
-      features: ["Genuine Leather", "Multiple Compartments", "Adjustable Strap"],
-      brand: "StyleCraft",
-      condition: "new",
-      size: "Medium",
-      color: "Brown",
-      material: "Leather",
-      requiresSpecifications: false,
-      rating: 4.6,
-      reviews: 8,
-      type: "product"
-    },
-    {
-      id: "gen-3",
-      name: "Nike Air Max",
-      category: "General Goods",
-      price: 120,
-      currency: "USD",
-      currencySymbol: "$",
-      stock: 12,
-      business: "Sneaker World USA",
-      location: { lat: 34.0522, lng: -118.2437 },
-      address: "Downtown Los Angeles",
-      country: "United States",
-      region: "California",
-      city: "Los Angeles",
-      images: ["https://images.pexels.com/photos/298863/pexels-photo-298863.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-15",
-      description: "Premium running shoes with air cushioning",
-      features: ["Air Cushioning", "Breathable Material", "Durable Sole"],
-      brand: "Nike",
-      condition: "new",
-      size: "M",
-      color: "White/Red",
-      material: "Synthetic",
-      requiresSpecifications: false,
-      rating: 4.7,
-      reviews: 28,
-      type: "product"
-    }
-  ];
-
-  // MIFANO YA BUILDING & HOTEL
-  const sampleBuildingHotels = [
-    {
-      id: "hotel-1",
-      name: "Serengeti Luxury Hotel",
-      category: "Building & Hotels",
-      serviceType: "Hotel",
-      priceRange: "150-300",
-      currency: "USD",
-      currencySymbol: "$",
-      business: "Serengeti Hospitality Group",
-      location: { lat: -6.8155, lng: 39.2861 },
-      address: "Masaki, Dar es Salaam",
-      country: "Tanzania",
-      region: "Dar es Salaam",
-      city: "Dar es Salaam",
-      images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-15",
-      description: "5-star luxury hotel with premium amenities and excellent service",
-      amenities: ["Swimming Pool", "Spa", "Restaurant", "Free WiFi", "24/7 Room Service"],
-      services: ["Room Service", "Airport Transfer", "Tour Booking", "Laundry Service"],
-      contactInfo: "+255 789 456 123 | info@serengetihotel.com",
-      capacity: "100 guests, 50 luxury rooms",
-      rating: "5",
-      checkInTime: "14:00",
-      checkOutTime: "12:00",
-      policies: "Free cancellation 24 hours before check-in",
-      type: "service"
-    },
-    {
-      id: "hotel-2",
-      name: "Kilimanjaro Business Suites",
-      category: "Building & Hotels",
-      serviceType: "Luxury Apartment",
-      priceRange: "80,000-150,000",
-      currency: "TZS",
-      currencySymbol: "TSh",
-      business: "Prime Properties Tanzania",
-      location: { lat: -6.8120, lng: 39.2840 },
-      address: "City Center, Dar es Salaam",
-      country: "Tanzania",
-      region: "Dar es Salaam",
-      city: "Dar es Salaam",
-      images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-14",
-      description: "Modern luxury apartments with business facilities in city center",
-      amenities: ["Fully Equipped Kitchen", "Free WiFi", "Gym", "Parking", "Security"],
-      services: ["Cleaning Service", "Concierge", "Business Center", "Airport Pickup"],
-      contactInfo: "+255 712 345 678 | bookings@kilimanjarosuites.com",
-      capacity: "2-4 guests per apartment",
-      rating: "4",
-      checkInTime: "15:00",
-      checkOutTime: "11:00",
-      policies: "Minimum 2-night stay, No smoking in rooms",
-      type: "service"
-    },
-    {
-      id: "hotel-3",
-      name: "New York Luxury Suites",
-      category: "Building & Hotels",
-      serviceType: "Luxury Apartment",
-      priceRange: "300-600",
-      currency: "USD",
-      currencySymbol: "$",
-      business: "Manhattan Properties",
-      location: { lat: 40.7589, lng: -73.9851 },
-      address: "Times Square, Manhattan",
-      country: "United States",
-      region: "New York",
-      city: "New York",
-      images: ["https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg?auto=compress&cs=tinysrgb&w=300"],
-      lastUpdated: "2024-01-16",
-      description: "Luxury apartments in the heart of Manhattan",
-      amenities: ["City Views", "Fitness Center", "Concierge", "High-Speed WiFi"],
-      services: ["24/7 Concierge", "Housekeeping", "Room Service", "Business Center"],
-      contactInfo: "+1 212 555 7890 | info@nyluxurysuites.com",
-      capacity: "2-6 guests per suite",
-      rating: "4.8",
-      checkInTime: "15:00",
-      checkOutTime: "11:00",
-      policies: "Flexible cancellation policy",
-      type: "service"
-    }
-  ];
-
-  // Initialize
+  // Initialize - Load data on component mount
   useEffect(() => {
-    // Get user location
+    loadAllItems();
+    loadRecentSearches();
+    getUserLocation();
+    
+    // Check for URL search parameters
+    const urlParams = new URLSearchParams(location.search);
+    const urlQuery = urlParams.get('q');
+    if (urlQuery) {
+      setSearchQuery(urlQuery);
+      handleSearch(urlQuery);
+    }
+  }, [location.search]);
+
+  // Load all items from localStorage and sample data
+  const loadAllItems = useCallback(() => {
+    try {
+      setIsLoading(true);
+      const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
+      let storedProducts = [];
+      let storedServices = [];
+      
+      // Load from all businesses
+      allBusinesses.forEach(business => {
+        const businessProducts = JSON.parse(localStorage.getItem(`products_${business.id}`)) || [];
+        const businessServices = JSON.parse(localStorage.getItem(`services_${business.id}`)) || [];
+        
+        const productsWithBusiness = businessProducts.map(product => ({
+          ...product,
+          businessName: business.businessName,
+          businessPhone: business.phone,
+          businessEmail: business.email,
+          businessAddress: business.address,
+          type: "product"
+        }));
+        
+        const servicesWithBusiness = businessServices.map(service => ({
+          ...service,
+          businessName: business.businessName,
+          businessPhone: business.phone,
+          businessEmail: business.email,
+          businessAddress: business.address,
+          type: "service"
+        }));
+        
+        storedProducts = [...storedProducts, ...productsWithBusiness];
+        storedServices = [...storedServices, ...servicesWithBusiness];
+      });
+
+      // Sample data for demonstration
+      const sampleItems = [
+        {
+          id: "elec-1",
+          name: "Dell Latitude Laptop",
+          category: "Electronics & Devices",
+          price: 1200000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 5,
+          business: "TechHub Tanzania",
+          location: { lat: -6.7924, lng: 39.2083 },
+          address: "Samora Avenue, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
+          description: "High-performance business laptop with latest Intel Core i7 processor",
+          brand: "Dell",
+          condition: "new",
+          rating: 4.5,
+          reviews: 23,
+          type: "product"
+        },
+        {
+          id: "gen-1",
+          name: "Men's Running Shoes",
+          category: "General Goods",
+          price: 85000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 15,
+          business: "Sports Gear Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          description: "Comfortable running shoes designed for maximum performance",
+          brand: "RunPro",
+          condition: "new",
+          rating: 4.3,
+          reviews: 15,
+          type: "product"
+        },
+        {
+          id: "hotel-1",
+          name: "Serengeti Luxury Hotel",
+          category: "Building & Hotels",
+          serviceType: "Hotel",
+          priceRange: "150-300",
+          currency: "USD",
+          currencySymbol: "$",
+          business: "Serengeti Hospitality Group",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Masaki, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          description: "5-star luxury hotel with premium amenities and excellent service",
+          rating: "5",
+          type: "service"
+        }
+      ];
+
+      const combinedItems = [...sampleItems, ...storedProducts, ...storedServices];
+      setAllItems(combinedItems);
+      setSearchResults(combinedItems);
+      
+    } catch (error) {
+      console.error("Error loading items:", error);
+      alert("Failed to load products. Please refresh the page.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Get user location
+  const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -324,149 +200,84 @@ function ProductSearch() {
             lng: position.coords.longitude
           });
         },
-        () => {
-          console.log("Location access denied");
+        (error) => {
+          console.log("Location access denied or unavailable");
+          // Set default location (Dar es Salaam)
           setUserLocation({ lat: -6.7924, lng: 39.2083 });
         }
       );
-    } else {
-      setUserLocation({ lat: -6.7924, lng: 39.2083 });
     }
-
-    // Load all items from localStorage and combine with demo items
-    loadAllItems();
-  }, []);
-
-  const loadAllItems = () => {
-    const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
-    let storedProducts = [];
-    let storedServices = [];
-    
-    // Load all products and services from all businesses
-    allBusinesses.forEach(business => {
-      const businessProducts = JSON.parse(localStorage.getItem(`products_${business.id}`)) || [];
-      const businessServices = JSON.parse(localStorage.getItem(`services_${business.id}`)) || [];
-      
-      // Add business info to each product/service
-      const productsWithBusiness = businessProducts.map(product => ({
-        ...product,
-        businessName: business.businessName,
-        businessPhone: business.phone,
-        businessEmail: business.email,
-        businessAddress: business.address
-      }));
-      
-      const servicesWithBusiness = businessServices.map(service => ({
-        ...service,
-        businessName: business.businessName,
-        businessPhone: business.phone,
-        businessEmail: business.email,
-        businessAddress: business.address
-      }));
-      
-      storedProducts = [...storedProducts, ...productsWithBusiness];
-      storedServices = [...storedServices, ...servicesWithBusiness];
-    });
-
-    // Combine stored items with sample items
-    const combinedItems = [
-      ...sampleElectronics,
-      ...sampleGeneralGoods, 
-      ...sampleBuildingHotels,
-      ...storedProducts,
-      ...storedServices
-    ];
-    
-    console.log("Total items loaded:", combinedItems.length);
-    setAllItems(combinedItems);
-    setSearchResults(combinedItems);
   };
 
-  // Generate search suggestions based on current input
-  const generateSearchSuggestions = (query) => {
-    if (query.trim() === "") return [];
+  // Load recent searches from localStorage
+  const loadRecentSearches = () => {
+    try {
+      const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+      setRecentSearches(recent.slice(0, 5));
+    } catch (error) {
+      console.error("Error loading recent searches:", error);
+    }
+  };
+
+  // Save search to recent searches
+  const saveToRecentSearches = (query) => {
+    if (!query.trim()) return;
+    
+    try {
+      const recent = recentSearches.filter(item => item !== query);
+      const updated = [query, ...recent].slice(0, 5);
+      setRecentSearches(updated);
+      localStorage.setItem('recentSearches', JSON.stringify(updated));
+    } catch (error) {
+      console.error("Error saving recent search:", error);
+    }
+  };
+
+  // Generate search suggestions
+  const generateSearchSuggestions = useCallback((query) => {
+    if (query.trim() === "") return recentSearches;
 
     const suggestions = new Set();
     const queryLower = query.toLowerCase();
 
-    // Common search patterns and autocomplete
-    const commonSearches = [
-      "laptop", "laptops", "phone", "phones", "hotel", "hotels",
-      "shoes", "bag", "bags", "computer", "electronics", "clothes",
-      "apartment", "apartments", "restaurant", "car", "cars"
-    ];
+    // Add recent searches that match
+    recentSearches.forEach(search => {
+      if (search.toLowerCase().includes(queryLower)) {
+        suggestions.add(search);
+      }
+    });
 
-    // Search through all items for matching names, categories, brands
+    // Search through all items
     allItems.forEach(item => {
-      // Match product names
       if (item.name.toLowerCase().includes(queryLower)) {
         suggestions.add(item.name);
       }
-      
-      // Match categories
       if (item.category.toLowerCase().includes(queryLower)) {
         suggestions.add(item.category);
       }
-      
-      // Match brands
       if (item.brand && item.brand.toLowerCase().includes(queryLower)) {
         suggestions.add(item.brand);
       }
-      
-      // Match business names
       if (item.businessName && item.businessName.toLowerCase().includes(queryLower)) {
         suggestions.add(item.businessName);
       }
-      
-      // Match service types
       if (item.serviceType && item.serviceType.toLowerCase().includes(queryLower)) {
         suggestions.add(item.serviceType);
       }
     });
 
-    // Add common searches that match the query
+    // Common searches
+    const commonSearches = ["laptop", "phone", "hotel", "shoes", "apartment", "restaurant"];
     commonSearches.forEach(search => {
-      if (search.startsWith(queryLower) || search.includes(queryLower)) {
+      if (search.includes(queryLower) || queryLower.includes(search)) {
         suggestions.add(search.charAt(0).toUpperCase() + search.slice(1));
       }
     });
 
-    // Generate autocomplete suggestions for partial words
-    if (queryLower.length >= 2) {
-      // For "lap" suggest "laptop", "laptops"
-      if (queryLower === "lap") {
-        suggestions.add("Laptop");
-        suggestions.add("Laptops");
-      }
-      // For "lapb" suggest "laptop bag", "laptop bags"
-      if (queryLower === "lapb") {
-        suggestions.add("Laptop Bag");
-        suggestions.add("Laptop Bags");
-      }
-      // For "hot" suggest "hotel", "hotels"
-      if (queryLower === "hot") {
-        suggestions.add("Hotel");
-        suggestions.add("Hotels");
-      }
-      // For "pho" suggest "phone", "phones"
-      if (queryLower === "pho") {
-        suggestions.add("Phone");
-        suggestions.add("Phones");
-      }
-      // For "ele" suggest "electronics"
-      if (queryLower === "ele") {
-        suggestions.add("Electronics");
-      }
-      // For "sho" suggest "shoes"
-      if (queryLower === "sho") {
-        suggestions.add("Shoes");
-      }
-    }
+    return Array.from(suggestions).slice(0, 8);
+  }, [allItems, recentSearches]);
 
-    return Array.from(suggestions).slice(0, 8); // Return top 8 suggestions
-  };
-
-  // Handle search input change with autocomplete
+  // Handle search input change with debouncing
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
@@ -477,7 +288,6 @@ function ProductSearch() {
       setShowSuggestions(true);
     } else {
       setShowSuggestions(false);
-      setSearchSuggestions([]);
     }
   };
 
@@ -488,7 +298,14 @@ function ProductSearch() {
     handleSearch(suggestion);
   };
 
-  const handleSearch = (query = searchQuery) => {
+  // Perform search with filters
+  const handleSearch = useCallback((query = searchQuery) => {
+    if (!query.trim() && getActiveFiltersCount() === 0) {
+      setSearchResults(allItems);
+      setHasSearched(false);
+      return;
+    }
+
     let filtered = [...allItems];
 
     // Apply search query filter
@@ -504,57 +321,65 @@ function ProductSearch() {
         (item.country && item.country.toLowerCase().includes(query.toLowerCase())) ||
         (item.city && item.city.toLowerCase().includes(query.toLowerCase()))
       );
+      saveToRecentSearches(query);
     }
 
-    // Apply category filter
+    // Apply filters
+    filtered = applyFiltersToResults(filtered);
+
+    setSearchResults(filtered);
+    setHasSearched(true);
+    setShowSuggestions(false);
+  }, [allItems, searchQuery, filters]);
+
+  // Apply filters to results
+  const applyFiltersToResults = (items) => {
+    let filtered = [...items];
+
     if (filters.category) {
       filtered = filtered.filter(item => item.category === filters.category);
     }
 
-    // Apply country filter
     if (filters.country) {
       filtered = filtered.filter(item => item.country === filters.country);
     }
 
-    // Apply region filter
     if (filters.region) {
       filtered = filtered.filter(item => item.region === filters.region);
     }
 
-    // Apply city filter
     if (filters.city) {
       filtered = filtered.filter(item => 
         item.city && item.city.toLowerCase().includes(filters.city.toLowerCase())
       );
     }
 
-    // Apply stock filter
     if (filters.inStock) {
       filtered = filtered.filter(item => 
         item.type === 'service' || (item.type === 'product' && item.stock > 0)
       );
     }
 
-    setSearchResults(filtered);
-    setHasSearched(true);
-    setShowSuggestions(false);
-  };
-
-  // UPDATED: Handle search from search page - Redirect to search results page
-  const handleSearchPageSearch = (query) => {
-    if (query.trim() !== "") {
-      // Redirect to search results page with query parameter
-      navigate(`/search-results?q=${encodeURIComponent(query)}`);
+    if (filters.priceRange) {
+      const [min, max] = filters.priceRange.split('-').map(Number);
+      filtered = filtered.filter(item => {
+        if (item.type === 'service') return true; // Skip price filter for services
+        const price = item.price || 0;
+        return price >= min && price <= max;
+      });
     }
+
+    return filtered;
   };
 
+  // Handle filter changes
   const handleFilterChange = (key, value) => {
     const newFilters = {
       ...filters,
       [key]: value
     };
 
-    // Reset dependent filters when parent filter changes
+    // Reset dependent filters
     if (key === 'country') {
       newFilters.region = "";
       newFilters.city = "";
@@ -563,8 +388,28 @@ function ProductSearch() {
     }
 
     setFilters(newFilters);
+    
+    // Apply filters immediately
+    if (hasSearched || searchQuery.trim() !== "") {
+      handleSearch();
+    }
   };
 
+  // Handle category selection
+  const handleCategorySelect = (category) => {
+    const newFilters = { ...filters, category };
+    setFilters(newFilters);
+    
+    if (category) {
+      setHasSearched(true);
+      handleSearch();
+    } else {
+      // If "All" is selected, show all items
+      setSearchResults(applyFiltersToResults(allItems));
+    }
+  };
+
+  // Clear all search and filters
   const clearSearch = () => {
     setSearchQuery("");
     setFilters({
@@ -572,91 +417,30 @@ function ProductSearch() {
       country: "",
       region: "",
       city: "",
-      inStock: true
+      inStock: true,
+      priceRange: ""
     });
     setSearchResults(allItems);
     setHasSearched(false);
     setShowSuggestions(false);
+    navigate('/search'); // Clear URL parameters
   };
 
-  const clearSearchPageSearch = () => {
-    setSearchQuery("");
-    setSearchResults(allItems);
-    setHasSearched(false);
-    setShowSuggestions(false);
-  };
-
+  // Clear filters only
   const clearFilters = () => {
     setFilters({
       category: "",
       country: "",
       region: "",
       city: "",
-      inStock: true
+      inStock: true,
+      priceRange: ""
     });
     setSearchResults(allItems);
     setHasSearched(false);
   };
 
-  const handleCategorySelect = (category) => {
-    setFilters(prev => ({ ...prev, category }));
-    
-    // Apply the category filter immediately
-    const newFilters = { ...filters, category };
-    applyFilters(newFilters);
-  };
-
-  const applyFilters = (filterSettings = filters) => {
-    let filtered = [...allItems];
-
-    // Apply search query filter
-    if (searchQuery.trim() !== "") {
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.businessName && item.businessName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.business && item.business.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.brand && item.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.serviceType && item.serviceType.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.country && item.country.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.city && item.city.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    // Apply category filter
-    if (filterSettings.category) {
-      filtered = filtered.filter(item => item.category === filterSettings.category);
-    }
-
-    // Apply country filter
-    if (filterSettings.country) {
-      filtered = filtered.filter(item => item.country === filterSettings.country);
-    }
-
-    // Apply region filter
-    if (filterSettings.region) {
-      filtered = filtered.filter(item => item.region === filterSettings.region);
-    }
-
-    // Apply city filter
-    if (filterSettings.city) {
-      filtered = filtered.filter(item => 
-        item.city && item.city.toLowerCase().includes(filterSettings.city.toLowerCase())
-      );
-    }
-
-    // Apply stock filter
-    if (filterSettings.inStock) {
-      filtered = filtered.filter(item => 
-        item.type === 'service' || (item.type === 'product' && item.stock > 0)
-      );
-    }
-
-    setSearchResults(filtered);
-    setHasSearched(true);
-  };
-
+  // Calculate distance for location display
   const calculateDistance = (itemLat, itemLng) => {
     if (!userLocation || !itemLat || !itemLng) return "Location info";
     
@@ -673,12 +457,20 @@ function ProductSearch() {
     return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`;
   };
 
+  // Navigation handlers
+  const handleContactBusiness = (item) => {
+    const phoneNumber = item.businessPhone || "+255754000000";
+    const email = item.businessEmail || `${item.businessName?.toLowerCase().replace(/\s+/g, '')}@email.com`;
+    const address = item.businessAddress || item.address;
+    
+    alert(`Contact Information:\n\nBusiness: ${item.businessName || item.business}\nPhone: ${phoneNumber}\nEmail: ${email}\nAddress: ${address}, ${item.city}, ${item.country}`);
+  };
+
   const handleGetDirections = (item) => {
     if (item.location && item.location.lat && item.location.lng) {
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.location.lat},${item.location.lng}`;
       window.open(mapsUrl, '_blank');
-    } 
-    else if (item.address || (item.city && item.country)) {
+    } else if (item.address || (item.city && item.country)) {
       const addressParts = [];
       if (item.address) addressParts.push(item.address);
       if (item.city) addressParts.push(item.city);
@@ -689,28 +481,64 @@ function ProductSearch() {
       const encodedAddress = encodeURIComponent(fullAddress);
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
       window.open(mapsUrl, '_blank');
+    } else {
+      alert('Sorry, no location information available for this service. Please contact the business directly.');
     }
-    else if (item.businessName && item.country) {
-      const locationQuery = `${item.businessName}, ${item.city || item.region || ''}, ${item.country}`;
-      const encodedQuery = encodeURIComponent(locationQuery.trim());
-      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`;
-      window.open(mapsUrl, '_blank');
-    }
-    else {
-      alert('Samahani, hakuna taarifa ya eneo inayopatikana kwa huduma hii. Tafadhali wasiliana na biashara moja kwa moja.');
-    }
-  };
-
-  const handleContactBusiness = (item) => {
-    const phoneNumber = item.businessPhone || "+255754000000";
-    const email = item.businessEmail || `${item.businessName?.toLowerCase().replace(/\s+/g, '')}@email.com`;
-    const address = item.businessAddress || item.address;
-    
-    alert(`Contact Information:\n\nBusiness: ${item.businessName || item.business}\nPhone: ${phoneNumber}\nEmail: ${email}\nAddress: ${address}, ${item.city}, ${item.country}`);
   };
 
   const handleViewDetails = (itemId) => {
     navigate(`/product/${itemId}`);
+  };
+
+  const handleAccountClick = () => {
+    const isBusinessAuthenticated = localStorage.getItem('businessAuthenticated') === 'true';
+    navigate(isBusinessAuthenticated ? '/business-dashboard' : '/business-auth');
+  };
+
+  // Search page handlers
+  const handleSearchInputFocus = () => {
+    setShowSearchPage(true);
+  };
+
+  const handleSearchPageBack = () => {
+    setShowSearchPage(false);
+    setShowSuggestions(false);
+  };
+
+  const handleSearchPageSubmit = (e) => {
+    e.preventDefault();
+    setShowSuggestions(false);
+    if (searchQuery.trim()) {
+      navigate(`/search-results?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  // Helper functions
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (filters.category) count++;
+    if (filters.country) count++;
+    if (filters.region) count++;
+    if (filters.city) count++;
+    if (filters.priceRange) count++;
+    return count;
+  };
+
+  const getAvailableRegions = () => {
+    if (!filters.country) return [];
+    return regionsByCountry[filters.country] || [];
+  };
+
+  const getAvailableCities = () => {
+    if (!filters.country || !filters.region) return [];
+    
+    const cities = new Set();
+    allItems.forEach(item => {
+      if (item.country === filters.country && item.region === filters.region && item.city) {
+        cities.add(item.city);
+      }
+    });
+    return Array.from(cities);
   };
 
   const renderStars = (rating) => {
@@ -726,27 +554,10 @@ function ProductSearch() {
 
   const getCategoryIcon = (category) => {
     switch(category) {
-      case 'Electronics & Devices':
-        return 'fa-microchip';
-      case 'General Goods':
-        return 'fa-tshirt';
-      case 'Building & Hotels':
-        return 'fa-building';
-      default:
-        return 'fa-box';
-    }
-  };
-
-  const getCategoryBadge = (category) => {
-    switch(category) {
-      case 'Electronics & Devices':
-        return 'bg-primary';
-      case 'General Goods':
-        return 'bg-warning';
-      case 'Building & Hotels':
-        return 'bg-success';
-      default:
-        return 'bg-secondary';
+      case 'Electronics & Devices': return 'fa-microchip';
+      case 'General Goods': return 'fa-tshirt';
+      case 'Building & Hotels': return 'fa-building';
+      default: return 'fa-box';
     }
   };
 
@@ -754,16 +565,16 @@ function ProductSearch() {
     if (item.images && item.images.length > 0) {
       return item.images[0];
     }
-    return item.image;
+    return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
   };
 
-  const getCountryFlag = (countryCode) => {
+  const getCountryFlag = (countryName) => {
+    const country = countries.find(c => c.name === countryName);
     const flagEmojis = {
       'TZ': '🇹🇿', 'KE': '🇰🇪', 'UG': '🇺🇬', 'US': '🇺🇸', 'GB': '🇬🇧',
-      'EU': '🇪🇺', 'JP': '🇯🇵', 'CN': '🇨🇳', 'IN': '🇮🇳', 'ZA': '🇿🇦',
-      'NG': '🇳🇬', 'ET': '🇪🇹', 'RW': '🇷🇼', 'BI': '🇧🇮', 'CD': '🇨🇩'
+      'EU': '🇪🇺', 'CN': '🇨🇳', 'IN': '🇮🇳', 'ZA': '🇿🇦'
     };
-    return flagEmojis[countryCode] || '🏳️';
+    return flagEmojis[country?.code] || '🏳️';
   };
 
   const formatPrice = (item) => {
@@ -771,63 +582,6 @@ function ProductSearch() {
       return `${item.currencySymbol || '$'} ${item.priceRange}`;
     }
     return `${item.currencySymbol || '$'} ${item.price?.toLocaleString() || '0'}`;
-  };
-
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (filters.category) count++;
-    if (filters.country) count++;
-    if (filters.region) count++;
-    if (filters.city) count++;
-    return count;
-  };
-
-  // Get available regions based on selected country
-  const getAvailableRegions = () => {
-    if (!filters.country) return [];
-    return regionsByCountry[filters.country] || [];
-  };
-
-  // Get available cities based on selected region and country
-  const getAvailableCities = () => {
-    if (!filters.country || !filters.region) return [];
-    
-    const cities = new Set();
-    allItems.forEach(item => {
-      if (item.country === filters.country && item.region === filters.region && item.city) {
-        cities.add(item.city);
-      }
-    });
-    return Array.from(cities);
-  };
-
-  const handleAccountClick = () => {
-    // Check if user is logged in as business
-    const isBusinessAuthenticated = localStorage.getItem('businessAuthenticated') === 'true';
-    
-    if (isBusinessAuthenticated) {
-      navigate('/business-dashboard');
-    } else {
-      navigate('/business-auth');
-    }
-  };
-
-  // Handle search input focus to show search page
-  const handleSearchInputFocus = () => {
-    setShowSearchPage(true);
-  };
-
-  // Handle back from search page
-  const handleSearchPageBack = () => {
-    setShowSearchPage(false);
-    setShowSuggestions(false);
-  };
-
-  // Handle form submit in search page
-  const handleSearchPageSubmit = (e) => {
-    e.preventDefault();
-    setShowSuggestions(false);
-    handleSearchPageSearch(searchQuery);
   };
 
   // Search Page Component
@@ -919,14 +673,76 @@ function ProductSearch() {
           </div>
         )}
 
-        {/* Search Page Content - Show search results only after search */}
+        {/* Recent Searches */}
+        {!showSuggestions && recentSearches.length > 0 && (
+          <div className="container-fluid mt-3">
+            <div className="row">
+              <div className="col-12">
+                <h6 className="text-muted mb-3 px-3">Recent Searches</h6>
+                <div className="bg-white border rounded-3 shadow-sm">
+                  {recentSearches.map((search, index) => (
+                    <button
+                      key={index}
+                      className="btn btn-light w-100 text-start p-3 border-bottom"
+                      onClick={() => handleSuggestionClick(search)}
+                      style={{ 
+                        border: 'none',
+                        borderRadius: '0',
+                        fontSize: '1rem'
+                      }}
+                    >
+                      <div className="d-flex align-items-center">
+                        <i className="fas fa-clock me-3 text-muted"></i>
+                        <div>
+                          <div className="fw-semibold text-dark">{search}</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Search Page Content */}
         <div className="container-fluid" style={{ paddingTop: '20px', paddingBottom: '80px' }}>
-          {/* Show empty state when no search has been performed */}
           {!hasSearched && searchQuery.trim() === "" && (
             <div className="text-center py-5">
               <i className="fas fa-search fa-4x text-muted mb-4"></i>
               <h4 className="text-muted fw-bold mb-3">Search for Products & Services</h4>
               <p className="text-muted">Enter your search terms above to find items</p>
+              
+              {/* Quick Categories */}
+              <div className="row mt-5">
+                <div className="col-4 mb-3">
+                  <button 
+                    className="btn btn-outline-primary w-100 py-3"
+                    onClick={() => handleSuggestionClick("Laptop")}
+                  >
+                    <i className="fas fa-laptop fa-2x mb-2"></i>
+                    <div>Electronics</div>
+                  </button>
+                </div>
+                <div className="col-4 mb-3">
+                  <button 
+                    className="btn btn-outline-warning w-100 py-3"
+                    onClick={() => handleSuggestionClick("Shoes")}
+                  >
+                    <i className="fas fa-tshirt fa-2x mb-2"></i>
+                    <div>Fashion</div>
+                  </button>
+                </div>
+                <div className="col-4 mb-3">
+                  <button 
+                    className="btn btn-outline-success w-100 py-3"
+                    onClick={() => handleSuggestionClick("Hotel")}
+                  >
+                    <i className="fas fa-building fa-2x mb-2"></i>
+                    <div>Hotels</div>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -939,14 +755,14 @@ function ProductSearch() {
     return <SearchPage />;
   }
 
-  // ORIGINAL PAGE
+  // Main Component Render
   return (
     <div className="min-vh-100" style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" }}>
-      {/* Fixed Top Header - WITH SEARCH ICON INSIDE AND ACCOUNT ON RIGHT */}
+      {/* Fixed Top Header */}
       <div className="fixed-top bg-white border-bottom" style={{ zIndex: 1030 }}>
         <div className="container-fluid p-3">
           <div className="row align-items-center">
-            {/* Search Bar - With Search Icon Inside */}
+            {/* Search Bar */}
             <div className="col">
               <div className="input-group input-group-lg position-relative">
                 <input
@@ -992,7 +808,7 @@ function ProductSearch() {
               )}
             </div>
             
-            {/* Account Icon - Right Side */}
+            {/* Account Icon */}
             <div className="col-auto ms-2">
               <button
                 className="btn btn-light rounded-circle"
@@ -1014,144 +830,156 @@ function ProductSearch() {
 
       {/* Main Content */}
       <div className="container-fluid" style={{ paddingTop: '100px', paddingBottom: '80px' }}>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary mb-3"></div>
+            <p className="text-muted">Loading products...</p>
+          </div>
+        )}
+
         {/* Results Summary */}
-        <div className="row mb-3">
-          <div className="col-12">
-            <div className="d-flex justify-content-between align-items-center">
-              <h6 className="text-dark mb-0 fw-bold">
-                {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
-                {filters.category && ` in ${filters.category}`}
-              </h6>
-              {getActiveFiltersCount() > 0 && (
-                <button
-                  className="btn btn-sm btn-outline-dark rounded-pill"
-                  onClick={clearFilters}
-                >
-                  <i className="fas fa-times me-1"></i>
-                  Clear ({getActiveFiltersCount()})
-                </button>
-              )}
+        {!isLoading && (
+          <div className="row mb-3">
+            <div className="col-12">
+              <div className="d-flex justify-content-between align-items-center">
+                <h6 className="text-dark mb-0 fw-bold">
+                  {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
+                  {filters.category && ` in ${filters.category}`}
+                  {searchQuery && ` for "${searchQuery}"`}
+                </h6>
+                {(getActiveFiltersCount() > 0 || searchQuery.trim() !== "") && (
+                  <button
+                    className="btn btn-sm btn-outline-dark rounded-pill"
+                    onClick={clearSearch}
+                  >
+                    <i className="fas fa-times me-1"></i>
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Search Results - RESPONSIVE DESIGN */}
-        {/* SMARTPHONE: 4 items (2×2) | LAPTOP: 12 items (6×2) */}
-        <div className="row g-2">
-          {searchResults.length === 0 ? (
-            <div className="col-12 text-center py-5">
-              <i className="fas fa-search fa-3x text-muted mb-3"></i>
-              <h5 className="text-muted fw-bold">No results found</h5>
-              <p className="text-muted">Try adjusting your search or filters</p>
-              <button
-                className="btn custom-primary-btn rounded-pill px-4"
-                onClick={clearSearch}
-              >
-                <i className="fas fa-undo me-2"></i>
-                Reset Search
-              </button>
-            </div>
-          ) : (
-            searchResults.map((item) => (
-              <div key={item.id} className="col-6 col-lg-2">
-                {/* CARD YA BIDHAA - OPTIMIZED FOR BOTH SMARTPHONE & LAPTOP */}
-                <div className="card h-100 border-0 shadow-sm product-card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-                  
-                  {/* Image Section */}
-                  <div className="position-relative">
-                    <img
-                      src={getItemImage(item)}
-                      className="card-img-top"
-                      alt={item.name}
-                      style={{ 
-                        height: '150px', 
-                        objectFit: 'cover',
-                        width: '100%'
-                      }}
-                      onError={(e) => {
-                        e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
-                      }}
-                    />
+        {/* Search Results */}
+        {!isLoading && (
+          <div className="row g-2">
+            {searchResults.length === 0 ? (
+              <div className="col-12 text-center py-5">
+                <i className="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 className="text-muted fw-bold">No results found</h5>
+                <p className="text-muted">Try adjusting your search or filters</p>
+                <button
+                  className="btn custom-primary-btn rounded-pill px-4"
+                  onClick={clearSearch}
+                >
+                  <i className="fas fa-undo me-2"></i>
+                  Reset Search
+                </button>
+              </div>
+            ) : (
+              searchResults.map((item) => (
+                <div key={item.id} className="col-6 col-lg-2">
+                  {/* Product Card */}
+                  <div className="card h-100 border-0 shadow-sm product-card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
                     
-                    {/* Category Badge - TOP LEFT */}
-                    <div className="position-absolute top-0 start-0 m-1">
-                      <span className="badge custom-primary-bg text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
-                        <i className={`fas ${getCategoryIcon(item.category)} me-1`} style={{ fontSize: '0.5rem' }}></i>
-                        <small>{item.category === 'Building & Hotels' ? 'Hotel' : item.category.split(' ')[0]}</small>
-                      </span>
-                    </div>
-
-                    {/* Price Tag - TOP RIGHT */}
-                    <div className="position-absolute top-0 end-0 m-1">
-                      <span className="badge bg-dark text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
-                        <small className="fw-bold">{formatPrice(item)}</small>
-                      </span>
-                    </div>
-
-                    {/* Stock Status - BOTTOM LEFT */}
-                    {item.type === 'product' && (
-                      <div className="position-absolute bottom-0 start-0 m-1">
-                        <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
-                          <small>{item.stock > 0 ? 'In Stock' : 'Out'}</small>
+                    {/* Image Section */}
+                    <div className="position-relative">
+                      <img
+                        src={getItemImage(item)}
+                        className="card-img-top"
+                        alt={item.name}
+                        style={{ 
+                          height: '150px', 
+                          objectFit: 'cover',
+                          width: '100%'
+                        }}
+                        onError={(e) => {
+                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
+                        }}
+                      />
+                      
+                      {/* Category Badge */}
+                      <div className="position-absolute top-0 start-0 m-1">
+                        <span className="badge custom-primary-bg text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                          <i className={`fas ${getCategoryIcon(item.category)} me-1`} style={{ fontSize: '0.5rem' }}></i>
+                          <small>{item.category === 'Building & Hotels' ? 'Hotel' : item.category.split(' ')[0]}</small>
                         </span>
                       </div>
-                    )}
 
-                    {/* Rating Badge - BOTTOM RIGHT */}
-                    <div className="position-absolute bottom-0 end-0 m-1">
-                      <span className="badge bg-white text-dark px-2 py-1 rounded-pill shadow-sm" style={{ fontSize: '0.6rem' }}>
-                        <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
-                        <small className="fw-bold">{item.rating || '4.0'}</small>
-                      </span>
-                    </div>
-                  </div>
+                      {/* Price Tag */}
+                      <div className="position-absolute top-0 end-0 m-1">
+                        <span className="badge bg-dark text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                          <small className="fw-bold">{formatPrice(item)}</small>
+                        </span>
+                      </div>
 
-                  {/* Card Body - COMPACT FOR BOTH DEVICES */}
-                  <div className="card-body p-2 d-flex flex-column">
-                    {/* Product Title */}
-                    <h6 className="card-title text-dark fw-bold mb-1" style={{ lineHeight: '1.2', fontSize: '0.8rem' }}>
-                      {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
-                    </h6>
+                      {/* Stock Status */}
+                      {item.type === 'product' && (
+                        <div className="position-absolute bottom-0 start-0 m-1">
+                          <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
+                            <small>{item.stock > 0 ? 'In Stock' : 'Out'}</small>
+                          </span>
+                        </div>
+                      )}
 
-                    {/* Business Name */}
-                    <p className="card-text text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
-                      <i className="fas fa-store me-1 text-primary"></i>
-                      {item.businessName || item.business}
-                    </p>
-
-                    {/* Location */}
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                        <i className="fas fa-map-marker-alt text-danger me-1"></i>
-                        {item.location ? calculateDistance(item.location.lat, item.location.lng) : item.city}
-                      </small>
+                      {/* Rating Badge */}
+                      <div className="position-absolute bottom-0 end-0 m-1">
+                        <span className="badge bg-white text-dark px-2 py-1 rounded-pill shadow-sm" style={{ fontSize: '0.6rem' }}>
+                          <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
+                          <small className="fw-bold">{item.rating || '4.0'}</small>
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Action Buttons - COMPACT */}
-                    <div className="d-flex gap-1 mt-auto">
-                      <button
-                        className="btn custom-primary-btn flex-fill rounded-pill py-1"
-                        onClick={() => handleViewDetails(item.id)}
-                        style={{ fontSize: '0.7rem' }}
-                      >
-                        <i className="fas fa-eye me-1"></i>
-                        View
-                      </button>
-                      <button
-                        className="btn btn-outline-dark rounded-pill py-1 px-2"
-                        onClick={() => handleContactBusiness(item)}
-                        style={{ fontSize: '0.7rem' }}
-                        title="Contact Business"
-                      >
-                        <i className="fas fa-phone"></i>
-                      </button>
+                    {/* Card Body */}
+                    <div className="card-body p-2 d-flex flex-column">
+                      {/* Product Title */}
+                      <h6 className="card-title text-dark fw-bold mb-1" style={{ lineHeight: '1.2', fontSize: '0.8rem' }}>
+                        {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
+                      </h6>
+
+                      {/* Business Name */}
+                      <p className="card-text text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
+                        <i className="fas fa-store me-1 text-primary"></i>
+                        {item.businessName || item.business}
+                      </p>
+
+                      {/* Location */}
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                          <i className="fas fa-map-marker-alt text-danger me-1"></i>
+                          {item.location ? calculateDistance(item.location.lat, item.location.lng) : item.city}
+                        </small>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="d-flex gap-1 mt-auto">
+                        <button
+                          className="btn custom-primary-btn flex-fill rounded-pill py-1"
+                          onClick={() => handleViewDetails(item.id)}
+                          style={{ fontSize: '0.7rem' }}
+                        >
+                          <i className="fas fa-eye me-1"></i>
+                          View
+                        </button>
+                        <button
+                          className="btn btn-outline-dark rounded-pill py-1 px-2"
+                          onClick={() => handleContactBusiness(item)}
+                          style={{ fontSize: '0.7rem' }}
+                          title="Contact Business"
+                        >
+                          <i className="fas fa-phone"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filter Modal */}
@@ -1175,6 +1003,41 @@ function ProductSearch() {
               {/* Modal Body */}
               <div className="modal-body p-4">
                 <div className="row g-3">
+                  {/* Category Filter */}
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold text-dark mb-2">
+                      <i className="fas fa-tags me-2 text-primary"></i>
+                      Category
+                    </label>
+                    <select
+                      className="form-select border-2 rounded-3"
+                      value={filters.category}
+                      onChange={(e) => handleFilterChange('category', e.target.value)}
+                    >
+                      <option value="">All Categories</option>
+                      <option value="Electronics & Devices">Electronics & Devices</option>
+                      <option value="General Goods">General Goods</option>
+                      <option value="Building & Hotels">Building & Hotels</option>
+                    </select>
+                  </div>
+
+                  {/* Price Range Filter */}
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold text-dark mb-2">
+                      <i className="fas fa-dollar-sign me-2 text-success"></i>
+                      Price Range
+                    </label>
+                    <select
+                      className="form-select border-2 rounded-3"
+                      value={filters.priceRange}
+                      onChange={(e) => handleFilterChange('priceRange', e.target.value)}
+                    >
+                      {priceRanges.map(range => (
+                        <option key={range.value} value={range.value}>{range.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Country Filter */}
                   <div className="col-md-6">
                     <label className="form-label fw-semibold text-dark mb-2">
@@ -1263,12 +1126,12 @@ function ProductSearch() {
                     onClick={clearFilters}
                   >
                     <i className="fas fa-eraser me-2"></i>
-                    Clear All
+                    Clear Filters
                   </button>
                   <button
                     className="btn custom-primary-btn rounded-pill flex-fill fw-semibold"
                     onClick={() => {
-                      applyFilters();
+                      handleSearch();
                       setShowFilterModal(false);
                     }}
                   >
@@ -1282,7 +1145,7 @@ function ProductSearch() {
         </div>
       )}
 
-      {/* Bottom Navigation Bar - WITHOUT ACCOUNT ICON */}
+      {/* Bottom Navigation Bar */}
       <div className="fixed-bottom bg-white border-top shadow-lg" style={{ zIndex: 1030 }}>
         <div className="container-fluid">
           <div className="row">
@@ -1402,7 +1265,7 @@ function ProductSearch() {
           color: #495057;
         }
         
-        /* Mobile Optimizations for 2×2 Display */
+        /* Mobile Optimizations */
         @media (max-width: 576px) {
           .container-fluid {
             padding-left: 6px;
@@ -1422,7 +1285,7 @@ function ProductSearch() {
           }
         }
 
-        /* Laptop Optimizations for 6×2 Display */
+        /* Laptop Optimizations */
         @media (min-width: 992px) {
           .col-lg-2 {
             flex: 0 0 auto;

@@ -1,5 +1,5 @@
-// src/SearchResultsPage.jsx
-import React, { useState, useEffect } from "react";
+// src/SearchResultsPage.jsx - IMPROVED & COMPLETE VERSION
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 function SearchResultsPage() {
@@ -13,386 +13,229 @@ function SearchResultsPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [allItems, setAllItems] = useState([]);
   const [showSearchPage, setShowSearchPage] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [sortBy, setSortBy] = useState("relevance"); // relevance, price-low, price-high, rating
 
   // Load all items from localStorage and sample data
-  const loadAllItems = () => {
-    const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
-    let storedProducts = [];
-    let storedServices = [];
-    
-    // Load all products and services from all businesses
-    allBusinesses.forEach(business => {
-      const businessProducts = JSON.parse(localStorage.getItem(`products_${business.id}`)) || [];
-      const businessServices = JSON.parse(localStorage.getItem(`services_${business.id}`)) || [];
+  const loadAllItems = useCallback(() => {
+    try {
+      const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
+      let storedProducts = [];
+      let storedServices = [];
       
-      // Add business info to each product/service
-      const productsWithBusiness = businessProducts.map(product => ({
-        ...product,
-        businessName: business.businessName,
-        businessPhone: business.phone,
-        businessEmail: business.email,
-        businessAddress: business.address
-      }));
-      
-      const servicesWithBusiness = businessServices.map(service => ({
-        ...service,
-        businessName: business.businessName,
-        businessPhone: business.phone,
-        businessEmail: business.email,
-        businessAddress: business.address
-      }));
-      
-      storedProducts = [...storedProducts, ...productsWithBusiness];
-      storedServices = [...storedServices, ...servicesWithBusiness];
-    });
+      // Load all products and services from all businesses
+      allBusinesses.forEach(business => {
+        const businessProducts = JSON.parse(localStorage.getItem(`products_${business.id}`)) || [];
+        const businessServices = JSON.parse(localStorage.getItem(`services_${business.id}`)) || [];
+        
+        // Add business info to each product/service
+        const productsWithBusiness = businessProducts.map(product => ({
+          ...product,
+          businessName: business.businessName,
+          businessPhone: business.phone,
+          businessEmail: business.email,
+          businessAddress: business.address,
+          type: "product"
+        }));
+        
+        const servicesWithBusiness = businessServices.map(service => ({
+          ...service,
+          businessName: business.businessName,
+          businessPhone: business.phone,
+          businessEmail: business.email,
+          businessAddress: business.address,
+          type: "service"
+        }));
+        
+        storedProducts = [...storedProducts, ...productsWithBusiness];
+        storedServices = [...storedServices, ...servicesWithBusiness];
+      });
 
-    // Sample data
-    const sampleElectronics = [
-      {
-        id: "elec-1",
-        name: "Dell Latitude Laptop",
-        category: "Electronics & Devices",
-        price: 1200000,
-        currency: "TZS",
-        currencySymbol: "TSh",
-        stock: 5,
-        business: "TechHub Tanzania",
-        location: { lat: -6.7924, lng: 39.2083 },
-        address: "Samora Avenue, Dar es Salaam",
-        country: "Tanzania",
-        region: "Dar es Salaam",
-        city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-15",
-        description: "High-performance business laptop with latest Intel Core i7 processor",
-        specifications: ["Processor: Intel Core i7-1165G7", "RAM: 16GB DDR4", "Storage: 512GB SSD"],
-        features: ["Backlit Keyboard", "Fingerprint Reader", "Windows 11 Pro"],
-        brand: "Dell",
-        condition: "new",
-        requiresSpecifications: true,
-        rating: 4.5,
-        reviews: 23,
-        type: "product"
-      },
-      {
-        id: "elec-2",
-        name: "iPhone 15 Pro Max",
-        category: "Electronics & Devices",
-        price: 2500000,
-        currency: "TZS",
-        currencySymbol: "TSh",
-        stock: 3,
-        business: "MobileWorld Tanzania",
-        location: { lat: -6.8184, lng: 39.2883 },
-        address: "Mlimani City Mall, Dar es Salaam",
-        country: "Tanzania",
-        region: "Dar es Salaam",
-        city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-14",
-        description: "Latest iPhone with titanium design and advanced camera system",
-        specifications: ["Display: 6.7-inch Super Retina XDR", "Chip: A17 Pro", "Storage: 256GB"],
-        features: ["Titanium Design", "48MP Camera", "5G Connectivity"],
-        brand: "Apple",
-        condition: "new",
-        requiresSpecifications: true,
-        rating: 4.8,
-        reviews: 15,
-        type: "product"
-      },
-      {
-        id: "elec-3",
-        name: "Samsung Galaxy S24",
-        category: "Electronics & Devices",
-        price: 800,
-        currency: "USD",
-        currencySymbol: "$",
-        stock: 8,
-        business: "TechGlobal USA",
-        location: { lat: 40.7128, lng: -74.0060 },
-        address: "Manhattan, New York",
-        country: "United States",
-        region: "New York",
-        city: "New York",
-        images: ["https://images.pexels.com/photos/47261/pexels-photo-47261.jpeg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-16",
-        description: "Latest Samsung flagship with AI features",
-        specifications: ["Display: 6.2-inch Dynamic AMOLED", "Chip: Snapdragon 8 Gen 3", "Storage: 256GB"],
-        features: ["AI Photography", "5G Connectivity", "Wireless Charging"],
-        brand: "Samsung",
-        condition: "new",
-        requiresSpecifications: true,
-        rating: 4.6,
-        reviews: 32,
-        type: "product"
-      },
-      {
-        id: "elec-4",
-        name: "MacBook Pro 16-inch",
-        category: "Electronics & Devices",
-        price: 3500000,
-        currency: "TZS",
-        currencySymbol: "TSh",
-        stock: 2,
-        business: "Apple Store Dar",
-        location: { lat: -6.8155, lng: 39.2861 },
-        address: "Masaki, Dar es Salaam",
-        country: "Tanzania",
-        region: "Dar es Salaam",
-        city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-17",
-        description: "Professional laptop with M3 Pro chip",
-        specifications: ["Processor: Apple M3 Pro", "RAM: 18GB", "Storage: 1TB SSD"],
-        features: ["Liquid Retina XDR Display", "Long Battery Life", "macOS Ventura"],
-        brand: "Apple",
-        condition: "new",
-        requiresSpecifications: true,
-        rating: 4.9,
-        reviews: 45,
-        type: "product"
-      }
-    ];
+      // Sample data for demonstration
+      const sampleElectronics = [
+        {
+          id: "elec-1",
+          name: "Dell Latitude Laptop",
+          category: "Electronics & Devices",
+          price: 1200000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 5,
+          business: "TechHub Tanzania",
+          location: { lat: -6.7924, lng: 39.2083 },
+          address: "Samora Avenue, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-15",
+          description: "High-performance business laptop with latest Intel Core i7 processor",
+          specifications: ["Processor: Intel Core i7-1165G7", "RAM: 16GB DDR4", "Storage: 512GB SSD"],
+          features: ["Backlit Keyboard", "Fingerprint Reader", "Windows 11 Pro"],
+          brand: "Dell",
+          condition: "new",
+          requiresSpecifications: true,
+          rating: 4.5,
+          reviews: 23,
+          type: "product"
+        },
+        {
+          id: "elec-2",
+          name: "iPhone 15 Pro Max",
+          category: "Electronics & Devices",
+          price: 2500000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 3,
+          business: "MobileWorld Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City Mall, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-14",
+          description: "Latest iPhone with titanium design and advanced camera system",
+          specifications: ["Display: 6.7-inch Super Retina XDR", "Chip: A17 Pro", "Storage: 256GB"],
+          features: ["Titanium Design", "48MP Camera", "5G Connectivity"],
+          brand: "Apple",
+          condition: "new",
+          requiresSpecifications: true,
+          rating: 4.8,
+          reviews: 15,
+          type: "product"
+        }
+      ];
 
-    const sampleGeneralGoods = [
-      {
-        id: "gen-1",
-        name: "Men's Running Shoes",
-        category: "General Goods",
-        price: 85000,
-        currency: "TZS",
-        currencySymbol: "TSh",
-        stock: 15,
-        business: "Sports Gear Tanzania",
-        location: { lat: -6.8184, lng: 39.2883 },
-        address: "Mlimani City, Dar es Salaam",
-        country: "Tanzania",
-        region: "Dar es Salaam",
-        city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-14",
-        description: "Comfortable running shoes designed for maximum performance",
-        features: ["Lightweight Design", "Breathable Mesh", "Shock Absorption"],
-        brand: "RunPro",
-        condition: "new",
-        size: "L",
-        color: "Black",
-        material: "Mesh",
-        requiresSpecifications: false,
-        rating: 4.3,
-        reviews: 15,
-        type: "product"
-      },
-      {
-        id: "gen-2",
-        name: "Designer Handbag",
-        category: "General Goods",
-        price: 150000,
-        currency: "TZS",
-        currencySymbol: "TSh",
-        stock: 8,
-        business: "Fashion House Dar",
-        location: { lat: -6.8155, lng: 39.2861 },
-        address: "Masaki, Dar es Salaam",
-        country: "Tanzania",
-        region: "Dar es Salaam",
-        city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-13",
-        description: "Luxury designer handbag made from genuine leather",
-        features: ["Genuine Leather", "Multiple Compartments", "Adjustable Strap"],
-        brand: "StyleCraft",
-        condition: "new",
-        size: "Medium",
-        color: "Brown",
-        material: "Leather",
-        requiresSpecifications: false,
-        rating: 4.6,
-        reviews: 8,
-        type: "product"
-      }
-    ];
+      const sampleGeneralGoods = [
+        {
+          id: "gen-1",
+          name: "Men's Running Shoes",
+          category: "General Goods",
+          price: 85000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 15,
+          business: "Sports Gear Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-14",
+          description: "Comfortable running shoes designed for maximum performance",
+          features: ["Lightweight Design", "Breathable Mesh", "Shock Absorption"],
+          brand: "RunPro",
+          condition: "new",
+          size: "L",
+          color: "Black",
+          material: "Mesh",
+          requiresSpecifications: false,
+          rating: 4.3,
+          reviews: 15,
+          type: "product"
+        }
+      ];
 
-    const sampleBuildingHotels = [
-      {
-        id: "hotel-1",
-        name: "Serengeti Luxury Hotel",
-        category: "Building & Hotels",
-        serviceType: "Hotel",
-        priceRange: "150-300",
-        currency: "USD",
-        currencySymbol: "$",
-        business: "Serengeti Hospitality Group",
-        location: { lat: -6.8155, lng: 39.2861 },
-        address: "Masaki, Dar es Salaam",
-        country: "Tanzania",
-        region: "Dar es Salaam",
-        city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-15",
-        description: "5-star luxury hotel with premium amenities and excellent service",
-        amenities: ["Swimming Pool", "Spa", "Restaurant", "Free WiFi", "24/7 Room Service"],
-        services: ["Room Service", "Airport Transfer", "Tour Booking", "Laundry Service"],
-        contactInfo: "+255 789 456 123 | info@serengetihotel.com",
-        capacity: "100 guests, 50 luxury rooms",
-        rating: "5",
-        checkInTime: "14:00",
-        checkOutTime: "12:00",
-        policies: "Free cancellation 24 hours before check-in",
-        type: "service"
-      },
-      {
-        id: "hotel-2",
-        name: "Kilimanjaro Business Suites",
-        category: "Building & Hotels",
-        serviceType: "Luxury Apartment",
-        priceRange: "80,000-150,000",
-        currency: "TZS",
-        currencySymbol: "TSh",
-        business: "Prime Properties Tanzania",
-        location: { lat: -6.8120, lng: 39.2840 },
-        address: "City Center, Dar es Salaam",
-        country: "Tanzania",
-        region: "Dar es Salaam",
-        city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
-        lastUpdated: "2024-01-14",
-        description: "Modern luxury apartments with business facilities in city center",
-        amenities: ["Fully Equipped Kitchen", "Free WiFi", "Gym", "Parking", "Security"],
-        services: ["Cleaning Service", "Concierge", "Business Center", "Airport Pickup"],
-        contactInfo: "+255 712 345 678 | bookings@kilimanjarosuites.com",
-        capacity: "2-4 guests per apartment",
-        rating: "4",
-        checkInTime: "15:00",
-        checkOutTime: "11:00",
-        policies: "Minimum 2-night stay, No smoking in rooms",
-        type: "service"
-      }
-    ];
+      const sampleBuildingHotels = [
+        {
+          id: "hotel-1",
+          name: "Serengeti Luxury Hotel",
+          category: "Building & Hotels",
+          serviceType: "Hotel",
+          priceRange: "150-300",
+          currency: "USD",
+          currencySymbol: "$",
+          business: "Serengeti Hospitality Group",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Masaki, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-15",
+          description: "5-star luxury hotel with premium amenities and excellent service",
+          amenities: ["Swimming Pool", "Spa", "Restaurant", "Free WiFi", "24/7 Room Service"],
+          services: ["Room Service", "Airport Transfer", "Tour Booking", "Laundry Service"],
+          contactInfo: "+255 789 456 123 | info@serengetihotel.com",
+          capacity: "100 guests, 50 luxury rooms",
+          rating: "5",
+          checkInTime: "14:00",
+          checkOutTime: "12:00",
+          policies: "Free cancellation 24 hours before check-in",
+          type: "service"
+        }
+      ];
 
-    const allItems = [
-      ...sampleElectronics,
-      ...sampleGeneralGoods, 
-      ...sampleBuildingHotels,
-      ...storedProducts,
-      ...storedServices
-    ];
+      const allItems = [
+        ...sampleElectronics,
+        ...sampleGeneralGoods, 
+        ...sampleBuildingHotels,
+        ...storedProducts,
+        ...storedServices
+      ];
 
-    setAllItems(allItems);
-    return allItems;
-  };
+      setAllItems(allItems);
+      return allItems;
+    } catch (error) {
+      console.error("Error loading items:", error);
+      alert("Failed to load products. Please refresh the page.");
+      return [];
+    }
+  }, []);
 
-  // Generate search suggestions based on current input
-  const generateSearchSuggestions = (query) => {
-    if (query.trim() === "") return [];
+  // Load recent searches
+  const loadRecentSearches = useCallback(() => {
+    try {
+      const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+      setRecentSearches(recent.slice(0, 5));
+    } catch (error) {
+      console.error("Error loading recent searches:", error);
+    }
+  }, []);
+
+  // Generate search suggestions
+  const generateSearchSuggestions = useCallback((query) => {
+    if (query.trim() === "") return recentSearches;
 
     const suggestions = new Set();
     const queryLower = query.toLowerCase();
 
-    // Common search patterns and autocomplete
-    const commonSearches = [
-      "laptop", "laptops", "phone", "phones", "hotel", "hotels",
-      "shoes", "bag", "bags", "computer", "electronics", "clothes",
-      "apartment", "apartments", "restaurant", "car", "cars"
-    ];
+    // Add recent searches that match
+    recentSearches.forEach(search => {
+      if (search.toLowerCase().includes(queryLower)) {
+        suggestions.add(search);
+      }
+    });
 
-    // Search through all items for matching names, categories, brands
+    // Search through all items
     allItems.forEach(item => {
-      // Match product names
       if (item.name.toLowerCase().includes(queryLower)) {
         suggestions.add(item.name);
       }
-      
-      // Match categories
       if (item.category.toLowerCase().includes(queryLower)) {
         suggestions.add(item.category);
       }
-      
-      // Match brands
       if (item.brand && item.brand.toLowerCase().includes(queryLower)) {
         suggestions.add(item.brand);
       }
-      
-      // Match business names
       if (item.businessName && item.businessName.toLowerCase().includes(queryLower)) {
         suggestions.add(item.businessName);
       }
-      
-      // Match service types
       if (item.serviceType && item.serviceType.toLowerCase().includes(queryLower)) {
         suggestions.add(item.serviceType);
       }
     });
 
-    // Add common searches that match the query
-    commonSearches.forEach(search => {
-      if (search.startsWith(queryLower) || search.includes(queryLower)) {
-        suggestions.add(search.charAt(0).toUpperCase() + search.slice(1));
-      }
-    });
-
-    // Generate autocomplete suggestions for partial words
-    if (queryLower.length >= 2) {
-      // For "lap" suggest "laptop", "laptops"
-      if (queryLower === "lap") {
-        suggestions.add("Laptop");
-        suggestions.add("Laptops");
-      }
-      // For "lapb" suggest "laptop bag", "laptop bags"
-      if (queryLower === "lapb") {
-        suggestions.add("Laptop Bag");
-        suggestions.add("Laptop Bags");
-      }
-      // For "hot" suggest "hotel", "hotels"
-      if (queryLower === "hot") {
-        suggestions.add("Hotel");
-        suggestions.add("Hotels");
-      }
-      // For "pho" suggest "phone", "phones"
-      if (queryLower === "pho") {
-        suggestions.add("Phone");
-        suggestions.add("Phones");
-      }
-      // For "ele" suggest "electronics"
-      if (queryLower === "ele") {
-        suggestions.add("Electronics");
-      }
-      // For "sho" suggest "shoes"
-      if (queryLower === "sho") {
-        suggestions.add("Shoes");
-      }
-    }
-
-    return Array.from(suggestions).slice(0, 8); // Return top 8 suggestions
-  };
-
-  // Handle search input change with autocomplete
-  const handleSearchInputChange = (e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    
-    if (value.trim() !== "") {
-      const suggestions = generateSearchSuggestions(value);
-      setSearchSuggestions(suggestions);
-      setShowSuggestions(true);
-    } else {
-      setShowSuggestions(false);
-      setSearchSuggestions([]);
-    }
-  };
-
-  // Handle search suggestion click
-  const handleSuggestionClick = (suggestion) => {
-    setSearchQuery(suggestion);
-    setShowSuggestions(false);
-    handleNewSearch(suggestion);
-  };
+    return Array.from(suggestions).slice(0, 8);
+  }, [allItems, recentSearches]);
 
   // Perform search
-  const performSearch = (query, allItems) => {
-    if (!query.trim()) return allItems;
+  const performSearch = useCallback((query, items) => {
+    if (!query.trim()) return items;
 
-    return allItems.filter(item =>
+    const filtered = items.filter(item =>
       item.name.toLowerCase().includes(query.toLowerCase()) ||
       (item.category && item.category.toLowerCase().includes(query.toLowerCase())) ||
       (item.businessName && item.businessName.toLowerCase().includes(query.toLowerCase())) ||
@@ -403,36 +246,108 @@ function SearchResultsPage() {
       (item.country && item.country.toLowerCase().includes(query.toLowerCase())) ||
       (item.city && item.city.toLowerCase().includes(query.toLowerCase()))
     );
-  };
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('q') || '';
-    setSearchQuery(query);
+    return filtered;
+  }, []);
 
-    const allItems = loadAllItems();
-    const results = performSearch(query, allItems);
+  // Sort results
+  const sortResults = useCallback((results, sortType) => {
+    const sorted = [...results];
     
-    setSearchResults(results);
-    setIsLoading(false);
-  }, [location]);
+    switch (sortType) {
+      case "price-low":
+        return sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+      case "price-high":
+        return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+      case "rating":
+        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      case "relevance":
+      default:
+        return sorted;
+    }
+  }, []);
 
-  const handleBackToSearch = () => {
-    navigate('/search');
-  };
+  // Initialize search
+  useEffect(() => {
+    const initializeSearch = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Load data first
+        const items = await loadAllItems();
+        loadRecentSearches();
+        
+        // Get search query from URL
+        const searchParams = new URLSearchParams(location.search);
+        const query = searchParams.get('q') || '';
+        setSearchQuery(query);
+        
+        // Perform search
+        let results = performSearch(query, items);
+        
+        // Sort results
+        results = sortResults(results, sortBy);
+        
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search initialization error:", error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleNewSearch = (query = searchQuery) => {
-    if (query.trim() !== "") {
-      navigate(`/search-results?q=${encodeURIComponent(query)}`);
-      // Reload the page to show new results
-      window.location.reload();
+    initializeSearch();
+  }, [location.search, loadAllItems, performSearch, sortResults, sortBy, loadRecentSearches]);
+
+  // Handle search input change
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    if (value.trim() !== "") {
+      const suggestions = generateSearchSuggestions(value);
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
     }
   };
 
+  // Handle search suggestion click
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    handleNewSearch(suggestion);
+  };
+
+  // Handle new search - FIXED: No window.location.reload()
+  const handleNewSearch = useCallback((query = searchQuery) => {
+    if (query.trim() !== "") {
+      navigate(`/search-results?q=${encodeURIComponent(query)}`);
+      // Data will update automatically via useEffect
+    }
+  }, [searchQuery, navigate]);
+
+  // Handle search submit
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setShowSuggestions(false);
     handleNewSearch();
+  };
+
+  // Handle sort change
+  const handleSortChange = (e) => {
+    const newSortBy = e.target.value;
+    setSortBy(newSortBy);
+    
+    // Re-sort current results
+    const sortedResults = sortResults(searchResults, newSortBy);
+    setSearchResults(sortedResults);
+  };
+
+  const handleBackToSearch = () => {
+    navigate('/search');
   };
 
   const handleViewDetails = (itemId) => {
@@ -463,7 +378,7 @@ function SearchResultsPage() {
     if (item.images && item.images.length > 0) {
       return item.images[0];
     }
-    return item.image || 'https://via.placeholder.com/400x300?text=No+Image';
+    return 'https://via.placeholder.com/400x300?text=No+Image';
   };
 
   const renderStars = (rating) => {
@@ -480,6 +395,12 @@ function SearchResultsPage() {
   // Toggle view mode between grid and list
   const toggleViewMode = () => {
     setViewMode(prevMode => prevMode === 'grid' ? 'list' : 'grid');
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    navigate('/search-results');
   };
 
   // Render item in grid view
@@ -606,7 +527,7 @@ function SearchResultsPage() {
     </div>
   );
 
-  // Render item in list view - UPDATED VERSION with WIDER IMAGE
+  // Render item in list view
   const renderListView = (item, index) => (
     <div key={item.id} className={`${window.innerWidth >= 768 ? 'col-lg-6' : 'col-12'} mb-3`}>
       <div 
@@ -615,7 +536,7 @@ function SearchResultsPage() {
         style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
       >
         <div className="row g-0 h-100" style={{ margin: '0' }}>
-          {/* Item Image - WIDER IMAGE (col-5 instead of col-4) */}
+          {/* Item Image - WIDER IMAGE */}
           <div className="col-5 col-md-4 position-relative" style={{ padding: '0', margin: '0' }}>
             <div 
               className="h-100 w-100 bg-white position-relative"
@@ -643,7 +564,7 @@ function SearchResultsPage() {
                 }}
               />
               
-              {/* Category Badge - POSITIONED INSIDE THE IMAGE */}
+              {/* Category Badge */}
               <div className="position-absolute top-0 start-0 m-1">
                 <span className={`badge ${getCategoryBadge(item.category)} text-white px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
                   <i className={`fas ${
@@ -655,7 +576,7 @@ function SearchResultsPage() {
                 </span>
               </div>
 
-              {/* Rating Badge - POSITIONED INSIDE THE IMAGE */}
+              {/* Rating Badge */}
               <div className="position-absolute top-0 end-0 m-1">
                 <span className="badge bg-dark bg-opacity-75 text-white px-1 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
                   <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
@@ -663,7 +584,7 @@ function SearchResultsPage() {
                 </span>
               </div>
 
-              {/* Stock Status for Products - POSITIONED INSIDE THE IMAGE AT BOTTOM */}
+              {/* Stock Status for Products */}
               {item.type === 'product' && (
                 <div className="position-absolute bottom-0 start-0 m-1">
                   <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
@@ -673,7 +594,7 @@ function SearchResultsPage() {
                 </div>
               )}
 
-              {/* Service Type Badge - POSITIONED INSIDE THE IMAGE AT BOTTOM */}
+              {/* Service Type Badge */}
               {item.type === 'service' && (
                 <div className="position-absolute bottom-0 start-0 m-1">
                   <span className="badge bg-info px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
@@ -685,7 +606,7 @@ function SearchResultsPage() {
             </div>
           </div>
 
-          {/* Item Details - SMALLER CONTENT AREA (col-7 instead of col-8) */}
+          {/* Item Details */}
           <div className="col-7 col-md-8">
             <div className="card-body h-100 d-flex flex-column p-2 p-md-3" style={{ padding: '0.5rem' }}>
               <div className="flex-grow-1">
@@ -761,7 +682,7 @@ function SearchResultsPage() {
     </div>
   );
 
-  // Search Page Component - SAME AS ProductSearch.jsx
+  // Search Page Component
   const SearchPage = () => {
     return (
       <div className="min-vh-100 bg-white" style={{ zIndex: 1040, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
@@ -850,7 +771,39 @@ function SearchResultsPage() {
           </div>
         )}
 
-        {/* Search Page Content - Show search results only after search */}
+        {/* Recent Searches */}
+        {!showSuggestions && recentSearches.length > 0 && (
+          <div className="container-fluid mt-3">
+            <div className="row">
+              <div className="col-12">
+                <h6 className="text-muted mb-3 px-3">Recent Searches</h6>
+                <div className="bg-white border rounded-3 shadow-sm">
+                  {recentSearches.map((search, index) => (
+                    <button
+                      key={index}
+                      className="btn btn-light w-100 text-start p-3 border-bottom"
+                      onClick={() => handleSuggestionClick(search)}
+                      style={{ 
+                        border: 'none',
+                        borderRadius: '0',
+                        fontSize: '1rem'
+                      }}
+                    >
+                      <div className="d-flex align-items-center">
+                        <i className="fas fa-clock me-3 text-muted"></i>
+                        <div>
+                          <div className="fw-semibold text-dark">{search}</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Search Page Content */}
         <div className="container-fluid" style={{ paddingTop: '20px', paddingBottom: '80px' }}>
           {/* Show empty state when no search has been performed */}
           {searchQuery.trim() === "" && (
@@ -883,7 +836,7 @@ function SearchResultsPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* Header with Search Bar - UPDATED WITH AUTOCOMPLETE */}
+      {/* Header with Search Bar */}
       <div className="bg-white shadow-sm sticky-top">
         <div className="container-fluid py-3">
           <div className="row align-items-center">
@@ -972,7 +925,7 @@ function SearchResultsPage() {
             <div className="d-flex gap-3 justify-content-center">
               <button
                 className="btn btn-primary btn-lg rounded-pill px-4"
-                onClick={() => setSearchQuery("")}
+                onClick={handleClearSearch}
               >
                 <i className="fas fa-backspace me-2"></i>
                 Clear Search
@@ -988,10 +941,10 @@ function SearchResultsPage() {
           </div>
         ) : (
           <>
-            {/* Search Summary and View Toggle */}
+            {/* Search Summary and Controls */}
             <div className="row mb-4">
               <div className="col-12">
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                   <div>
                     <h5 className="text-dark fw-bold mb-1">
                       Showing {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'}
@@ -1001,7 +954,23 @@ function SearchResultsPage() {
                     )}
                   </div>
                   
-                  <div className="d-flex align-items-center gap-2">
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    {/* Sort Dropdown */}
+                    <div className="dropdown">
+                      <button className="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i className="fas fa-sort me-2"></i>
+                        Sort: {sortBy === 'relevance' ? 'Relevance' : 
+                              sortBy === 'price-low' ? 'Price: Low to High' :
+                              sortBy === 'price-high' ? 'Price: High to Low' : 'Rating'}
+                      </button>
+                      <ul className="dropdown-menu">
+                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'relevance'}})}>Relevance</button></li>
+                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'price-low'}})}>Price: Low to High</button></li>
+                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'price-high'}})}>Price: High to Low</button></li>
+                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'rating'}})}>Highest Rating</button></li>
+                      </ul>
+                    </div>
+
                     {/* View Mode Toggle */}
                     <div className="btn-group view-mode-toggle" role="group">
                       <button
@@ -1157,6 +1126,12 @@ function SearchResultsPage() {
           .view-mode-toggle .btn i {
             margin-right: 0 !important;
           }
+
+          /* Adjust sort dropdown for mobile */
+          .dropdown .btn {
+            font-size: 0.75rem;
+            padding: 0.375rem 0.75rem;
+          }
         }
 
         /* Desktop Optimizations for List View */
@@ -1177,6 +1152,9 @@ function SearchResultsPage() {
           }
         }
       `}</style>
+
+      {/* Bootstrap JS */}
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
 }
