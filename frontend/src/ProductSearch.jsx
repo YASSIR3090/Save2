@@ -253,7 +253,7 @@ function ProductSearch() {
       capacity: "100 guests, 50 luxury rooms",
       rating: "5",
       checkInTime: "14:00",
-      checkInTime: "12:00",
+      checkOutTime: "12:00",
       policies: "Free cancellation 24 hours before check-in",
       type: "service"
     },
@@ -1012,7 +1012,148 @@ function ProductSearch() {
         </div>
       </div>
 
-      {/* Rest of the component remains the same... */}
+      {/* Main Content */}
+      <div className="container-fluid" style={{ paddingTop: '100px', paddingBottom: '80px' }}>
+        {/* Results Summary */}
+        <div className="row mb-3">
+          <div className="col-12">
+            <div className="d-flex justify-content-between align-items-center">
+              <h6 className="text-dark mb-0 fw-bold">
+                {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
+                {filters.category && ` in ${filters.category}`}
+              </h6>
+              {getActiveFiltersCount() > 0 && (
+                <button
+                  className="btn btn-sm btn-outline-dark rounded-pill"
+                  onClick={clearFilters}
+                >
+                  <i className="fas fa-times me-1"></i>
+                  Clear ({getActiveFiltersCount()})
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Search Results - RESPONSIVE DESIGN */}
+        {/* SMARTPHONE: 4 items (2×2) | LAPTOP: 12 items (6×2) */}
+        <div className="row g-2">
+          {searchResults.length === 0 ? (
+            <div className="col-12 text-center py-5">
+              <i className="fas fa-search fa-3x text-muted mb-3"></i>
+              <h5 className="text-muted fw-bold">No results found</h5>
+              <p className="text-muted">Try adjusting your search or filters</p>
+              <button
+                className="btn custom-primary-btn rounded-pill px-4"
+                onClick={clearSearch}
+              >
+                <i className="fas fa-undo me-2"></i>
+                Reset Search
+              </button>
+            </div>
+          ) : (
+            searchResults.map((item) => (
+              <div key={item.id} className="col-6 col-lg-2">
+                {/* CARD YA BIDHAA - OPTIMIZED FOR BOTH SMARTPHONE & LAPTOP */}
+                <div className="card h-100 border-0 shadow-sm product-card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                  
+                  {/* Image Section */}
+                  <div className="position-relative">
+                    <img
+                      src={getItemImage(item)}
+                      className="card-img-top"
+                      alt={item.name}
+                      style={{ 
+                        height: '150px', 
+                        objectFit: 'cover',
+                        width: '100%'
+                      }}
+                      onError={(e) => {
+                        e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
+                      }}
+                    />
+                    
+                    {/* Category Badge - TOP LEFT */}
+                    <div className="position-absolute top-0 start-0 m-1">
+                      <span className="badge custom-primary-bg text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                        <i className={`fas ${getCategoryIcon(item.category)} me-1`} style={{ fontSize: '0.5rem' }}></i>
+                        <small>{item.category === 'Building & Hotels' ? 'Hotel' : item.category.split(' ')[0]}</small>
+                      </span>
+                    </div>
+
+                    {/* Price Tag - TOP RIGHT */}
+                    <div className="position-absolute top-0 end-0 m-1">
+                      <span className="badge bg-dark text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                        <small className="fw-bold">{formatPrice(item)}</small>
+                      </span>
+                    </div>
+
+                    {/* Stock Status - BOTTOM LEFT */}
+                    {item.type === 'product' && (
+                      <div className="position-absolute bottom-0 start-0 m-1">
+                        <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
+                          <small>{item.stock > 0 ? 'In Stock' : 'Out'}</small>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Rating Badge - BOTTOM RIGHT */}
+                    <div className="position-absolute bottom-0 end-0 m-1">
+                      <span className="badge bg-white text-dark px-2 py-1 rounded-pill shadow-sm" style={{ fontSize: '0.6rem' }}>
+                        <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
+                        <small className="fw-bold">{item.rating || '4.0'}</small>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Body - COMPACT FOR BOTH DEVICES */}
+                  <div className="card-body p-2 d-flex flex-column">
+                    {/* Product Title */}
+                    <h6 className="card-title text-dark fw-bold mb-1" style={{ lineHeight: '1.2', fontSize: '0.8rem' }}>
+                      {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
+                    </h6>
+
+                    {/* Business Name */}
+                    <p className="card-text text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
+                      <i className="fas fa-store me-1 text-primary"></i>
+                      {item.businessName || item.business}
+                    </p>
+
+                    {/* Location */}
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                        <i className="fas fa-map-marker-alt text-danger me-1"></i>
+                        {item.location ? calculateDistance(item.location.lat, item.location.lng) : item.city}
+                      </small>
+                    </div>
+
+                    {/* Action Buttons - COMPACT */}
+                    <div className="d-flex gap-1 mt-auto">
+                      <button
+                        className="btn custom-primary-btn flex-fill rounded-pill py-1"
+                        onClick={() => handleViewDetails(item.id)}
+                        style={{ fontSize: '0.7rem' }}
+                      >
+                        <i className="fas fa-eye me-1"></i>
+                        View
+                      </button>
+                      <button
+                        className="btn btn-outline-dark rounded-pill py-1 px-2"
+                        onClick={() => handleContactBusiness(item)}
+                        style={{ fontSize: '0.7rem' }}
+                        title="Contact Business"
+                      >
+                        <i className="fas fa-phone"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       {/* Filter Modal */}
       {showFilterModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -1141,150 +1282,6 @@ function ProductSearch() {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="container-fluid" style={{ paddingTop: '100px', paddingBottom: '80px' }}>
-        {/* Results Summary */}
-        <div className="row mb-3">
-          <div className="col-12">
-            <div className="d-flex justify-content-between align-items-center">
-              <h6 className="text-dark mb-0 fw-bold">
-                {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
-                {filters.category && ` in ${filters.category}`}
-              </h6>
-              {getActiveFiltersCount() > 0 && (
-                <button
-                  className="btn btn-sm btn-outline-dark rounded-pill"
-                  onClick={clearFilters}
-                >
-                  <i className="fas fa-times me-1"></i>
-                  Clear ({getActiveFiltersCount()})
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Search Results - 4 ITEMS PER ROW ON MOBILE */}
-        <div className="row g-3">
-          {searchResults.length === 0 ? (
-            <div className="col-12 text-center py-5">
-              <i className="fas fa-search fa-3x text-muted mb-3"></i>
-              <h5 className="text-muted fw-bold">No results found</h5>
-              <p className="text-muted">Try adjusting your search or filters</p>
-              <button
-                className="btn custom-primary-btn rounded-pill px-4"
-                onClick={clearSearch}
-              >
-                <i className="fas fa-undo me-2"></i>
-                Reset Search
-              </button>
-            </div>
-          ) : (
-            searchResults.map((item) => (
-              <div key={item.id} className="col-6 col-sm-4 col-lg-3">
-                <div className="card h-100 border-0 shadow-sm product-card">
-                  {/* Item Image */}
-                  <div className="position-relative">
-                    <img
-                      src={getItemImage(item)}
-                      className="card-img-top"
-                      alt={item.name}
-                      style={{ 
-                        height: '140px', 
-                        objectFit: 'cover',
-                        width: '100%'
-                      }}
-                      onError={(e) => {
-                        e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
-                      }}
-                    />
-                    
-                    {/* Category Badge */}
-                    <div className="position-absolute top-0 start-0 m-2">
-                      <span className="badge custom-primary-bg text-white px-2 py-1 rounded-pill">
-                        <i className={`fas ${getCategoryIcon(item.category)} me-1`} style={{ fontSize: '0.7rem' }}></i>
-                        <small>{item.category === 'Building & Hotels' ? 'Hotel' : item.category.split(' ')[0]}</small>
-                      </span>
-                    </div>
-
-                    {/* Rating Badge */}
-                    <div className="position-absolute top-0 end-0 m-2">
-                      <span className="badge bg-white text-dark px-2 py-1 rounded-pill">
-                        <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.7rem' }}></i>
-                        <small>{item.rating || '4.0'}</small>
-                      </span>
-                    </div>
-
-                    {/* Stock Status */}
-                    {item.type === 'product' && (
-                      <div className="position-absolute bottom-0 start-0 m-2">
-                        <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`}>
-                          <small>{item.stock > 0 ? 'In Stock' : 'Out of Stock'}</small>
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="card-body p-2 d-flex flex-column">
-                    <div className="mb-1">
-                      <h6 className="card-title text-dark fw-bold mb-1 small" style={{ lineHeight: '1.2' }}>
-                        {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
-                      </h6>
-                      <p className="card-text text-muted mb-1 small">
-                        <i className="fas fa-store me-1" style={{ fontSize: '0.7rem' }}></i>
-                        {item.businessName || item.business}
-                      </p>
-                    </div>
-
-                    <div className="mb-2">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <span className="text-primary fw-bold small">
-                          {formatPrice(item)}
-                        </span>
-                        <div className="d-flex align-items-center">
-                          {renderStars(item.rating || 4.0)}
-                        </div>
-                      </div>
-                      
-                      <div className="d-flex justify-content-between align-items-center mt-1">
-                        <small className="text-muted">
-                          <i className="fas fa-map-marker-alt me-1" style={{ fontSize: '0.7rem' }}></i>
-                          {item.location ? calculateDistance(item.location.lat, item.location.lng) : item.city}
-                        </small>
-                        <small className="text-muted">
-                          {item.city}
-                        </small>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="d-flex gap-1 mt-auto">
-                      <button
-                        className="btn custom-primary-btn flex-fill rounded-pill py-1"
-                        onClick={() => handleViewDetails(item.id)}
-                        style={{ fontSize: '0.75rem' }}
-                      >
-                        <i className="fas fa-eye me-1"></i>
-                        View
-                      </button>
-                      <button
-                        className="btn btn-outline-dark rounded-pill py-1 px-2"
-                        onClick={() => handleGetDirections(item)}
-                        style={{ fontSize: '0.75rem' }}
-                        title="Get Directions"
-                      >
-                        <i className="fas fa-directions"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
       {/* Bottom Navigation Bar - WITHOUT ACCOUNT ICON */}
       <div className="fixed-bottom bg-white border-top shadow-lg" style={{ zIndex: 1030 }}>
         <div className="container-fluid">
@@ -1385,10 +1382,14 @@ function ProductSearch() {
         }
         .product-card {
           transition: all 0.3s ease;
+          border: 1px solid #e9ecef;
         }
         .product-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        }
+        .badge {
+          font-weight: 600;
         }
         .btn-light {
           background-color: #f8f9fa;
@@ -1401,23 +1402,31 @@ function ProductSearch() {
           color: #495057;
         }
         
-        /* Mobile Optimizations */
+        /* Mobile Optimizations for 2×2 Display */
         @media (max-width: 576px) {
           .container-fluid {
-            padding-left: 8px;
-            padding-right: 8px;
+            padding-left: 6px;
+            padding-right: 6px;
           }
           .card-body {
             padding: 0.5rem;
           }
           .btn {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
           }
           .badge {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
           }
           .small {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
+          }
+        }
+
+        /* Laptop Optimizations for 6×2 Display */
+        @media (min-width: 992px) {
+          .col-lg-2 {
+            flex: 0 0 auto;
+            width: 16.66666667%;
           }
         }
       `}</style>
