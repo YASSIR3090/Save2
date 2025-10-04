@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - IMPROVED & COMPLETE VERSION
+// src/SearchResultsPage.jsx - IMPROVED & COMPLETE VERSION WITH BETTER FUZZY SEARCH
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -15,6 +15,108 @@ function SearchResultsPage() {
   const [showSearchPage, setShowSearchPage] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const [sortBy, setSortBy] = useState("relevance"); // relevance, price-low, price-high, rating
+
+  // IMPROVED FUZZY SEARCH FUNCTIONS
+  const levenshteinDistance = (str1, str2) => {
+    const track = Array(str2.length + 1).fill(null).map(() =>
+      Array(str1.length + 1).fill(null));
+    
+    for (let i = 0; i <= str1.length; i += 1) {
+      track[0][i] = i;
+    }
+    
+    for (let j = 0; j <= str2.length; j += 1) {
+      track[j][0] = j;
+    }
+    
+    for (let j = 1; j <= str2.length; j += 1) {
+      for (let i = 1; i <= str1.length; i += 1) {
+        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        track[j][i] = Math.min(
+          track[j][i - 1] + 1, // deletion
+          track[j - 1][i] + 1, // insertion
+          track[j - 1][i - 1] + indicator, // substitution
+        );
+      }
+    }
+    
+    return track[str2.length][str1.length];
+  };
+
+  // Calculate similarity score (0 to 1)
+  const calculateSimilarity = (str1, str2) => {
+    const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
+    const maxLength = Math.max(str1.length, str2.length);
+    return 1 - distance / maxLength;
+  };
+
+  // IMPROVED FUZZY SEARCH FUNCTION
+  const fuzzySearch = (text, query) => {
+    if (!query.trim()) return { match: true, score: 0 };
+    
+    const textLower = text.toLowerCase();
+    const queryLower = query.toLowerCase();
+    const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
+    
+    // Check for exact match first
+    if (textLower.includes(queryLower)) {
+      return { match: true, score: 1.0 };
+    }
+    
+    // Check for partial matches
+    if (queryLower.length >= 2) {
+      // Check if any word in text starts with query
+      const words = textLower.split(/\s+/);
+      for (let word of words) {
+        if (word.startsWith(queryLower.substring(0, Math.min(3, queryLower.length)))) {
+          return { match: true, score: 0.8 };
+        }
+        if (queryLower.startsWith(word.substring(0, Math.min(3, word.length)))) {
+          return { match: true, score: 0.8 };
+        }
+      }
+      
+      // Check using similarity score
+      let bestSimilarity = 0;
+      for (let word of words) {
+        if (word.length >= 2) {
+          const similarity = calculateSimilarity(word, queryLower);
+          if (similarity > bestSimilarity) {
+            bestSimilarity = similarity;
+          }
+        }
+      }
+      
+      // Also check similarity with the entire text
+      const fullTextSimilarity = calculateSimilarity(textLower, queryLower);
+      bestSimilarity = Math.max(bestSimilarity, fullTextSimilarity);
+      
+      if (bestSimilarity >= 0.5) { // Lower threshold for more matches
+        return { match: true, score: bestSimilarity };
+      }
+    }
+    
+    // For multiple word queries, check if any word matches
+    if (queryWords.length > 1) {
+      for (let word of queryWords) {
+        if (word.length >= 2 && textLower.includes(word)) {
+          return { match: true, score: 0.7 };
+        }
+        
+        // Check similarity for each word
+        for (let textWord of textLower.split(/\s+/)) {
+          if (textWord.length >= 2) {
+            const wordSimilarity = calculateSimilarity(textWord, word);
+            if (wordSimilarity >= 0.6) {
+              return { match: true, score: wordSimilarity };
+            }
+          }
+        }
+      }
+    }
+    
+    return { match: false, score: 0 };
+  };
 
   // Load all items from localStorage and sample data
   const loadAllItems = useCallback(() => {
@@ -51,7 +153,7 @@ function SearchResultsPage() {
         storedServices = [...storedServices, ...servicesWithBusiness];
       });
 
-      // Sample data for demonstration
+      // Sample data for demonstration - ADDED MORE ITEMS FOR BETTER SEARCH
       const sampleElectronics = [
         {
           id: "elec-1",
@@ -104,6 +206,58 @@ function SearchResultsPage() {
           rating: 4.8,
           reviews: 15,
           type: "product"
+        },
+        {
+          id: "elec-3",
+          name: "HP Pavilion Laptop",
+          category: "Electronics & Devices",
+          price: 950000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 7,
+          business: "TechHub Tanzania",
+          location: { lat: -6.7924, lng: 39.2083 },
+          address: "Samora Avenue, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-13",
+          description: "Affordable laptop for students and professionals",
+          specifications: ["Processor: Intel Core i5", "RAM: 8GB DDR4", "Storage: 256GB SSD"],
+          features: ["Lightweight", "Long Battery Life", "Windows 11"],
+          brand: "HP",
+          condition: "new",
+          requiresSpecifications: true,
+          rating: 4.2,
+          reviews: 18,
+          type: "product"
+        },
+        {
+          id: "elec-4",
+          name: "Samsung Galaxy Tab",
+          category: "Electronics & Devices",
+          price: 800000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 6,
+          business: "MobileWorld Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City Mall, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-12",
+          description: "High-performance tablet with AMOLED display",
+          specifications: ["Display: 11-inch AMOLED", "Processor: Snapdragon 8 Gen 2", "Storage: 128GB"],
+          features: ["S Pen Included", "5G Connectivity", "Long Battery"],
+          brand: "Samsung",
+          condition: "new",
+          requiresSpecifications: true,
+          rating: 4.4,
+          reviews: 22,
+          type: "product"
         }
       ];
 
@@ -135,6 +289,62 @@ function SearchResultsPage() {
           rating: 4.3,
           reviews: 15,
           type: "product"
+        },
+        {
+          id: "gen-2",
+          name: "Women's Handbag",
+          category: "General Goods",
+          price: 45000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 10,
+          business: "Fashion Store Tanzania",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Masaki, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-13",
+          description: "Elegant leather handbag for women",
+          features: ["Genuine Leather", "Multiple Compartments", "Adjustable Strap"],
+          brand: "StyleCo",
+          condition: "new",
+          size: "One Size",
+          color: "Brown",
+          material: "Leather",
+          requiresSpecifications: false,
+          rating: 4.1,
+          reviews: 8,
+          type: "product"
+        },
+        {
+          id: "gen-3",
+          name: "Sports T-Shirt",
+          category: "General Goods",
+          price: 25000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 25,
+          business: "Sports Gear Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-12",
+          description: "Comfortable sports t-shirt for active lifestyle",
+          features: ["Moisture Wicking", "Breathable Fabric", "Comfort Fit"],
+          brand: "ActiveWear",
+          condition: "new",
+          size: "M",
+          color: "Blue",
+          material: "Polyester",
+          requiresSpecifications: false,
+          rating: 4.0,
+          reviews: 12,
+          type: "product"
         }
       ];
 
@@ -164,6 +374,60 @@ function SearchResultsPage() {
           checkInTime: "14:00",
           checkOutTime: "12:00",
           policies: "Free cancellation 24 hours before check-in",
+          type: "service"
+        },
+        {
+          id: "hotel-2",
+          name: "City View Apartments",
+          category: "Building & Hotels",
+          serviceType: "Luxury Apartment",
+          priceRange: "80-150",
+          currency: "USD",
+          currencySymbol: "$",
+          business: "City Real Estate",
+          location: { lat: -6.7924, lng: 39.2083 },
+          address: "City Center, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-14",
+          description: "Modern apartments with city views and all amenities",
+          amenities: ["Fully Furnished", "Air Conditioning", "Security", "Parking", "Gym"],
+          services: ["Cleaning Service", "Maintenance", "24/7 Security", "Concierge"],
+          contactInfo: "+255 754 123 456 | info@cityviewapartments.com",
+          capacity: "2-4 people per apartment",
+          rating: "4",
+          checkInTime: "15:00",
+          checkOutTime: "11:00",
+          policies: "Minimum 3-night stay",
+          type: "service"
+        },
+        {
+          id: "hotel-3",
+          name: "Beach Resort Zanzibar",
+          category: "Building & Hotels",
+          serviceType: "Resort",
+          priceRange: "200-500",
+          currency: "USD",
+          currencySymbol: "$",
+          business: "Zanzibar Hospitality",
+          location: { lat: -6.1659, lng: 39.2026 },
+          address: "Nungwi Beach, Zanzibar",
+          country: "Tanzania",
+          region: "Zanzibar",
+          city: "Zanzibar",
+          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-13",
+          description: "Luxury beach resort with private beach and spa",
+          amenities: ["Private Beach", "Spa", "Multiple Restaurants", "Swimming Pools", "Water Sports"],
+          services: ["All-Inclusive Packages", "Spa Treatments", "Water Activities", "Airport Transfer"],
+          contactInfo: "+255 777 888 999 | info@beachresortzanzibar.com",
+          capacity: "200 guests, 80 rooms and villas",
+          rating: "5",
+          checkInTime: "14:00",
+          checkOutTime: "12:00",
+          policies: "All-inclusive packages available",
           type: "service"
         }
       ];
@@ -204,26 +468,26 @@ function SearchResultsPage() {
 
     // Add recent searches that match
     recentSearches.forEach(search => {
-      if (search.toLowerCase().includes(queryLower)) {
+      if (fuzzySearch(search, query).match) {
         suggestions.add(search);
       }
     });
 
     // Search through all items
     allItems.forEach(item => {
-      if (item.name.toLowerCase().includes(queryLower)) {
+      if (fuzzySearch(item.name, query).match) {
         suggestions.add(item.name);
       }
-      if (item.category.toLowerCase().includes(queryLower)) {
+      if (fuzzySearch(item.category, query).match) {
         suggestions.add(item.category);
       }
-      if (item.brand && item.brand.toLowerCase().includes(queryLower)) {
+      if (item.brand && fuzzySearch(item.brand, query).match) {
         suggestions.add(item.brand);
       }
-      if (item.businessName && item.businessName.toLowerCase().includes(queryLower)) {
+      if (item.businessName && fuzzySearch(item.businessName, query).match) {
         suggestions.add(item.businessName);
       }
-      if (item.serviceType && item.serviceType.toLowerCase().includes(queryLower)) {
+      if (item.serviceType && fuzzySearch(item.serviceType, query).match) {
         suggestions.add(item.serviceType);
       }
     });
@@ -231,23 +495,33 @@ function SearchResultsPage() {
     return Array.from(suggestions).slice(0, 8);
   }, [allItems, recentSearches]);
 
-  // Perform search
+  // Perform search - IMPROVED WITH BETTER FUZZY SEARCH
   const performSearch = useCallback((query, items) => {
     if (!query.trim()) return items;
 
-    const filtered = items.filter(item =>
-      item.name.toLowerCase().includes(query.toLowerCase()) ||
-      (item.category && item.category.toLowerCase().includes(query.toLowerCase())) ||
-      (item.businessName && item.businessName.toLowerCase().includes(query.toLowerCase())) ||
-      (item.business && item.business.toLowerCase().includes(query.toLowerCase())) ||
-      (item.brand && item.brand.toLowerCase().includes(query.toLowerCase())) ||
-      (item.serviceType && item.serviceType.toLowerCase().includes(query.toLowerCase())) ||
-      (item.description && item.description.toLowerCase().includes(query.toLowerCase())) ||
-      (item.country && item.country.toLowerCase().includes(query.toLowerCase())) ||
-      (item.city && item.city.toLowerCase().includes(query.toLowerCase()))
-    );
+    const filtered = items.map(item => {
+      const searchableText = `
+        ${item.name || ''}
+        ${item.category || ''}
+        ${item.businessName || item.business || ''}
+        ${item.brand || ''}
+        ${item.serviceType || ''}
+        ${item.description || ''}
+        ${item.country || ''}
+        ${item.city || ''}
+        ${item.region || ''}
+      `.toLowerCase();
 
-    return filtered;
+      const searchResult = fuzzySearch(searchableText, query);
+      return {
+        ...item,
+        searchScore: searchResult.score,
+        isFuzzyMatch: searchResult.match && searchResult.score < 0.9
+      };
+    }).filter(item => item.searchScore > 0);
+
+    // Sort by search score (highest first)
+    return filtered.sort((a, b) => b.searchScore - a.searchScore);
   }, []);
 
   // Sort results
@@ -263,7 +537,13 @@ function SearchResultsPage() {
         return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       case "relevance":
       default:
-        return sorted;
+        // For relevance, sort by search score first, then by other factors
+        return sorted.sort((a, b) => {
+          if (b.searchScore !== a.searchScore) {
+            return b.searchScore - a.searchScore;
+          }
+          return (b.rating || 0) - (a.rating || 0);
+        });
     }
   }, []);
 
@@ -314,18 +594,20 @@ function SearchResultsPage() {
     }
   };
 
-  // Handle search suggestion click
+  // Handle search suggestion click - FIXED: Navigate directly to search results
   const handleSuggestionClick = (suggestion) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
-    handleNewSearch(suggestion);
+    setShowSearchPage(false);
+    
+    // Navigate directly to search results page
+    navigate(`/search-results?q=${encodeURIComponent(suggestion)}`);
   };
 
-  // Handle new search - FIXED: No window.location.reload()
+  // Handle new search
   const handleNewSearch = useCallback((query = searchQuery) => {
     if (query.trim() !== "") {
       navigate(`/search-results?q=${encodeURIComponent(query)}`);
-      // Data will update automatically via useEffect
     }
   }, [searchQuery, navigate]);
 
@@ -333,6 +615,7 @@ function SearchResultsPage() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setShowSuggestions(false);
+    setShowSearchPage(false);
     handleNewSearch();
   };
 
@@ -402,285 +685,6 @@ function SearchResultsPage() {
     setSearchQuery("");
     navigate('/search-results');
   };
-
-  // Render item in grid view
-  const renderGridView = (item) => (
-    <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
-      <div 
-        className="card h-100 border-0 shadow-sm product-card"
-        onClick={() => handleViewDetails(item.id)}
-        style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-      >
-        {/* Item Image */}
-        <div className="position-relative overflow-hidden">
-          <img
-            src={getItemImage(item)}
-            className="card-img-top"
-            alt={item.name}
-            style={{ 
-              height: '120px', 
-              objectFit: 'cover',
-              width: '100%'
-            }}
-            onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
-            }}
-          />
-          
-          {/* Category Badge */}
-          <div className="position-absolute top-0 start-0 m-1">
-            <span className={`badge ${getCategoryBadge(item.category)} text-white px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
-              <i className={`fas ${
-                item.category === 'Electronics & Devices' ? 'fa-microchip' :
-                item.category === 'General Goods' ? 'fa-tshirt' :
-                'fa-building'
-              } me-1`} style={{ fontSize: '0.5rem' }}></i>
-              {item.category.split(' ')[0]}
-            </span>
-          </div>
-
-          {/* Rating Badge */}
-          <div className="position-absolute top-0 end-0 m-1">
-            <span className="badge bg-dark bg-opacity-75 text-white px-1 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
-              <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
-              {item.rating || '4.0'}
-            </span>
-          </div>
-
-          {/* Stock Status for Products */}
-          {item.type === 'product' && (
-            <div className="position-absolute bottom-0 start-0 m-1">
-              <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
-                <i className={`fas ${item.stock > 0 ? 'fa-check' : 'fa-times'} me-1`} style={{ fontSize: '0.5rem' }}></i>
-                {item.stock > 0 ? 'In Stock' : 'Out'}
-              </span>
-            </div>
-          )}
-
-          {/* Service Type Badge */}
-          {item.type === 'service' && (
-            <div className="position-absolute bottom-0 start-0 m-1">
-              <span className="badge bg-info px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
-                <i className="fas fa-concierge-bell me-1" style={{ fontSize: '0.5rem' }}></i>
-                {item.serviceType}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Card Body */}
-        <div className="card-body d-flex flex-column p-2">
-          {/* Item Name and Business */}
-          <div className="mb-2">
-            <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
-              {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
-            </h6>
-            <div className="d-flex align-items-center text-muted">
-              <i className="fas fa-store me-1 text-primary" style={{ fontSize: '0.6rem' }}></i>
-              <span className="small" style={{ fontSize: '0.65rem' }}>{item.businessName || item.business}</span>
-            </div>
-          </div>
-
-          {/* Price and Rating */}
-          <div className="mb-2">
-            <div className="d-flex justify-content-between align-items-center">
-              <h6 className="text-primary fw-bold mb-0" style={{ fontSize: '0.8rem' }}>
-                {formatPrice(item)}
-              </h6>
-              <div className="d-flex align-items-center">
-                <div className="me-1">
-                  {renderStars(item.rating)}
-                </div>
-                <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                  ({item.reviews || 0})
-                </small>
-              </div>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div className="mt-auto">
-            <div className="d-flex align-items-center text-muted">
-              <i className="fas fa-map-marker-alt me-1 text-danger" style={{ fontSize: '0.6rem' }}></i>
-              <span className="small" style={{ fontSize: '0.65rem' }}>{item.city}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="card-footer bg-transparent border-0 p-2 pt-0">
-          <div className="d-grid gap-1">
-            <button
-              className="btn btn-primary btn-sm rounded-pill py-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewDetails(item.id);
-              }}
-              style={{ fontSize: '0.7rem' }}
-            >
-              <i className="fas fa-eye me-1"></i>
-              View
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Render item in list view
-  const renderListView = (item, index) => (
-    <div key={item.id} className={`${window.innerWidth >= 768 ? 'col-lg-6' : 'col-12'} mb-3`}>
-      <div 
-        className="card border-0 shadow-sm product-card h-100"
-        onClick={() => handleViewDetails(item.id)}
-        style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-      >
-        <div className="row g-0 h-100" style={{ margin: '0' }}>
-          {/* Item Image - WIDER IMAGE */}
-          <div className="col-5 col-md-4 position-relative" style={{ padding: '0', margin: '0' }}>
-            <div 
-              className="h-100 w-100 bg-white position-relative"
-              style={{ 
-                height: '100%',
-                minHeight: '140px',
-                padding: '0',
-                margin: '0'
-              }}
-            >
-              <img
-                src={getItemImage(item)}
-                className="h-100 w-100"
-                alt={item.name}
-                style={{ 
-                  objectFit: 'cover',
-                  display: 'block',
-                  padding: '0',
-                  margin: '0',
-                  width: '100%',
-                  height: '100%'
-                }}
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
-                }}
-              />
-              
-              {/* Category Badge */}
-              <div className="position-absolute top-0 start-0 m-1">
-                <span className={`badge ${getCategoryBadge(item.category)} text-white px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
-                  <i className={`fas ${
-                    item.category === 'Electronics & Devices' ? 'fa-microchip' :
-                    item.category === 'General Goods' ? 'fa-tshirt' :
-                    'fa-building'
-                  } me-1`} style={{ fontSize: '0.5rem' }}></i>
-                  {item.category.split(' ')[0]}
-                </span>
-              </div>
-
-              {/* Rating Badge */}
-              <div className="position-absolute top-0 end-0 m-1">
-                <span className="badge bg-dark bg-opacity-75 text-white px-1 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
-                  <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
-                  {item.rating || '4.0'}
-                </span>
-              </div>
-
-              {/* Stock Status for Products */}
-              {item.type === 'product' && (
-                <div className="position-absolute bottom-0 start-0 m-1">
-                  <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
-                    <i className={`fas ${item.stock > 0 ? 'fa-check' : 'fa-times'} me-1`} style={{ fontSize: '0.5rem' }}></i>
-                    {item.stock > 0 ? 'In Stock' : 'Out'}
-                  </span>
-                </div>
-              )}
-
-              {/* Service Type Badge */}
-              {item.type === 'service' && (
-                <div className="position-absolute bottom-0 start-0 m-1">
-                  <span className="badge bg-info px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
-                    <i className="fas fa-concierge-bell me-1" style={{ fontSize: '0.5rem' }}></i>
-                    {item.serviceType}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Item Details */}
-          <div className="col-7 col-md-8">
-            <div className="card-body h-100 d-flex flex-column p-2 p-md-3" style={{ padding: '0.5rem' }}>
-              <div className="flex-grow-1">
-                <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.85rem', lineHeight: '1.2', marginBottom: '0.25rem' }}>
-                  {item.name}
-                </h6>
-                <div className="d-flex align-items-center text-muted mb-1" style={{ marginBottom: '0.25rem' }}>
-                  <i className="fas fa-store me-1 text-primary" style={{ fontSize: '0.6rem' }}></i>
-                  <span className="small" style={{ fontSize: '0.7rem' }}>{item.businessName || item.business}</span>
-                </div>
-                
-                <p className="card-text text-muted small mb-2" style={{ fontSize: '0.7rem', lineHeight: '1.2', marginBottom: '0.5rem' }}>
-                  {item.description && item.description.length > 80 
-                    ? `${item.description.substring(0, 80)}...` 
-                    : item.description}
-                </p>
-
-                <div className="d-flex flex-wrap gap-1 mb-2" style={{ marginBottom: '0.5rem' }}>
-                  {/* Location */}
-                  <span className="badge bg-light text-dark px-2 py-1" style={{ fontSize: '0.6rem' }}>
-                    <i className="fas fa-map-marker-alt me-1 text-danger"></i>
-                    {item.city}
-                  </span>
-
-                  {/* Additional badges for list view */}
-                  {item.brand && (
-                    <span className="badge bg-secondary text-white px-2 py-1" style={{ fontSize: '0.6rem' }}>
-                      <i className="fas fa-tag me-1"></i>
-                      {item.brand}
-                    </span>
-                  )}
-
-                  {item.condition && (
-                    <span className="badge bg-warning text-dark px-2 py-1" style={{ fontSize: '0.6rem' }}>
-                      <i className="fas fa-certificate me-1"></i>
-                      {item.condition}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="d-flex justify-content-between align-items-center mt-auto">
-                <div>
-                  <h6 className="text-primary fw-bold mb-0" style={{ fontSize: '0.8rem', marginBottom: '0' }}>
-                    {formatPrice(item)}
-                  </h6>
-                  <div className="d-flex align-items-center">
-                    <div className="me-1">
-                      {renderStars(item.rating)}
-                    </div>
-                    <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                      ({item.reviews || 0})
-                    </small>
-                  </div>
-                </div>
-                
-                <button
-                  className="btn btn-primary btn-sm rounded-pill px-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleViewDetails(item.id);
-                  }}
-                  style={{ fontSize: '0.65rem', padding: '0.25rem 0.5rem' }}
-                >
-                  <i className="fas fa-eye me-1"></i>
-                  View
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   // Search Page Component
   const SearchPage = () => {
@@ -835,7 +839,7 @@ function SearchResultsPage() {
   }
 
   return (
-    <div className="min-vh-100 bg-light">
+    <div className="min-vh-100" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
       {/* Header with Search Bar */}
       <div className="bg-white shadow-sm sticky-top">
         <div className="container-fluid py-3">
@@ -903,7 +907,7 @@ function SearchResultsPage() {
             </div>
             
             <div className="col-auto">
-              <span className="badge bg-primary fs-6">
+              <span className="badge custom-primary-bg fs-6">
                 {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'}
               </span>
             </div>
@@ -924,7 +928,7 @@ function SearchResultsPage() {
             </p>
             <div className="d-flex gap-3 justify-content-center">
               <button
-                className="btn btn-primary btn-lg rounded-pill px-4"
+                className="btn custom-primary-btn btn-lg rounded-pill px-4"
                 onClick={handleClearSearch}
               >
                 <i className="fas fa-backspace me-2"></i>
@@ -948,6 +952,7 @@ function SearchResultsPage() {
                   <div>
                     <h5 className="text-dark fw-bold mb-1">
                       Showing {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'}
+                      {searchResults.some(item => item.isFuzzyMatch) && " (showing similar matches)"}
                     </h5>
                     {searchQuery && (
                       <p className="text-muted mb-0">for "<strong>{searchQuery}</strong>"</p>
@@ -975,7 +980,7 @@ function SearchResultsPage() {
                     <div className="btn-group view-mode-toggle" role="group">
                       <button
                         type="button"
-                        className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'} d-flex align-items-center gap-2`}
+                        className={`btn ${viewMode === 'grid' ? 'custom-primary-btn' : 'btn-outline-primary'} d-flex align-items-center gap-2`}
                         onClick={() => setViewMode('grid')}
                         title="Grid View"
                         style={{ 
@@ -989,7 +994,7 @@ function SearchResultsPage() {
                       </button>
                       <button
                         type="button"
-                        className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'} d-flex align-items-center gap-2`}
+                        className={`btn ${viewMode === 'list' ? 'custom-primary-btn' : 'btn-outline-primary'} d-flex align-items-center gap-2`}
                         onClick={() => setViewMode('list')}
                         title="List View"
                         style={{ 
@@ -1017,10 +1022,7 @@ function SearchResultsPage() {
             {/* Load More Button (for future pagination) */}
             {searchResults.length > 0 && (
               <div className="text-center mt-4">
-                <button className="btn btn-outline-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2 mx-auto">
-                  <i className="fas fa-sync"></i>
-                  <span>Load More Results</span>
-                </button>
+                
               </div>
             )}
           </>
@@ -1029,14 +1031,18 @@ function SearchResultsPage() {
 
       {/* Custom Styles */}
       <style jsx>{`
+        .custom-primary-bg {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
         .custom-primary-btn {
-          background-color: #0F5B78 !important;
-          border-color: #0F5B78 !important;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          border: none !important;
           color: white !important;
         }
         .custom-primary-btn:hover {
-          background-color: #0d4a63 !important;
-          border-color: #0d4a63 !important;
+          background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
         .product-card {
@@ -1047,22 +1053,18 @@ function SearchResultsPage() {
           box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
         }
         
-        .bg-light {
-          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-        }
-        
         .card {
           border-radius: 10px !important;
           overflow: hidden;
         }
         
         .btn-primary {
-          background: linear-gradient(135deg, #0F5B78 0%, #0d4a63 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           border: none;
         }
         
         .btn-primary:hover {
-          background: linear-gradient(135deg, #0d4a63 0%, #0b3d52 100%);
+          background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
           transform: translateY(-1px);
         }
 
@@ -1086,8 +1088,8 @@ function SearchResultsPage() {
           transform: translateY(-1px);
         }
         
-        .view-mode-toggle .btn-primary {
-          box-shadow: 0 2px 8px rgba(15, 91, 120, 0.3);
+        .view-mode-toggle .custom-primary-btn {
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         /* Mobile Optimizations */
@@ -1157,6 +1159,308 @@ function SearchResultsPage() {
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
+
+  // Helper functions for rendering items
+  function renderGridView(item) {
+    return (
+      <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
+        <div 
+          className="card h-100 border-0 shadow-sm product-card"
+          onClick={() => handleViewDetails(item.id)}
+          style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+        >
+          {/* Item Image */}
+          <div className="position-relative overflow-hidden">
+            <img
+              src={getItemImage(item)}
+              className="card-img-top"
+              alt={item.name}
+              style={{ 
+                height: '120px', 
+                objectFit: 'cover',
+                width: '100%'
+              }}
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+              }}
+            />
+            
+            {/* Category Badge */}
+            <div className="position-absolute top-0 start-0 m-1">
+              <span className={`badge ${getCategoryBadge(item.category)} text-white px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
+                <i className={`fas ${
+                  item.category === 'Electronics & Devices' ? 'fa-microchip' :
+                  item.category === 'General Goods' ? 'fa-tshirt' :
+                  'fa-building'
+                } me-1`} style={{ fontSize: '0.5rem' }}></i>
+                {item.category.split(' ')[0]}
+              </span>
+            </div>
+
+            {/* Rating Badge */}
+            <div className="position-absolute top-0 end-0 m-1">
+              <span className="badge bg-dark bg-opacity-75 text-white px-1 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
+                {item.rating || '4.0'}
+              </span>
+            </div>
+
+            {/* Fuzzy Match Indicator */}
+            {item.isFuzzyMatch && (
+              <div className="position-absolute top-50 start-50 translate-middle">
+                <span className="badge bg-info text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.5rem' }}>
+                  <i className="fas fa-lightbulb me-1"></i>
+                  Similar
+                </span>
+              </div>
+            )}
+
+            {/* Stock Status for Products */}
+            {item.type === 'product' && (
+              <div className="position-absolute bottom-0 start-0 m-1">
+                <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
+                  <i className={`fas ${item.stock > 0 ? 'fa-check' : 'fa-times'} me-1`} style={{ fontSize: '0.5rem' }}></i>
+                  {item.stock > 0 ? 'In Stock' : 'Out'}
+                </span>
+              </div>
+            )}
+
+            {/* Service Type Badge */}
+            {item.type === 'service' && (
+              <div className="position-absolute bottom-0 start-0 m-1">
+                <span className="badge bg-info px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                  <i className="fas fa-concierge-bell me-1" style={{ fontSize: '0.5rem' }}></i>
+                  {item.serviceType}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Card Body */}
+          <div className="card-body d-flex flex-column p-2">
+            {/* Item Name and Business */}
+            <div className="mb-2">
+              <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
+              </h6>
+              <div className="d-flex align-items-center text-muted">
+                <i className="fas fa-store me-1 text-primary" style={{ fontSize: '0.6rem' }}></i>
+                <span className="small" style={{ fontSize: '0.65rem' }}>{item.businessName || item.business}</span>
+              </div>
+            </div>
+
+            {/* Price and Rating */}
+            <div className="mb-2">
+              <div className="d-flex justify-content-between align-items-center">
+                <h6 className="text-primary fw-bold mb-0" style={{ fontSize: '0.8rem' }}>
+                  {formatPrice(item)}
+                </h6>
+                <div className="d-flex align-items-center">
+                  <div className="me-1">
+                    {renderStars(item.rating)}
+                  </div>
+                  <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                    ({item.reviews || 0})
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            {/* Location */}
+            <div className="mt-auto">
+              <div className="d-flex align-items-center text-muted">
+                <i className="fas fa-map-marker-alt me-1 text-danger" style={{ fontSize: '0.6rem' }}></i>
+                <span className="small" style={{ fontSize: '0.65rem' }}>{item.city}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="card-footer bg-transparent border-0 p-2 pt-0">
+            <div className="d-grid gap-1">
+              <button
+                className="btn custom-primary-btn btn-sm rounded-pill py-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewDetails(item.id);
+                }}
+                style={{ fontSize: '0.7rem' }}
+              >
+                <i className="fas fa-eye me-1"></i>
+                View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderListView(item, index) {
+    return (
+      <div key={item.id} className={`${window.innerWidth >= 768 ? 'col-lg-6' : 'col-12'} mb-3`}>
+        <div 
+          className="card border-0 shadow-sm product-card h-100"
+          onClick={() => handleViewDetails(item.id)}
+          style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+        >
+          <div className="row g-0 h-100" style={{ margin: '0' }}>
+            {/* Item Image - WIDER IMAGE */}
+            <div className="col-5 col-md-4 position-relative" style={{ padding: '0', margin: '0' }}>
+              <div 
+                className="h-100 w-100 bg-white position-relative"
+                style={{ 
+                  height: '100%',
+                  minHeight: '140px',
+                  padding: '0',
+                  margin: '0'
+                }}
+              >
+                <img
+                  src={getItemImage(item)}
+                  className="h-100 w-100"
+                  alt={item.name}
+                  style={{ 
+                    objectFit: 'cover',
+                    display: 'block',
+                    padding: '0',
+                    margin: '0',
+                    width: '100%',
+                    height: '100%'
+                  }}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+                  }}
+                />
+                
+                {/* Category Badge */}
+                <div className="position-absolute top-0 start-0 m-1">
+                  <span className={`badge ${getCategoryBadge(item.category)} text-white px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
+                    <i className={`fas ${
+                      item.category === 'Electronics & Devices' ? 'fa-microchip' :
+                      item.category === 'General Goods' ? 'fa-tshirt' :
+                      'fa-building'
+                    } me-1`} style={{ fontSize: '0.5rem' }}></i>
+                    {item.category.split(' ')[0]}
+                  </span>
+                </div>
+
+                {/* Rating Badge */}
+                <div className="position-absolute top-0 end-0 m-1">
+                  <span className="badge bg-dark bg-opacity-75 text-white px-1 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                    <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
+                    {item.rating || '4.0'}
+                  </span>
+                </div>
+
+                {/* Fuzzy Match Indicator */}
+                {item.isFuzzyMatch && (
+                  <div className="position-absolute top-50 start-50 translate-middle">
+                    <span className="badge bg-info text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.5rem' }}>
+                      <i className="fas fa-lightbulb me-1"></i>
+                      Similar Match
+                    </span>
+                  </div>
+                )}
+
+                {/* Stock Status for Products */}
+                {item.type === 'product' && (
+                  <div className="position-absolute bottom-0 start-0 m-1">
+                    <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
+                      <i className={`fas ${item.stock > 0 ? 'fa-check' : 'fa-times'} me-1`} style={{ fontSize: '0.5rem' }}></i>
+                      {item.stock > 0 ? 'In Stock' : 'Out'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Service Type Badge */}
+                {item.type === 'service' && (
+                  <div className="position-absolute bottom-0 start-0 m-1">
+                    <span className="badge bg-info px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                      <i className="fas fa-concierge-bell me-1" style={{ fontSize: '0.5rem' }}></i>
+                      {item.serviceType}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Item Details */}
+            <div className="col-7 col-md-8">
+              <div className="card-body h-100 d-flex flex-column p-2 p-md-3" style={{ padding: '0.5rem' }}>
+                <div className="flex-grow-1">
+                  <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.85rem', lineHeight: '1.2', marginBottom: '0.25rem' }}>
+                    {item.name}
+                  </h6>
+                  <div className="d-flex align-items-center text-muted mb-1" style={{ marginBottom: '0.25rem' }}>
+                    <i className="fas fa-store me-1 text-primary" style={{ fontSize: '0.6rem' }}></i>
+                    <span className="small" style={{ fontSize: '0.7rem' }}>{item.businessName || item.business}</span>
+                  </div>
+                  
+                  <p className="card-text text-muted small mb-2" style={{ fontSize: '0.7rem', lineHeight: '1.2', marginBottom: '0.5rem' }}>
+                    {item.description && item.description.length > 80 
+                      ? `${item.description.substring(0, 80)}...` 
+                      : item.description}
+                  </p>
+
+                  <div className="d-flex flex-wrap gap-1 mb-2" style={{ marginBottom: '0.5rem' }}>
+                    {/* Location */}
+                    <span className="badge bg-light text-dark px-2 py-1" style={{ fontSize: '0.6rem' }}>
+                      <i className="fas fa-map-marker-alt me-1 text-danger"></i>
+                      {item.city}
+                    </span>
+
+                    {/* Additional badges for list view */}
+                    {item.brand && (
+                      <span className="badge bg-secondary text-white px-2 py-1" style={{ fontSize: '0.6rem' }}>
+                        <i className="fas fa-tag me-1"></i>
+                        {item.brand}
+                      </span>
+                    )}
+
+                    {item.condition && (
+                      <span className="badge bg-warning text-dark px-2 py-1" style={{ fontSize: '0.6rem' }}>
+                        <i className="fas fa-certificate me-1"></i>
+                        {item.condition}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-between align-items-center mt-auto">
+                  <div>
+                    <h6 className="text-primary fw-bold mb-0" style={{ fontSize: '0.8rem', marginBottom: '0' }}>
+                      {formatPrice(item)}
+                    </h6>
+                    <div className="d-flex align-items-center">
+                      <div className="me-1">
+                        {renderStars(item.rating)}
+                      </div>
+                      <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                        ({item.reviews || 0})
+                      </small>
+                    </div>
+                  </div>
+                  
+                  <button
+                    className="btn custom-primary-btn btn-sm rounded-pill px-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewDetails(item.id);
+                    }}
+                    style={{ fontSize: '0.65rem', padding: '0.25rem 0.5rem' }}
+                  >
+                    <i className="fas fa-eye me-1"></i>
+                    View
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
 export default SearchResultsPage;

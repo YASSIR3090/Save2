@@ -1,16 +1,17 @@
-// src/ProductDetailPage.jsx - IMPROVED & COMPLETE VERSION
+// src/ProductDetailPage.jsx - WITH AUTOPLAY CONTROLLED CAROUSEL
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { Carousel } from 'react-bootstrap';
 
 function ProductDetailPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [relatedItems, setRelatedItems] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState("details");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0); // For controlled carousel
 
   // Countries and Currencies
   const countries = [
@@ -390,6 +391,16 @@ function ProductDetailPage() {
     loadItemData();
   }, [loadItemData]);
 
+  // Handle carousel selection
+  const handleSelect = (selectedIndex, e) => {
+    setActiveIndex(selectedIndex);
+  };
+
+  // Handle manual image navigation
+  const handleImageNavigation = (index) => {
+    setActiveIndex(index);
+  };
+
   const getItemImages = (item) => {
     if (item && item.images && item.images.length > 0) {
       return item.images;
@@ -609,39 +620,87 @@ function ProductDetailPage() {
         </div>
 
         <div className="row g-4">
-          {/* Item Images */}
+          {/* Item Images - NOW USING AUTOPLAY CONTROLLED CAROUSEL */}
           <div className="col-lg-6">
             <div className="card border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <div className="text-center mb-3">
-                  <img 
-                    src={itemImages[selectedImage]} 
-                    alt={item.name}
-                    className="img-fluid rounded-3"
-                    style={{ maxHeight: '400px', objectFit: 'contain', width: '100%' }}
-                    onError={(e) => {
-                      e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800';
-                    }}
-                  />
-                </div>
-                
-                {/* Image Thumbnails */}
-                {itemImages.length > 1 && (
-                  <div className="row g-2">
-                    {itemImages.map((img, index) => (
-                      <div key={index} className="col-3">
-                        <img
-                          src={img}
-                          alt={`${item.name} view ${index + 1}`}
-                          className={`img-thumbnail cursor-pointer ${selectedImage === index ? `border-${categoryColor}` : ''}`}
-                          style={{ height: '80px', objectFit: 'cover', width: '100%' }}
-                          onClick={() => setSelectedImage(index)}
+                {/* Main Carousel with Autoplay */}
+                <Carousel 
+                  activeIndex={activeIndex}
+                  onSelect={handleSelect}
+                  interval={3000} // 3 seconds autoplay
+                  indicators={false}
+                  controls={itemImages.length > 1}
+                  touch={true}
+                  wrap={true}
+                  pause={false} // Continue autoplay on hover
+                >
+                  {itemImages.map((img, index) => (
+                    <Carousel.Item key={index}>
+                      <div className="text-center" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img 
+                          src={img} 
+                          alt={`${item.name} - View ${index + 1}`}
+                          className="img-fluid rounded-3"
+                          style={{ 
+                            maxHeight: '400px', 
+                            objectFit: 'contain', 
+                            width: '100%' 
+                          }}
                           onError={(e) => {
-                            e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
+                            e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800';
                           }}
                         />
                       </div>
-                    ))}
+                    </Carousel.Item>
+                  ))}
+                </Carousel>
+
+                {/* Custom Image Navigation - Thumbnails */}
+                {itemImages.length > 1 && (
+                  <div className="mt-3">
+                    <div className="d-flex justify-content-center flex-wrap gap-2">
+                      {itemImages.map((img, index) => (
+                        <div 
+                          key={index}
+                          className={`cursor-pointer border rounded-2 p-1 ${activeIndex === index ? 'border-primary border-2' : 'border-secondary'}`}
+                          onClick={() => handleImageNavigation(index)}
+                          style={{ 
+                            width: '60px', 
+                            height: '60px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          <img 
+                            src={img} 
+                            alt={`Thumbnail ${index + 1}`}
+                            className="img-fluid rounded-1"
+                            style={{ 
+                              width: '100%', 
+                              height: '100%', 
+                              objectFit: 'cover' 
+                            }}
+                            onError={(e) => {
+                              e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=150';
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Image Counter */}
+                    <div className="text-center mt-2">
+                      <small className="text-muted">
+                        Image {activeIndex + 1} of {itemImages.length}
+                      </small>
+                    </div>
                   </div>
                 )}
 
@@ -829,8 +888,8 @@ function ProductDetailPage() {
                   {item.requiresSpecifications && (
                     <li className="nav-item">
                       <button 
-                        className={`nav-link ${activeTab === 'specifications' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('specifications')}
+                        className={`nav-link ${activeTab === 'specs' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('specs')}
                       >
                         <i className="fas fa-list-alt me-2"></i>
                         Specifications
@@ -839,219 +898,135 @@ function ProductDetailPage() {
                   )}
                   <li className="nav-item">
                     <button 
-                      className={`nav-link ${activeTab === 'reviews' ? 'active' : ''}`}
-                      onClick={() => setActiveTab('reviews')}
+                      className={`nav-link ${activeTab === 'features' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('features')}
                     >
                       <i className="fas fa-star me-2"></i>
-                      Reviews ({item.reviews || 0})
+                      Features
                     </button>
                   </li>
+                  {item.type === 'service' && (
+                    <li className="nav-item">
+                      <button 
+                        className={`nav-link ${activeTab === 'amenities' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('amenities')}
+                      >
+                        <i className="fas fa-concierge-bell me-2"></i>
+                        Amenities & Services
+                      </button>
+                    </li>
+                  )}
                 </ul>
               </div>
-              <div className="card-body">
-                {/* Details Tab */}
+              <div className="card-body p-4">
                 {activeTab === 'details' && (
                   <div>
                     <h5 className="fw-bold mb-3">Description</h5>
-                    <p className="text-muted mb-4">{item.description}</p>
-                    
-                    {item.type === 'service' && (
-                      <>
-                        {item.amenities && (
-                          <div className="mb-4">
-                            <h6 className="fw-bold mb-3">
-                              <i className="fas fa-check-circle me-2 text-success"></i>
-                              Amenities
-                            </h6>
-                            <div className="row">
-                              {item.amenities.map((amenity, index) => (
-                                <div key={index} className="col-md-6 mb-2">
-                                  <i className="fas fa-check text-success me-2"></i>
-                                  {amenity}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {item.services && (
-                          <div className="mb-4">
-                            <h6 className="fw-bold mb-3">
-                              <i className="fas fa-concierge-bell me-2 text-primary"></i>
-                              Services
-                            </h6>
-                            <div className="row">
-                              {item.services.map((service, index) => (
-                                <div key={index} className="col-md-6 mb-2">
-                                  <i className="fas fa-arrow-right text-primary me-2"></i>
-                                  {service}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {item.policies && (
-                          <div>
-                            <h6 className="fw-bold mb-3">
-                              <i className="fas fa-file-alt me-2 text-warning"></i>
-                              Policies
-                            </h6>
-                            <pre className="text-muted small" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
-                              {item.policies}
-                            </pre>
-                          </div>
-                        )}
-                      </>
+                    <p className="text-muted" style={{ lineHeight: '1.8' }}>
+                      {item.description || 'No description available.'}
+                    </p>
+                    {item.type === 'service' && item.policies && (
+                      <div className="mt-4">
+                        <h6 className="fw-bold">Policies</h6>
+                        <pre className="text-muted small" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+                          {item.policies}
+                        </pre>
+                      </div>
                     )}
-                    
-                    {item.type === 'product' && item.features && (
-                      <div>
-                        <h6 className="fw-bold mb-3">
-                          <i className="fas fa-star me-2 text-warning"></i>
-                          Key Features
-                        </h6>
+                  </div>
+                )}
+
+                {activeTab === 'specs' && item.specifications && (
+                  <div>
+                    <h5 className="fw-bold mb-3">Technical Specifications</h5>
+                    <div className="row">
+                      {item.specifications.map((spec, index) => {
+                        const { key, value } = formatSpecification(spec);
+                        return (
+                          <div key={index} className="col-md-6 mb-3">
+                            <div className="d-flex justify-content-between border-bottom pb-2">
+                              <span className="fw-medium text-muted">{key}</span>
+                              <span className="fw-bold text-dark">{value}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'features' && (
+                  <div>
+                    <h5 className="fw-bold mb-3">
+                      {item.type === 'service' ? 'Services & Features' : 'Product Features'}
+                    </h5>
+                    <div className="row">
+                      {(item.features || []).map((feature, index) => (
+                        <div key={index} className="col-md-6 mb-2">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-check-circle text-success me-2"></i>
+                            <span>{feature}</span>
+                          </div>
+                        </div>
+                      ))}
+                      {item.size && (
+                        <div className="col-md-6 mb-2">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-ruler-combined text-primary me-2"></i>
+                            <span>Size: {item.size}</span>
+                          </div>
+                        </div>
+                      )}
+                      {item.color && (
+                        <div className="col-md-6 mb-2">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-palette text-warning me-2"></i>
+                            <span>Color: {item.color}</span>
+                          </div>
+                        </div>
+                      )}
+                      {item.material && (
+                        <div className="col-md-6 mb-2">
+                          <div className="d-flex align-items-center">
+                            <i className="fas fa-cube text-info me-2"></i>
+                            <span>Material: {item.material}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'amenities' && item.type === 'service' && (
+                  <div>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <h6 className="fw-bold mb-3">Amenities</h6>
                         <div className="row">
-                          {item.features.map((feature, index) => (
-                            <div key={index} className="col-md-6 mb-2">
-                              <i className="fas fa-check text-success me-2"></i>
-                              {feature}
+                          {(item.amenities || []).map((amenity, index) => (
+                            <div key={index} className="col-12 mb-2">
+                              <div className="d-flex align-items-center">
+                                <i className="fas fa-check text-success me-2"></i>
+                                <span>{amenity}</span>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Specifications Tab */}
-                {activeTab === 'specifications' && item.requiresSpecifications && (
-                  <div>
-                    <h5 className="fw-bold mb-4">Technical Specifications</h5>
-                    {item.specifications && item.specifications.length > 0 ? (
-                      <div className="table-responsive">
-                        <table className="table table-striped">
-                          <tbody>
-                            {item.specifications.map((spec, index) => {
-                              const { key, value } = formatSpecification(spec);
-                              return (
-                                <tr key={index}>
-                                  <td className="fw-bold text-dark" style={{ width: '40%' }}>{key}</td>
-                                  <td className="text-muted">{value}</td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <i className="fas fa-info-circle fa-2x text-muted mb-3"></i>
-                        <p className="text-muted">No specifications available for this item.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Reviews Tab */}
-                {activeTab === 'reviews' && (
-                  <div>
-                    <h5 className="fw-bold mb-4">Customer Reviews</h5>
-                    {item.reviews && item.reviews > 0 ? (
-                      <div>
-                        <div className="d-flex align-items-center mb-4">
-                          <div className="me-4 text-center">
-                            <h2 className="fw-bold text-primary">{item.rating || 4.0}</h2>
-                            <div className="mb-2">
-                              {renderStars(item.rating || 4.0)}
-                            </div>
-                            <small className="text-muted">Based on {item.reviews} reviews</small>
-                          </div>
-                          <div className="flex-grow-1">
-                            <div className="d-flex align-items-center mb-1">
-                              <small className="text-nowrap me-2">5 stars</small>
-                              <div className="progress flex-grow-1" style={{ height: '8px' }}>
-                                <div className="progress-bar bg-warning" style={{ width: '70%' }}></div>
-                              </div>
-                              <small className="text-muted ms-2">70%</small>
-                            </div>
-                            <div className="d-flex align-items-center mb-1">
-                              <small className="text-nowrap me-2">4 stars</small>
-                              <div className="progress flex-grow-1" style={{ height: '8px' }}>
-                                <div className="progress-bar bg-warning" style={{ width: '20%' }}></div>
-                              </div>
-                              <small className="text-muted ms-2">20%</small>
-                            </div>
-                            <div className="d-flex align-items-center mb-1">
-                              <small className="text-nowrap me-2">3 stars</small>
-                              <div className="progress flex-grow-1" style={{ height: '8px' }}>
-                                <div className="progress-bar bg-warning" style={{ width: '7%' }}></div>
-                              </div>
-                              <small className="text-muted ms-2">7%</small>
-                            </div>
-                            <div className="d-flex align-items-center mb-1">
-                              <small className="text-nowrap me-2">2 stars</small>
-                              <div className="progress flex-grow-1" style={{ height: '8px' }}>
-                                <div className="progress-bar bg-warning" style={{ width: '2%' }}></div>
-                              </div>
-                              <small className="text-muted ms-2">2%</small>
-                            </div>
-                            <div className="d-flex align-items-center">
-                              <small className="text-nowrap me-2">1 star</small>
-                              <div className="progress flex-grow-1" style={{ height: '8px' }}>
-                                <div className="progress-bar bg-warning" style={{ width: '1%' }}></div>
-                              </div>
-                              <small className="text-muted ms-2">1%</small>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Sample Reviews */}
-                        <div className="border-top pt-4">
-                          <div className="d-flex mb-4">
-                            <div className="flex-shrink-0">
-                              <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px' }}>
-                                <i className="fas fa-user"></i>
+                      <div className="col-md-6">
+                        <h6 className="fw-bold mb-3">Services</h6>
+                        <div className="row">
+                          {(item.services || []).map((service, index) => (
+                            <div key={index} className="col-12 mb-2">
+                              <div className="d-flex align-items-center">
+                                <i className="fas fa-concierge-bell text-primary me-2"></i>
+                                <span>{service}</span>
                               </div>
                             </div>
-                            <div className="flex-grow-1 ms-3">
-                              <div className="d-flex justify-content-between align-items-center mb-2">
-                                <h6 className="mb-0 fw-bold">John M.</h6>
-                                <small className="text-muted">2 weeks ago</small>
-                              </div>
-                              <div className="mb-2">
-                                {renderStars(5)}
-                              </div>
-                              <p className="text-muted mb-0">Excellent product! Fast delivery and great quality. Highly recommended!</p>
-                            </div>
-                          </div>
-                          
-                          <div className="d-flex">
-                            <div className="flex-shrink-0">
-                              <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px' }}>
-                                <i className="fas fa-user"></i>
-                              </div>
-                            </div>
-                            <div className="flex-grow-1 ms-3">
-                              <div className="d-flex justify-content-between align-items-center mb-2">
-                                <h6 className="mb-0 fw-bold">Sarah K.</h6>
-                                <small className="text-muted">1 month ago</small>
-                              </div>
-                              <div className="mb-2">
-                                {renderStars(4)}
-                              </div>
-                              <p className="text-muted mb-0">Good quality and value for money. Would buy again from this seller.</p>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <i className="fas fa-comment-slash fa-2x text-muted mb-3"></i>
-                        <h6 className="text-muted">No reviews yet</h6>
-                        <p className="text-muted small">Be the first to review this item!</p>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1061,92 +1036,70 @@ function ProductDetailPage() {
 
         {/* Related Items */}
         {relatedItems.length > 0 && (
-          <div className="row mt-5">
+          <div className="row mt-4">
             <div className="col-12">
-              <h4 className="fw-bold mb-4">
-                <i className="fas fa-th-large me-2"></i>
-                Related Items
-              </h4>
-              <div className="row g-4">
-                {relatedItems.map((relatedItem) => (
-                  <div key={relatedItem.id} className="col-md-6 col-lg-3">
-                    <div className="card h-100 border-0 shadow-sm rounded-4 hover-lift">
-                      <img 
-                        src={getItemImages(relatedItem)[0]} 
-                        alt={relatedItem.name}
-                        className="card-img-top rounded-top-4"
-                        style={{ height: '200px', objectFit: 'cover' }}
-                        onError={(e) => {
-                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800';
-                        }}
-                      />
-                      <div className="card-body d-flex flex-column">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <h6 className="card-title fw-bold text-dark mb-1">{relatedItem.name}</h6>
-                          <span className="badge bg-light text-dark small">
-                            {getCountryFlag(relatedItem.country)}
-                          </span>
-                        </div>
-                        <p className="card-text small text-muted flex-grow-1">
-                          {relatedItem.description?.substring(0, 80)}...
-                        </p>
-                        <div className="d-flex justify-content-between align-items-center mt-auto">
-                          <span className="fw-bold text-primary">
-                            {formatPrice(relatedItem)}
-                          </span>
-                          <button 
-                            className="btn btn-sm btn-outline-primary"
-                            onClick={() => navigate(`/product/${relatedItem.id}`)}
-                          >
-                            View
-                          </button>
+              <div className="card border-0 shadow-sm rounded-4">
+                <div className="card-header bg-white border-0">
+                  <h5 className="fw-bold mb-0">
+                    <i className="fas fa-th-large me-2"></i>
+                    Related Items
+                  </h5>
+                </div>
+                <div className="card-body">
+                  <div className="row g-3">
+                    {relatedItems.map(relatedItem => (
+                      <div key={relatedItem.id} className="col-md-6 col-lg-3">
+                        <div 
+                          className="card h-100 border-0 shadow-sm rounded-3 cursor-pointer"
+                          onClick={() => navigate(`/product/${relatedItem.id}`)}
+                          style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                          <div className="position-relative">
+                            <img 
+                              src={getItemImages(relatedItem)[0]} 
+                              className="card-img-top rounded-top-3"
+                              alt={relatedItem.name}
+                              style={{ height: '200px', objectFit: 'cover' }}
+                              onError={(e) => {
+                                e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800';
+                              }}
+                            />
+                            <div className="position-absolute top-0 start-0 m-2">
+                              <span className={`badge bg-${getCategoryColor(relatedItem.category)}`}>
+                                <i className={`fas ${getCategoryIcon(relatedItem.category)} me-1`}></i>
+                                {relatedItem.category}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="card-body d-flex flex-column">
+                            <h6 className="card-title fw-bold text-dark">{relatedItem.name}</h6>
+                            <p className="card-text text-primary fw-bold mb-2">
+                              {formatPrice(relatedItem)}
+                            </p>
+                            <div className="mt-auto">
+                              <div className="d-flex justify-content-between align-items-center small text-muted">
+                                <span>
+                                  <i className="fas fa-map-marker-alt me-1"></i>
+                                  {relatedItem.city}
+                                </span>
+                                <span>
+                                  {renderStars(relatedItem.rating || 4.0)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="bg-dark text-white py-5 mt-5">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-4 mb-4">
-              <h5 className="fw-bold">
-                <i className="fas fa-globe-americas me-2"></i>
-                ProductFinder
-              </h5>
-              <p className="text-muted">
-                Your trusted marketplace for finding products and services across Tanzania and beyond.
-              </p>
-            </div>
-            <div className="col-md-4 mb-4">
-              <h6 className="fw-bold">Quick Links</h6>
-              <ul className="list-unstyled">
-                <li><a href="/" className="text-muted text-decoration-none">Home</a></li>
-                <li><a href="/search" className="text-muted text-decoration-none">Search</a></li>
-                <li><a href="/categories" className="text-muted text-decoration-none">Categories</a></li>
-              </ul>
-            </div>
-            <div className="col-md-4 mb-4">
-              <h6 className="fw-bold">Contact Info</h6>
-              <ul className="list-unstyled text-muted">
-                <li><i className="fas fa-envelope me-2"></i> support@productfinder.com</li>
-                <li><i className="fas fa-phone me-2"></i> +255 754 000 000</li>
-                <li><i className="fas fa-map-marker-alt me-2"></i> Dar es Salaam, Tanzania</li>
-              </ul>
-            </div>
-          </div>
-          <hr className="my-4" />
-          <div className="text-center text-muted">
-            <small>&copy; 2024 ProductFinder. All rights reserved.</small>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
