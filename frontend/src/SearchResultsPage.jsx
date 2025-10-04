@@ -839,7 +839,7 @@ function SearchResultsPage() {
   }
 
   return (
-    <div className="min-vh-100" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+    <div className="min-vh-100" style={{ background: "linear-gradient(white,white, #fdfbfdea 100%)" }}>
       {/* Header with Search Bar */}
       <div className="bg-white shadow-sm sticky-top">
         <div className="container-fluid py-3">

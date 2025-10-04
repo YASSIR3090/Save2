@@ -972,7 +972,7 @@ function ProductSearch() {
 
   // Main Component Render
   return (
-    <div className="min-vh-100" style={{ background: "linear-gradient(135deg, #d1d4e2ff 0%, #f1eff3ff 100%)" }}>
+    <div className="min-vh-100" style={{ background: "linear-gradient(white,white, #fdfbfdea 100%)" }}>
       {/* Fixed Top Header */}
       <div className="fixed-top bg-white border-bottom" style={{ zIndex: 1030 }}>
         <div className="container-fluid p-3">
