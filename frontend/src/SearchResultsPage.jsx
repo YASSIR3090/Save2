@@ -1035,7 +1035,7 @@ function SearchResultsPage() {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         }
         .custom-primary-btn {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          background: linear-gradient(135deg, #3b5efaff 0%, #5411eeff 100%) !important;
           border: none !important;
           color: white !important;
         }
