@@ -1,4 +1,4 @@
-// src/ProductSearch.jsx - SLIDE BAR IMEBORESHWWA: TATIZO LA EMPTY SCREEN LIMEREPAIRIWA
+// src/ProductSearch.jsx - BORDER YA CARD IMEKUWA CLICKABLE
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
@@ -20,7 +20,7 @@ function ProductSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Changed to true initially
+  const [isLoading, setIsLoading] = useState(true);
   const [recentSearches, setRecentSearches] = useState([]);
   const [activeCategory, setActiveCategory] = useState("all");
   const [showSidebar, setShowSidebar] = useState(false);
@@ -145,7 +145,7 @@ function ProductSearch() {
     }
   }, [location.search]);
 
-  // Load all items from localStorage and sample data - FIXED VERSION
+  // Load all items from localStorage and sample data
   const loadAllItems = useCallback(() => {
     try {
       console.log("Loading items...");
@@ -390,7 +390,7 @@ function ProductSearch() {
     handleSearch(suggestion);
   };
 
-  // Perform search with filters - FIXED VERSION
+  // Perform search with filters
   const handleSearch = useCallback((query = searchQuery) => {
     console.log("Searching for:", query);
     
@@ -762,7 +762,7 @@ function ProductSearch() {
               </button>
             </div>
 
-           {/* Search Bar */}
+          {/* Search Bar */}
             <div className="col">
               <div className="input-group input-group-lg position-relative">
                 <input
@@ -1139,7 +1139,7 @@ function ProductSearch() {
               <h6 className="text-dark fw-semibold mb-2" style={{ fontSize: '0.8rem' }}>Help & Support</h6>
               
               <button 
-                className="btn btn-outline-info w-100 mb-2 d-flex align-items-center justify-content-center"
+                className="btn btn-outline-info w-100 mb-2 d-flex align"
                 onClick={handleHelpClick}
                 style={{
                   borderRadius: '6px',
@@ -1342,7 +1342,7 @@ function ProductSearch() {
       {/* Sidebar Menu */}
       <SidebarMenu />
 
-      {/* Main Content - FIXED EMPTY SCREEN ISSUE */}
+      {/* Main Content */}
       <div className="container-fluid bg-white" style={{ paddingTop: '120px', paddingBottom: '20px' }}>
         {/* Loading State */}
         {isLoading ? (
@@ -1374,7 +1374,7 @@ function ProductSearch() {
               </div>
             </div>
 
-            {/* Search Results */}
+            {/* Search Results - BORDER YA CARD IMEKUWA CLICKABLE */}
             <div className="row g-2">
               {searchResults.length === 0 && hasSearched ? (
                 <div className="col-12 text-center py-5">
@@ -1392,8 +1392,17 @@ function ProductSearch() {
               ) : (
                 searchResults.map((item) => (
                   <div key={item.id} className="col-6 col-lg-3 col-xl-2">
-                    {/* Product Card */}
-                    <div className="card h-100 border-0 shadow-sm product-card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                    {/* Product Card - BORDER IMEKUWA CLICKABLE */}
+                    <div 
+                      className="card h-100 border-0 shadow-sm product-card clickable-card"
+                      style={{ 
+                        borderRadius: '12px', 
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onClick={() => handleViewDetails(item.id)}
+                    >
                       
                       {/* Image Section */}
                       <div className="position-relative">
@@ -1468,23 +1477,29 @@ function ProductSearch() {
                           </small>
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Action Buttons - IMEONDOKA "VIEW" BUTTON */}
                         <div className="d-flex gap-1 mt-auto">
                           <button
-                            className="btn btn-primary flex-fill rounded-pill py-1"
-                            onClick={() => handleViewDetails(item.id)}
+                            className="btn btn-outline-primary flex-fill rounded-pill py-1"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent card click
+                              handleContactBusiness(item);
+                            }}
                             style={{ fontSize: '0.7rem' }}
                           >
-                            <i className="fas fa-eye me-1"></i>
-                            View
+                            <i className="fas fa-phone me-1"></i>
+                            Contact
                           </button>
                           <button
-                            className="btn btn-outline-primary rounded-pill py-1 px-2"
-                            onClick={() => handleContactBusiness(item)}
+                            className="btn btn-outline-secondary rounded-pill py-1 px-2"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent card click
+                              handleGetDirections(item);
+                            }}
                             style={{ fontSize: '0.7rem' }}
-                            title="Contact Business"
+                            title="Get Directions"
                           >
-                            <i className="fas fa-phone"></i>
+                            <i className="fas fa-directions"></i>
                           </button>
                         </div>
                       </div>
@@ -1506,6 +1521,16 @@ function ProductSearch() {
         .product-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+        
+        .clickable-card {
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        
+        .clickable-card:hover {
+          border-color: #007bff !important;
+          box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2) !important;
         }
         
         /* Sidebar Styles for Small Size */
