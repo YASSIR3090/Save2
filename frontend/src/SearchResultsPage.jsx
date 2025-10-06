@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - IMPROVED WITH SIDEBAR MENU
+// src/SearchResultsPage.jsx - IMPROVED & COMPLETE VERSION WITH BETTER FUZZY SEARCH
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -8,135 +8,13 @@ function SearchResultsPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [allItems, setAllItems] = useState([]);
   const [showSearchPage, setShowSearchPage] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
-  const [sortBy, setSortBy] = useState("relevance");
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [filters, setFilters] = useState({
-    category: "",
-    country: "",
-    region: "",
-    city: "",
-    inStock: true,
-    priceRange: ""
-  });
-
-  // BEAUTIFUL SIDEBAR CATEGORIES WITH WHITE BACKGROUND
-  const categories = [
-    { 
-      id: "all", 
-      name: "All Items", 
-      icon: "fa-grid", 
-      color: "#007bff",
-      description: "Browse all products and services"
-    },
-    { 
-      id: "electronics", 
-      name: "Electronics", 
-      icon: "fa-laptop", 
-      color: "#007bff",
-      description: "Laptops, phones, gadgets"
-    },
-    { 
-      id: "fashion", 
-      name: "Fashion", 
-      icon: "fa-tshirt", 
-      color: "#007bff",
-      description: "Clothing, shoes, accessories"
-    },
-    { 
-      id: "hotels", 
-      name: "Hotels & Travel", 
-      icon: "fa-hotel", 
-      color: "#007bff",
-      description: "Hotels, apartments, vacation"
-    },
-    { 
-      id: "phones", 
-      name: "Mobile Phones", 
-      icon: "fa-mobile-alt", 
-      color: "#007bff",
-      description: "Smartphones and accessories"
-    },
-    { 
-      id: "cars", 
-      name: "Vehicles", 
-      icon: "fa-car", 
-      color: "#007bff",
-      description: "Cars, motorcycles, bikes"
-    },
-    { 
-      id: "realestate", 
-      name: "Real Estate", 
-      icon: "fa-home", 
-      color: "#007bff",
-      description: "Houses, apartments, land"
-    },
-    { 
-      id: "jobs", 
-      name: "Jobs & Services", 
-      icon: "fa-briefcase", 
-      color: "#007bff",
-      description: "Employment opportunities"
-    },
-    { 
-      id: "education", 
-      name: "Education", 
-      icon: "fa-graduation-cap", 
-      color: "#007bff",
-      description: "Courses, books, learning"
-    },
-    { 
-      id: "health", 
-      name: "Health & Beauty", 
-      icon: "fa-heart", 
-      color: "#007bff",
-      description: "Healthcare, beauty products"
-    }
-  ];
-
-  // Quick access categories
-  const quickCategories = categories.slice(0, 6);
-
-  // Countries and Currencies
-  const countries = [
-    { code: "TZ", name: "Tanzania", currency: "TZS", currencySymbol: "TSh" },
-    { code: "KE", name: "Kenya", currency: "KES", currencySymbol: "KSh" },
-    { code: "UG", name: "Uganda", currency: "UGX", currencySymbol: "USh" },
-    { code: "US", name: "United States", currency: "USD", currencySymbol: "$" },
-    { code: "GB", name: "United Kingdom", currency: "GBP", currencySymbol: "£" },
-    { code: "EU", name: "European Union", currency: "EUR", currencySymbol: "€" },
-    { code: "CN", name: "China", currency: "CNY", currencySymbol: "¥" },
-    { code: "IN", name: "India", currency: "INR", currencySymbol: "₹" },
-    { code: "ZA", name: "South Africa", currency: "ZAR", currencySymbol: "R" }
-  ];
-
-  // Price Ranges
-  const priceRanges = [
-    { label: "Any Price", value: "" },
-    { label: "Under $50", value: "0-50" },
-    { label: "$50 - $100", value: "50-100" },
-    { label: "$100 - $200", value: "100-200" },
-    { label: "$200 - $500", value: "200-500" },
-    { label: "Over $500", value: "500-10000" }
-  ];
-
-  // Regions by Country
-  const regionsByCountry = {
-    "Tanzania": ["Dar es Salaam", "Arusha", "Mwanza", "Zanzibar", "Mbeya", "Dodoma"],
-    "Kenya": ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret"],
-    "Uganda": ["Kampala", "Entebbe", "Jinja", "Gulu", "Mbale"],
-    "United States": ["New York", "California", "Texas", "Florida", "Illinois"],
-    "United Kingdom": ["London", "Manchester", "Birmingham", "Liverpool"],
-    "China": ["Beijing", "Shanghai", "Guangzhou", "Shenzhen"],
-    "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad"],
-    "South Africa": ["Johannesburg", "Cape Town", "Durban", "Pretoria"]
-  };
+  const [sortBy, setSortBy] = useState("relevance"); // relevance, price-low, price-high, rating
 
   // IMPROVED FUZZY SEARCH FUNCTIONS
   const levenshteinDistance = (str1, str2) => {
@@ -155,9 +33,9 @@ function SearchResultsPage() {
       for (let i = 1; i <= str1.length; i += 1) {
         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
         track[j][i] = Math.min(
-          track[j][i - 1] + 1,
-          track[j - 1][i] + 1,
-          track[j - 1][i - 1] + indicator,
+          track[j][i - 1] + 1, // deletion
+          track[j - 1][i] + 1, // insertion
+          track[j - 1][i - 1] + indicator, // substitution
         );
       }
     }
@@ -165,12 +43,14 @@ function SearchResultsPage() {
     return track[str2.length][str1.length];
   };
 
+  // Calculate similarity score (0 to 1)
   const calculateSimilarity = (str1, str2) => {
     const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
     const maxLength = Math.max(str1.length, str2.length);
     return 1 - distance / maxLength;
   };
 
+  // IMPROVED FUZZY SEARCH FUNCTION
   const fuzzySearch = (text, query) => {
     if (!query.trim()) return { match: true, score: 0 };
     
@@ -178,11 +58,14 @@ function SearchResultsPage() {
     const queryLower = query.toLowerCase();
     const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
     
+    // Check for exact match first
     if (textLower.includes(queryLower)) {
       return { match: true, score: 1.0 };
     }
     
+    // Check for partial matches
     if (queryLower.length >= 2) {
+      // Check if any word in text starts with query
       const words = textLower.split(/\s+/);
       for (let word of words) {
         if (word.startsWith(queryLower.substring(0, Math.min(3, queryLower.length)))) {
@@ -193,6 +76,7 @@ function SearchResultsPage() {
         }
       }
       
+      // Check using similarity score
       let bestSimilarity = 0;
       for (let word of words) {
         if (word.length >= 2) {
@@ -203,20 +87,23 @@ function SearchResultsPage() {
         }
       }
       
+      // Also check similarity with the entire text
       const fullTextSimilarity = calculateSimilarity(textLower, queryLower);
       bestSimilarity = Math.max(bestSimilarity, fullTextSimilarity);
       
-      if (bestSimilarity >= 0.5) {
+      if (bestSimilarity >= 0.5) { // Lower threshold for more matches
         return { match: true, score: bestSimilarity };
       }
     }
     
+    // For multiple word queries, check if any word matches
     if (queryWords.length > 1) {
       for (let word of queryWords) {
         if (word.length >= 2 && textLower.includes(word)) {
           return { match: true, score: 0.7 };
         }
         
+        // Check similarity for each word
         for (let textWord of textLower.split(/\s+/)) {
           if (textWord.length >= 2) {
             const wordSimilarity = calculateSimilarity(textWord, word);
@@ -238,10 +125,12 @@ function SearchResultsPage() {
       let storedProducts = [];
       let storedServices = [];
       
+      // Load all products and services from all businesses
       allBusinesses.forEach(business => {
         const businessProducts = JSON.parse(localStorage.getItem(`products_${business.id}`)) || [];
         const businessServices = JSON.parse(localStorage.getItem(`services_${business.id}`)) || [];
         
+        // Add business info to each product/service
         const productsWithBusiness = businessProducts.map(product => ({
           ...product,
           businessName: business.businessName,
@@ -264,7 +153,7 @@ function SearchResultsPage() {
         storedServices = [...storedServices, ...servicesWithBusiness];
       });
 
-      // Sample data for demonstration
+      // Sample data for demonstration - ADDED MORE ITEMS FOR BETTER SEARCH
       const sampleElectronics = [
         {
           id: "elec-1",
@@ -317,6 +206,58 @@ function SearchResultsPage() {
           rating: 4.8,
           reviews: 15,
           type: "product"
+        },
+        {
+          id: "elec-3",
+          name: "HP Pavilion Laptop",
+          category: "Electronics & Devices",
+          price: 950000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 7,
+          business: "TechHub Tanzania",
+          location: { lat: -6.7924, lng: 39.2083 },
+          address: "Samora Avenue, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-13",
+          description: "Affordable laptop for students and professionals",
+          specifications: ["Processor: Intel Core i5", "RAM: 8GB DDR4", "Storage: 256GB SSD"],
+          features: ["Lightweight", "Long Battery Life", "Windows 11"],
+          brand: "HP",
+          condition: "new",
+          requiresSpecifications: true,
+          rating: 4.2,
+          reviews: 18,
+          type: "product"
+        },
+        {
+          id: "elec-4",
+          name: "Samsung Galaxy Tab",
+          category: "Electronics & Devices",
+          price: 800000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 6,
+          business: "MobileWorld Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City Mall, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-12",
+          description: "High-performance tablet with AMOLED display",
+          specifications: ["Display: 11-inch AMOLED", "Processor: Snapdragon 8 Gen 2", "Storage: 128GB"],
+          features: ["S Pen Included", "5G Connectivity", "Long Battery"],
+          brand: "Samsung",
+          condition: "new",
+          requiresSpecifications: true,
+          rating: 4.4,
+          reviews: 22,
+          type: "product"
         }
       ];
 
@@ -348,6 +289,62 @@ function SearchResultsPage() {
           rating: 4.3,
           reviews: 15,
           type: "product"
+        },
+        {
+          id: "gen-2",
+          name: "Women's Handbag",
+          category: "General Goods",
+          price: 45000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 10,
+          business: "Fashion Store Tanzania",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Masaki, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-13",
+          description: "Elegant leather handbag for women",
+          features: ["Genuine Leather", "Multiple Compartments", "Adjustable Strap"],
+          brand: "StyleCo",
+          condition: "new",
+          size: "One Size",
+          color: "Brown",
+          material: "Leather",
+          requiresSpecifications: false,
+          rating: 4.1,
+          reviews: 8,
+          type: "product"
+        },
+        {
+          id: "gen-3",
+          name: "Sports T-Shirt",
+          category: "General Goods",
+          price: 25000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 25,
+          business: "Sports Gear Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-12",
+          description: "Comfortable sports t-shirt for active lifestyle",
+          features: ["Moisture Wicking", "Breathable Fabric", "Comfort Fit"],
+          brand: "ActiveWear",
+          condition: "new",
+          size: "M",
+          color: "Blue",
+          material: "Polyester",
+          requiresSpecifications: false,
+          rating: 4.0,
+          reviews: 12,
+          type: "product"
         }
       ];
 
@@ -377,6 +374,60 @@ function SearchResultsPage() {
           checkInTime: "14:00",
           checkOutTime: "12:00",
           policies: "Free cancellation 24 hours before check-in",
+          type: "service"
+        },
+        {
+          id: "hotel-2",
+          name: "City View Apartments",
+          category: "Building & Hotels",
+          serviceType: "Luxury Apartment",
+          priceRange: "80-150",
+          currency: "USD",
+          currencySymbol: "$",
+          business: "City Real Estate",
+          location: { lat: -6.7924, lng: 39.2083 },
+          address: "City Center, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-14",
+          description: "Modern apartments with city views and all amenities",
+          amenities: ["Fully Furnished", "Air Conditioning", "Security", "Parking", "Gym"],
+          services: ["Cleaning Service", "Maintenance", "24/7 Security", "Concierge"],
+          contactInfo: "+255 754 123 456 | info@cityviewapartments.com",
+          capacity: "2-4 people per apartment",
+          rating: "4",
+          checkInTime: "15:00",
+          checkOutTime: "11:00",
+          policies: "Minimum 3-night stay",
+          type: "service"
+        },
+        {
+          id: "hotel-3",
+          name: "Beach Resort Zanzibar",
+          category: "Building & Hotels",
+          serviceType: "Resort",
+          priceRange: "200-500",
+          currency: "USD",
+          currencySymbol: "$",
+          business: "Zanzibar Hospitality",
+          location: { lat: -6.1659, lng: 39.2026 },
+          address: "Nungwi Beach, Zanzibar",
+          country: "Tanzania",
+          region: "Zanzibar",
+          city: "Zanzibar",
+          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          lastUpdated: "2024-01-13",
+          description: "Luxury beach resort with private beach and spa",
+          amenities: ["Private Beach", "Spa", "Multiple Restaurants", "Swimming Pools", "Water Sports"],
+          services: ["All-Inclusive Packages", "Spa Treatments", "Water Activities", "Airport Transfer"],
+          contactInfo: "+255 777 888 999 | info@beachresortzanzibar.com",
+          capacity: "200 guests, 80 rooms and villas",
+          rating: "5",
+          checkInTime: "14:00",
+          checkOutTime: "12:00",
+          policies: "All-inclusive packages available",
           type: "service"
         }
       ];
@@ -415,12 +466,14 @@ function SearchResultsPage() {
     const suggestions = new Set();
     const queryLower = query.toLowerCase();
 
+    // Add recent searches that match
     recentSearches.forEach(search => {
       if (fuzzySearch(search, query).match) {
         suggestions.add(search);
       }
     });
 
+    // Search through all items
     allItems.forEach(item => {
       if (fuzzySearch(item.name, query).match) {
         suggestions.add(item.name);
@@ -467,6 +520,7 @@ function SearchResultsPage() {
       };
     }).filter(item => item.searchScore > 0);
 
+    // Sort by search score (highest first)
     return filtered.sort((a, b) => b.searchScore - a.searchScore);
   }, []);
 
@@ -483,6 +537,7 @@ function SearchResultsPage() {
         return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       case "relevance":
       default:
+        // For relevance, sort by search score first, then by other factors
         return sorted.sort((a, b) => {
           if (b.searchScore !== a.searchScore) {
             return b.searchScore - a.searchScore;
@@ -498,14 +553,19 @@ function SearchResultsPage() {
       setIsLoading(true);
       
       try {
+        // Load data first
         const items = await loadAllItems();
         loadRecentSearches();
         
+        // Get search query from URL
         const searchParams = new URLSearchParams(location.search);
         const query = searchParams.get('q') || '';
         setSearchQuery(query);
         
+        // Perform search
         let results = performSearch(query, items);
+        
+        // Sort results
         results = sortResults(results, sortBy);
         
         setSearchResults(results);
@@ -534,11 +594,13 @@ function SearchResultsPage() {
     }
   };
 
-  // Handle search suggestion click
+  // Handle search suggestion click - FIXED: Navigate directly to search results
   const handleSuggestionClick = (suggestion) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
     setShowSearchPage(false);
+    
+    // Navigate directly to search results page
     navigate(`/search-results?q=${encodeURIComponent(suggestion)}`);
   };
 
@@ -562,56 +624,9 @@ function SearchResultsPage() {
     const newSortBy = e.target.value;
     setSortBy(newSortBy);
     
+    // Re-sort current results
     const sortedResults = sortResults(searchResults, newSortBy);
     setSearchResults(sortedResults);
-  };
-
-  // Handle category selection from sidebar
-  const handleCategorySelect = (categoryId) => {
-    let category = "";
-    switch(categoryId) {
-      case "electronics":
-        category = "Electronics & Devices";
-        break;
-      case "fashion":
-        category = "General Goods";
-        break;
-      case "hotels":
-        category = "Building & Hotels";
-        break;
-      case "phones":
-        category = "Electronics & Devices";
-        break;
-      case "cars":
-        category = "Vehicles";
-        break;
-      case "realestate":
-        category = "Real Estate";
-        break;
-      case "jobs":
-        category = "Jobs";
-        break;
-      default:
-        category = "";
-    }
-
-    const newFilters = { ...filters, category };
-    setFilters(newFilters);
-    setActiveCategory(categoryId);
-    setShowSidebar(false);
-    
-    if (category) {
-      // Apply category filter to current results
-      const filteredResults = searchResults.filter(item => item.category === category);
-      setSearchResults(filteredResults);
-    } else {
-      // If "All" is selected, reload original search results
-      const searchParams = new URLSearchParams(location.search);
-      const query = searchParams.get('q') || '';
-      performSearch(query, allItems).then(results => {
-        setSearchResults(sortResults(results, sortBy));
-      });
-    }
   };
 
   const handleBackToSearch = () => {
@@ -620,18 +635,6 @@ function SearchResultsPage() {
 
   const handleViewDetails = (itemId) => {
     navigate(`/product/${itemId}`);
-  };
-
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
-
-  // Close sidebar when clicking overlay
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      setShowSidebar(false);
-    }
   };
 
   const formatPrice = (item) => {
@@ -683,41 +686,11 @@ function SearchResultsPage() {
     navigate('/search-results');
   };
 
-  // Clear filters
-  const handleClearFilters = () => {
-    setFilters({
-      category: "",
-      country: "",
-      region: "",
-      city: "",
-      inStock: true,
-      priceRange: ""
-    });
-    setActiveCategory("all");
-    
-    // Reload original search results
-    const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('q') || '';
-    performSearch(query, allItems).then(results => {
-      setSearchResults(sortResults(results, sortBy));
-    });
-  };
-
-  // Get active filters count
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (filters.category) count++;
-    if (filters.country) count++;
-    if (filters.region) count++;
-    if (filters.city) count++;
-    if (filters.priceRange) count++;
-    return count;
-  };
-
   // Search Page Component
   const SearchPage = () => {
     return (
       <div className="min-vh-100 bg-white" style={{ zIndex: 1040, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+        {/* Search Page Header */}
         <div className="bg-white border-bottom shadow-sm">
           <div className="container-fluid p-3">
             <div className="row align-items-center">
@@ -750,6 +723,7 @@ function SearchResultsPage() {
                       autoFocus
                     />
                     
+                    {/* Search Button */}
                     <button
                       type="submit"
                       className="btn custom-primary-btn rounded-pill position-absolute end-0 top-50 translate-middle-y me-2"
@@ -770,6 +744,7 @@ function SearchResultsPage() {
           </div>
         </div>
 
+        {/* Search Suggestions */}
         {showSuggestions && searchSuggestions.length > 0 && (
           <div className="container-fluid mt-2">
             <div className="row">
@@ -800,6 +775,7 @@ function SearchResultsPage() {
           </div>
         )}
 
+        {/* Recent Searches */}
         {!showSuggestions && recentSearches.length > 0 && (
           <div className="container-fluid mt-3">
             <div className="row">
@@ -831,7 +807,9 @@ function SearchResultsPage() {
           </div>
         )}
 
+        {/* Search Page Content */}
         <div className="container-fluid" style={{ paddingTop: '20px', paddingBottom: '80px' }}>
+          {/* Show empty state when no search has been performed */}
           {searchQuery.trim() === "" && (
             <div className="text-center py-5">
               <i className="fas fa-search fa-4x text-muted mb-4"></i>
@@ -841,166 +819,6 @@ function SearchResultsPage() {
           )}
         </div>
       </div>
-    );
-  };
-
-  // BEAUTIFUL SIDEBAR COMPONENT WITH WHITE BACKGROUND
-  const SidebarMenu = () => {
-    return (
-      <>
-        {/* Overlay */}
-        <div 
-          className={`sidebar-overlay ${showSidebar ? 'active' : ''}`}
-          onClick={handleOverlayClick}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1090,
-            opacity: showSidebar ? 1 : 0,
-            visibility: showSidebar ? 'visible' : 'hidden',
-            transition: 'all 0.3s ease'
-          }}
-        ></div>
-
-        {/* Sidebar - WHITE BACKGROUND */}
-        <div 
-          className={`sidebar-menu ${showSidebar ? 'active' : ''}`}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: '320px',
-            background: '#ffffff',
-            zIndex: 1100,
-            transform: showSidebar ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.3s ease',
-            boxShadow: '2px 0 20px rgba(0,0,0,0.1)',
-            overflowY: 'auto'
-          }}
-        >
-          {/* Sidebar Header */}
-          <div className="sidebar-header" style={{
-            padding: '20px',
-            background: '#f8f9fa',
-            borderBottom: '1px solid #e9ecef'
-          }}>
-            <div className="d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center">
-                <i className="fas fa-filter text-primary me-3 fs-5"></i>
-                <h5 className="text-dark mb-0 fw-bold">Filter & Categories</h5>
-              </div>
-              <button 
-                className="btn btn-close"
-                onClick={toggleSidebar}
-              ></button>
-            </div>
-          </div>
-
-          {/* Sidebar Content */}
-          <div className="sidebar-content" style={{ padding: '20px' }}>
-            {/* Search Summary */}
-            <div className="search-summary mb-4">
-              <div className="text-center text-dark mb-3">
-                <i className="fas fa-search fa-2x mb-2 text-primary"></i>
-                <h6 className="fw-bold">Search Results</h6>
-                <small className="text-muted">
-                  {searchResults.length} items found for "<strong>{searchQuery}</strong>"
-                </small>
-              </div>
-            </div>
-
-            {/* Categories List */}
-            <div className="categories-list mb-4">
-              <h6 className="text-dark fw-semibold mb-3">Browse Categories</h6>
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  className={`category-item w-100 text-start mb-2 ${activeCategory === category.id ? 'active' : ''}`}
-                  onClick={() => handleCategorySelect(category.id)}
-                  style={{
-                    background: activeCategory === category.id ? 'rgba(0, 123, 255, 0.1)' : '#ffffff',
-                    border: activeCategory === category.id ? '2px solid #007bff' : '1px solid #e9ecef',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    color: activeCategory === category.id ? '#007bff' : '#495057',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <div className="d-flex align-items-center">
-                    <div className="category-icon me-3" style={{
-                      width: '36px',
-                      height: '36px',
-                      background: activeCategory === category.id ? '#007bff' : 'rgba(0, 123, 255, 0.1)',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1rem',
-                      color: activeCategory === category.id ? '#ffffff' : '#007bff'
-                    }}>
-                      <i className={`fas ${category.icon}`}></i>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="fw-semibold" style={{ fontSize: '0.85rem' }}>{category.name}</div>
-                    </div>
-                    {activeCategory === category.id && (
-                      <i className="fas fa-check text-success ms-2"></i>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="quick-actions mt-4 pt-4 border-top border-secondary border-opacity-25">
-              <h6 className="text-dark fw-semibold mb-3">Quick Actions</h6>
-              
-              <button 
-                className="btn btn-outline-primary w-100 mb-2 d-flex align-items-center justify-content-center"
-                onClick={handleClearFilters}
-                style={{
-                  borderRadius: '10px',
-                  padding: '10px',
-                  border: '2px solid #007bff',
-                  color: '#007bff',
-                  fontWeight: '600',
-                  fontSize: '0.85rem'
-                }}
-              >
-                <i className="fas fa-eraser me-2"></i>
-                Clear Filters
-                {getActiveFiltersCount() > 0 && (
-                  <span className="badge bg-primary text-white ms-2">
-                    {getActiveFiltersCount()}
-                  </span>
-                )}
-              </button>
-
-              <button 
-                className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
-                onClick={handleClearSearch}
-                style={{
-                  borderRadius: '10px',
-                  padding: '10px',
-                  fontWeight: '600',
-                  background: '#007bff',
-                  border: 'none',
-                  fontSize: '0.85rem'
-                }}
-              >
-                <i className="fas fa-times me-2"></i>
-                Clear Search
-              </button>
-            </div>
-          </div>
-        </div>
-      </>
     );
   };
 
@@ -1026,24 +844,6 @@ function SearchResultsPage() {
       <div className="bg-white shadow-sm sticky-top">
         <div className="container-fluid py-3">
           <div className="row align-items-center">
-            {/* Menu Button */}
-            <div className="col-auto">
-              <button
-                className="btn btn-light rounded-circle"
-                onClick={toggleSidebar}
-                style={{ 
-                  width: '45px', 
-                  height: '45px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <i className="fas fa-bars text-dark"></i>
-              </button>
-            </div>
-
-            {/* Back Button */}
             <div className="col-auto">
               <button
                 className="btn btn-light rounded-circle"
@@ -1115,82 +915,6 @@ function SearchResultsPage() {
         </div>
       </div>
 
-      {/* Quick Categories Bar */}
-      <div className="sticky-top" style={{ top: '80px', zIndex: 1025 }}>
-        <div className="container-fluid px-0">
-          <div className="row justify-content-center mx-0">
-            <div className="col-12 px-0">
-              <div className="quick-categories-bar" style={{
-                background: 'rgba(255, 255, 255, 0.98)',
-                backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid rgba(0,0,0,0.1)',
-                padding: '12px 0 8px 0',
-                boxShadow: '0 2px 20px rgba(0,0,0,0.1)'
-              }}>
-                <div className="d-flex justify-content-around align-items-center px-2">
-                  {quickCategories.map((category) => (
-                    <button
-                      key={category.id}
-                      className={`quick-category-item ${activeCategory === category.id ? 'active' : ''} d-flex flex-column align-items-center position-relative`}
-                      onClick={() => handleCategorySelect(category.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: '8px 12px',
-                        minWidth: '70px',
-                        transition: 'all 0.3s ease',
-                        borderRadius: '8px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {/* Icon */}
-                      <div className="quick-category-icon mb-1" style={{
-                        width: '28px',
-                        height: '28px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1rem',
-                        color: activeCategory === category.id ? '#007bff' : '#666666',
-                        transition: 'all 0.3s ease'
-                      }}>
-                        <i className={`fas ${category.icon}`}></i>
-                      </div>
-                      
-                      {/* Label */}
-                      <span className="quick-category-label" style={{
-                        fontSize: '0.65rem',
-                        fontWeight: '600',
-                        color: activeCategory === category.id ? '#007bff' : '#666666',
-                        transition: 'all 0.3s ease',
-                        textAlign: 'center',
-                        lineHeight: '1.1'
-                      }}>
-                        {category.name.split(' ')[0]}
-                      </span>
-
-                      {/* Active Indicator */}
-                      {activeCategory === category.id && (
-                        <div className="position-absolute bottom-0 start-50 translate-middle-x" style={{
-                          width: '4px',
-                          height: '4px',
-                          background: '#007bff',
-                          borderRadius: '50%',
-                          marginBottom: '-2px'
-                        }}></div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sidebar Menu */}
-      <SidebarMenu />
-
       {/* Results Section */}
       <div className="container-fluid py-4">
         {searchResults.length === 0 ? (
@@ -1232,9 +956,6 @@ function SearchResultsPage() {
                     </h5>
                     {searchQuery && (
                       <p className="text-muted mb-0">for "<strong>{searchQuery}</strong>"</p>
-                    )}
-                    {filters.category && (
-                      <p className="text-muted mb-0">in <strong>{filters.category}</strong></p>
                     )}
                   </div>
                   
@@ -1297,6 +1018,13 @@ function SearchResultsPage() {
                 viewMode === 'grid' ? renderGridView(item) : renderListView(item, index)
               )}
             </div>
+
+            {/* Load More Button (for future pagination) */}
+            {searchResults.length > 0 && (
+              <div className="text-center mt-4">
+                
+              </div>
+            )}
           </>
         )}
       </div>
@@ -1364,45 +1092,6 @@ function SearchResultsPage() {
           box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
-        /* Sidebar Styles */
-        .sidebar-menu {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(0,0,0,0.2) transparent;
-        }
-        
-        .sidebar-menu::-webkit-scrollbar {
-          width: 4px;
-        }
-        
-        .sidebar-menu::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        .sidebar-menu::-webkit-scrollbar-thumb {
-          background: rgba(0,0,0,0.2);
-          border-radius: 2px;
-        }
-        
-        .category-item:hover {
-          background: rgba(0, 123, 255, 0.05) !important;
-          transform: translateX(5px);
-          border-color: #007bff !important;
-        }
-        
-        .quick-category-item:hover {
-          background: rgba(0, 123, 255, 0.1) !important;
-          transform: translateY(-2px);
-        }
-        
-        .quick-category-item:hover .quick-category-icon {
-          color: #007bff !important;
-          transform: scale(1.1);
-        }
-        
-        .quick-category-item:hover .quick-category-label {
-          color: #007bff !important;
-        }
-
         /* Mobile Optimizations */
         @media (max-width: 576px) {
           .container-fluid {
@@ -1444,25 +1133,6 @@ function SearchResultsPage() {
           .dropdown .btn {
             font-size: 0.75rem;
             padding: 0.375rem 0.75rem;
-          }
-          
-          .sidebar-menu {
-            width: 280px !important;
-          }
-          
-          .quick-category-item {
-            padding: 6px 8px !important;
-            min-width: 60px !important;
-          }
-          
-          .quick-category-icon {
-            width: 24px !important;
-            height: 24px !important;
-            font-size: 0.9rem !important;
-          }
-          
-          .quick-category-label {
-            font-size: 0.6rem !important;
           }
         }
 
@@ -1519,7 +1189,7 @@ function SearchResultsPage() {
             <div className="position-absolute top-0 start-0 m-1">
               <span className={`badge ${getCategoryBadge(item.category)} text-white px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
                 <i className={`fas ${
-                  item.category === 'Electronics & Devices' ? 'fa-laptop' :
+                  item.category === 'Electronics & Devices' ? 'fa-microchip' :
                   item.category === 'General Goods' ? 'fa-tshirt' :
                   'fa-building'
                 } me-1`} style={{ fontSize: '0.5rem' }}></i>
@@ -1667,7 +1337,7 @@ function SearchResultsPage() {
                 <div className="position-absolute top-0 start-0 m-1">
                   <span className={`badge ${getCategoryBadge(item.category)} text-white px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
                     <i className={`fas ${
-                      item.category === 'Electronics & Devices' ? 'fa-laptop' :
+                      item.category === 'Electronics & Devices' ? 'fa-microchip' :
                       item.category === 'General Goods' ? 'fa-tshirt' :
                       'fa-building'
                     } me-1`} style={{ fontSize: '0.5rem' }}></i>

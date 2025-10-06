@@ -1,4 +1,4 @@
-// src/ProductSearch.jsx - IMEONGEWA BIDHAA 20 ZA KILA AINA
+// src/ProductSearch.jsx - ILIYOREKEBISHWA: HOME KWENYE NAVBAR
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
@@ -87,32 +87,11 @@ function ProductSearch() {
       description: "Browse all products and services"
     },
     { 
-      id: "electronics", 
-      name: "Electronics", 
-      icon: "fa-laptop", 
+      id: "education", 
+      name: "Education", 
+      icon: "fa-graduation-cap", 
       color: "#007bff",
-      description: "Laptops, phones, gadgets"
-    },
-    { 
-      id: "fashion", 
-      name: "Fashion", 
-      icon: "fa-tshirt", 
-      color: "#007bff",
-      description: "Clothing, shoes, accessories"
-    },
-    { 
-      id: "hotels", 
-      name: "Hotels", 
-      icon: "fa-hotel", 
-      color: "#007bff",
-      description: "Hotels, apartments, vacation"
-    },
-    { 
-      id: "cars", 
-      name: "Vehicles", 
-      icon: "fa-car", 
-      color: "#007bff",
-      description: "Cars, motorcycles, bikes"
+      description: "Courses, books, learning"
     },
   ];
 
@@ -200,747 +179,105 @@ function ProductSearch() {
         storedServices = [...storedServices, ...servicesWithBusiness];
       });
 
-      // BIDHAA 20 ZA ELECTRONICS
+      // Sample data for demonstration
       const sampleElectronics = [
         {
-          id: "elec-1", name: "Dell Latitude Laptop", category: "Electronics & Devices",
-          price: 1200000, currency: "TZS", currencySymbol: "TSh", stock: 5,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
+          id: "elec-1",
+          name: "Dell Latitude Laptop",
+          category: "Electronics & Devices",
+          price: 1200000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 5,
+          business: "TechHub Tanzania",
+          location: { lat: -6.7924, lng: 39.2083 },
+          address: "Samora Avenue, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
           images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
           description: "High-performance business laptop with latest Intel Core i7 processor",
-          brand: "Dell", condition: "new", rating: 4.5, reviews: 23, type: "product"
+          brand: "Dell",
+          condition: "new",
+          rating: 4.5,
+          reviews: 23,
+          type: "product"
         },
         {
-          id: "elec-2", name: "iPhone 15 Pro Max", category: "Electronics & Devices",
-          price: 2500000, currency: "TZS", currencySymbol: "TSh", stock: 3,
-          business: "MobileWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City Mall, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
+          id: "elec-2",
+          name: "iPhone 15 Pro Max",
+          category: "Electronics & Devices",
+          price: 2500000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 3,
+          business: "MobileWorld Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City Mall, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
           images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=300"],
           description: "Latest iPhone with titanium design and advanced camera system",
-          brand: "Apple", condition: "new", rating: 4.8, reviews: 15, type: "product"
-        },
-        {
-          id: "elec-3", name: "Samsung Galaxy Tab", category: "Electronics & Devices",
-          price: 850000, currency: "TZS", currencySymbol: "TSh", stock: 7,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "10-inch tablet with high-resolution display and long battery life",
-          brand: "Samsung", condition: "new", rating: 4.3, reviews: 12, type: "product"
-        },
-        {
-          id: "elec-4", name: "Wireless Headphones", category: "Electronics & Devices",
-          price: 150000, currency: "TZS", currencySymbol: "TSh", stock: 10,
-          business: "AudioTech Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Premium wireless headphones with noise cancellation",
-          brand: "SoundMax", condition: "new", rating: 4.6, reviews: 8, type: "product"
-        },
-        {
-          id: "elec-5", name: "Smart Watch Series 8", category: "Electronics & Devices",
-          price: 350000, currency: "TZS", currencySymbol: "TSh", stock: 6,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Advanced smartwatch with health monitoring features",
-          brand: "TechWear", condition: "new", rating: 4.4, reviews: 9, type: "product"
-        },
-        {
-          id: "elec-6", name: "Gaming Laptop RTX 4060", category: "Electronics & Devices",
-          price: 2800000, currency: "TZS", currencySymbol: "TSh", stock: 4,
-          business: "GameTech Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City Mall, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/777001/pexels-photo-777001.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "High-performance gaming laptop with RTX 4060 graphics",
-          brand: "GameMax", condition: "new", rating: 4.7, reviews: 11, type: "product"
-        },
-        {
-          id: "elec-7", name: "Digital Camera DSLR", category: "Electronics & Devices",
-          price: 1800000, currency: "TZS", currencySymbol: "TSh", stock: 8,
-          business: "Camera World Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Professional DSLR camera with 24MP sensor",
-          brand: "PhotoPro", condition: "new", rating: 4.5, reviews: 7, type: "product"
-        },
-        {
-          id: "elec-8", name: "Bluetooth Speaker", category: "Electronics & Devices",
-          price: 120000, currency: "TZS", currencySymbol: "TSh", stock: 15,
-          business: "AudioTech Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/160827/pexels-photo-160827.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Portable Bluetooth speaker with 20W output",
-          brand: "SoundWave", condition: "new", rating: 4.2, reviews: 14, type: "product"
-        },
-        {
-          id: "elec-9", name: "Tablet Stand", category: "Electronics & Devices",
-          price: 45000, currency: "TZS", currencySymbol: "TSh", stock: 20,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Adjustable tablet stand for comfortable viewing",
-          brand: "TechGear", condition: "new", rating: 4.1, reviews: 6, type: "product"
-        },
-        {
-          id: "elec-10", name: "Wireless Mouse", category: "Electronics & Devices",
-          price: 35000, currency: "TZS", currencySymbol: "TSh", stock: 25,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2115256/pexels-photo-2115256.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Ergonomic wireless mouse with precision tracking",
-          brand: "TechGear", condition: "new", rating: 4.3, reviews: 18, type: "product"
-        },
-        {
-          id: "elec-11", name: "External Hard Drive 2TB", category: "Electronics & Devices",
-          price: 250000, currency: "TZS", currencySymbol: "TSh", stock: 12,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2588757/pexels-photo-2588757.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Portable 2TB external hard drive for data storage",
-          brand: "DataSafe", condition: "new", rating: 4.6, reviews: 9, type: "product"
-        },
-        {
-          id: "elec-12", name: "Mechanical Keyboard", category: "Electronics & Devices",
-          price: 180000, currency: "TZS", currencySymbol: "TSh", stock: 8,
-          business: "GameTech Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City Mall, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2115257/pexels-photo-2115257.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "RGB mechanical keyboard with blue switches",
-          brand: "GameMax", condition: "new", rating: 4.4, reviews: 13, type: "product"
-        },
-        {
-          id: "elec-13", name: "Webcam HD", category: "Electronics & Devices",
-          price: 95000, currency: "TZS", currencySymbol: "TSh", stock: 14,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/51383/photo-camera-subject-photographer-51383.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "HD webcam with built-in microphone for video calls",
-          brand: "VideoPro", condition: "new", rating: 4.2, reviews: 7, type: "product"
-        },
-        {
-          id: "elec-14", name: "Power Bank 20000mAh", category: "Electronics & Devices",
-          price: 85000, currency: "TZS", currencySymbol: "TSh", stock: 18,
-          business: "MobileWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City Mall, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/12791056/pexels-photo-12791056.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "High-capacity power bank for multiple device charges",
-          brand: "PowerPlus", condition: "new", rating: 4.5, reviews: 16, type: "product"
-        },
-        {
-          id: "elec-15", name: "USB-C Hub", category: "Electronics & Devices",
-          price: 65000, currency: "TZS", currencySymbol: "TSh", stock: 22,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2588757/pexels-photo-2588757.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "7-in-1 USB-C hub with multiple ports",
-          brand: "TechGear", condition: "new", rating: 4.3, reviews: 11, type: "product"
-        },
-        {
-          id: "elec-16", name: "Monitor 27-inch", category: "Electronics & Devices",
-          price: 650000, currency: "TZS", currencySymbol: "TSh", stock: 6,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1029757/pexels-photo-1029757.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "27-inch 4K monitor for professional work",
-          brand: "ViewMax", condition: "new", rating: 4.7, reviews: 8, type: "product"
-        },
-        {
-          id: "elec-17", name: "Wireless Earbuds", category: "Electronics & Devices",
-          price: 120000, currency: "TZS", currencySymbol: "TSh", stock: 16,
-          business: "AudioTech Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1646704/pexels-photo-1646704.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "True wireless earbuds with charging case",
-          brand: "SoundWave", condition: "new", rating: 4.4, reviews: 12, type: "product"
-        },
-        {
-          id: "elec-18", name: "Laptop Backpack", category: "Electronics & Devices",
-          price: 75000, currency: "TZS", currencySymbol: "TSh", stock: 20,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2905238/pexels-photo-2905238.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Water-resistant laptop backpack with multiple compartments",
-          brand: "TravelGear", condition: "new", rating: 4.2, reviews: 15, type: "product"
-        },
-        {
-          id: "elec-19", name: "Smartphone Gimbal", category: "Electronics & Devices",
-          price: 180000, currency: "TZS", currencySymbol: "TSh", stock: 9,
-          business: "Camera World Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/51383/photo-camera-subject-photographer-51383.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "3-axis smartphone gimbal for stable video recording",
-          brand: "VideoPro", condition: "new", rating: 4.6, reviews: 7, type: "product"
-        },
-        {
-          id: "elec-20", name: "Portable Projector", category: "Electronics & Devices",
-          price: 450000, currency: "TZS", currencySymbol: "TSh", stock: 5,
-          business: "TechHub Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1772128/pexels-photo-1772128.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Mini portable projector for home entertainment",
-          brand: "ViewMax", condition: "new", rating: 4.3, reviews: 6, type: "product"
+          brand: "Apple",
+          condition: "new",
+          rating: 4.8,
+          reviews: 15,
+          type: "product"
         }
       ];
 
-      // BIDHAA 20 ZA FASHION
-      const sampleFashion = [
+      const sampleGeneralGoods = [
         {
-          id: "fash-1", name: "Men's Running Shoes", category: "General Goods",
-          price: 85000, currency: "TZS", currencySymbol: "TSh", stock: 15,
-          business: "Sports Gear Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
+          id: "gen-1",
+          name: "Men's Running Shoes",
+          category: "General Goods",
+          price: 85000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 15,
+          business: "Sports Gear Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Mlimani City, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
           images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300"],
           description: "Comfortable running shoes designed for maximum performance",
-          brand: "RunPro", condition: "new", rating: 4.3, reviews: 15, type: "product"
-        },
-        {
-          id: "fash-2", name: "Designer Handbag", category: "General Goods",
-          price: 120000, currency: "TZS", currencySymbol: "TSh", stock: 8,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Luxury designer handbag made from genuine leather",
-          brand: "StyleCraft", condition: "new", rating: 4.7, reviews: 6, type: "product"
-        },
-        {
-          id: "fash-3", name: "Casual T-Shirt Pack", category: "General Goods",
-          price: 45000, currency: "TZS", currencySymbol: "TSh", stock: 25,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/9558699/pexels-photo-9558699.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Pack of 3 comfortable cotton t-shirts in various colors",
-          brand: "ComfortWear", condition: "new", rating: 4.2, reviews: 18, type: "product"
-        },
-        {
-          id: "fash-4", name: "Leather Wallet", category: "General Goods",
-          price: 35000, currency: "TZS", currencySymbol: "TSh", stock: 12,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2905238/pexels-photo-2905238.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Genuine leather wallet with multiple card slots",
-          brand: "LeatherCraft", condition: "new", rating: 4.5, reviews: 7, type: "product"
-        },
-        {
-          id: "fash-5", name: "Women's Dress", category: "General Goods",
-          price: 65000, currency: "TZS", currencySymbol: "TSh", stock: 10,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/985635/pexels-photo-985635.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Elegant women's dress for special occasions",
-          brand: "Elegance", condition: "new", rating: 4.6, reviews: 9, type: "product"
-        },
-        {
-          id: "fash-6", name: "Men's Suit", category: "General Goods",
-          price: 250000, currency: "TZS", currencySymbol: "TSh", stock: 6,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Professional men's suit for business occasions",
-          brand: "ExecutiveWear", condition: "new", rating: 4.8, reviews: 5, type: "product"
-        },
-        {
-          id: "fash-7", name: "Sneakers Collection", category: "General Goods",
-          price: 95000, currency: "TZS", currencySymbol: "TSh", stock: 18,
-          business: "Sports Gear Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Trendy sneakers in various colors and styles",
-          brand: "UrbanStep", condition: "new", rating: 4.4, reviews: 12, type: "product"
-        },
-        {
-          id: "fash-8", name: "Women's Handbag", category: "General Goods",
-          price: 80000, currency: "TZS", currencySymbol: "TSh", stock: 14,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Stylish women's handbag for everyday use",
-          brand: "ChicStyle", condition: "new", rating: 4.3, reviews: 8, type: "product"
-        },
-        {
-          id: "fash-9", name: "Men's Watch", category: "General Goods",
-          price: 150000, currency: "TZS", currencySymbol: "TSh", stock: 9,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Elegant men's wristwatch with leather strap",
-          brand: "TimeMaster", condition: "new", rating: 4.7, reviews: 11, type: "product"
-        },
-        {
-          id: "fash-10", name: "Women's Jewelry Set", category: "General Goods",
-          price: 120000, currency: "TZS", currencySymbol: "TSh", stock: 7,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1132047/pexels-photo-1132047.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Beautiful jewelry set including necklace and earrings",
-          brand: "Sparkle", condition: "new", rating: 4.9, reviews: 6, type: "product"
-        },
-        {
-          id: "fash-11", name: "Kids Clothing Set", category: "General Goods",
-          price: 35000, currency: "TZS", currencySymbol: "TSh", stock: 20,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Colorful clothing set for children",
-          brand: "KidsComfort", condition: "new", rating: 4.2, reviews: 14, type: "product"
-        },
-        {
-          id: "fash-12", name: "Men's Casual Shirt", category: "General Goods",
-          price: 45000, currency: "TZS", currencySymbol: "TSh", stock: 22,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/769733/pexels-photo-769733.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Comfortable casual shirt for everyday wear",
-          brand: "ComfortWear", condition: "new", rating: 4.3, reviews: 16, type: "product"
-        },
-        {
-          id: "fash-13", name: "Women's Sandals", category: "General Goods",
-          price: 55000, currency: "TZS", currencySymbol: "TSh", stock: 17,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/267320/pexels-photo-267320.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Comfortable women's sandals for summer",
-          brand: "SummerStep", condition: "new", rating: 4.4, reviews: 9, type: "product"
-        },
-        {
-          id: "fash-14", name: "Men's Belt", category: "General Goods",
-          price: 25000, currency: "TZS", currencySymbol: "TSh", stock: 25,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2905238/pexels-photo-2905238.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Genuine leather belt for men",
-          brand: "LeatherCraft", condition: "new", rating: 4.5, reviews: 13, type: "product"
-        },
-        {
-          id: "fash-15", name: "Women's Scarf", category: "General Goods",
-          price: 20000, currency: "TZS", currencySymbol: "TSh", stock: 30,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/54203/pexels-photo-54203.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Silk scarf with beautiful patterns",
-          brand: "ChicStyle", condition: "new", rating: 4.6, reviews: 8, type: "product"
-        },
-        {
-          id: "fash-16", name: "Men's Jacket", category: "General Goods",
-          price: 120000, currency: "TZS", currencySymbol: "TSh", stock: 11,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Warm men's jacket for cold weather",
-          brand: "WinterWear", condition: "new", rating: 4.4, reviews: 10, type: "product"
-        },
-        {
-          id: "fash-17", name: "Women's Skirt", category: "General Goods",
-          price: 40000, currency: "TZS", currencySymbol: "TSh", stock: 19,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/985635/pexels-photo-985635.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Elegant women's skirt for office wear",
-          brand: "OfficeChic", condition: "new", rating: 4.3, reviews: 7, type: "product"
-        },
-        {
-          id: "fash-18", name: "Men's Shorts", category: "General Goods",
-          price: 35000, currency: "TZS", currencySymbol: "TSh", stock: 24,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Comfortable men's shorts for casual wear",
-          brand: "ComfortWear", condition: "new", rating: 4.2, reviews: 15, type: "product"
-        },
-        {
-          id: "fash-19", name: "Women's Blouse", category: "General Goods",
-          price: 50000, currency: "TZS", currencySymbol: "TSh", stock: 16,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/769733/pexels-photo-769733.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Elegant women's blouse for professional settings",
-          brand: "OfficeChic", condition: "new", rating: 4.5, reviews: 9, type: "product"
-        },
-        {
-          id: "fash-20", name: "Unisex Backpack", category: "General Goods",
-          price: 65000, currency: "TZS", currencySymbol: "TSh", stock: 21,
-          business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2905238/pexels-photo-2905238.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Stylish backpack for daily use",
-          brand: "UrbanGear", condition: "new", rating: 4.4, reviews: 12, type: "product"
+          brand: "RunPro",
+          condition: "new",
+          rating: 4.3,
+          reviews: 15,
+          type: "product"
         }
       ];
 
-      // BIDHAA 20 ZA HOTELS
-      const sampleHotels = [
+      const sampleBuildingHotels = [
         {
-          id: "hotel-1", name: "Serengeti Luxury Hotel", category: "Building & Hotels",
-          serviceType: "5-Star Hotel", priceRange: "150-300", currency: "USD", currencySymbol: "$",
-          business: "Serengeti Hospitality Group", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
+          id: "hotel-1",
+          name: "Serengeti Luxury Hotel",
+          category: "Building & Hotels",
+          serviceType: "5-Star Hotel",
+          priceRange: "150-300",
+          currency: "USD",
+          currencySymbol: "$",
+          business: "Serengeti Hospitality Group",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Masaki, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
           images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
           description: "5-star luxury hotel with premium amenities and excellent service",
-          rating: "5", type: "service"
-        },
-        {
-          id: "hotel-2", name: "City View Apartments", category: "Building & Hotels",
-          serviceType: "Luxury Apartment", priceRange: "80,000-150,000", currency: "TZS", currencySymbol: "TSh",
-          business: "Prime Properties Tanzania", location: { lat: -6.8120, lng: 39.2840 },
-          address: "City Center, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Modern luxury apartments with business facilities",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-3", name: "Beach Resort Zanzibar", category: "Building & Hotels",
-          serviceType: "Beach Resort", priceRange: "200-500", currency: "USD", currencySymbol: "$",
-          business: "Zanzibar Hospitality Group", location: { lat: -6.1659, lng: 39.2026 },
-          address: "Nungwi, Zanzibar", country: "Tanzania", region: "Zanzibar", city: "Zanzibar",
-          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Luxury beach resort with private beach access and spa",
-          rating: "5", type: "service"
-        },
-        {
-          id: "hotel-4", name: "Business Hotel Arusha", category: "Building & Hotels",
-          serviceType: "Business Hotel", priceRange: "100-200", currency: "USD", currencySymbol: "$",
-          business: "Arusha Hospitality", location: { lat: -3.3869, lng: 36.6820 },
-          address: "City Center, Arusha", country: "Tanzania", region: "Arusha", city: "Arusha",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Comfortable business hotel with conference facilities",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-5", name: "Mountain View Lodge", category: "Building & Hotels",
-          serviceType: "Mountain Lodge", priceRange: "120-250", currency: "USD", currencySymbol: "$",
-          business: "Kilimanjaro Hospitality", location: { lat: -3.0674, lng: 37.3556 },
-          address: "Moshi, Kilimanjaro", country: "Tanzania", region: "Kilimanjaro", city: "Moshi",
-          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Lodge with stunning views of Mount Kilimanjaro",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-6", name: "Lakeside Resort", category: "Building & Hotels",
-          serviceType: "Lakeside Resort", priceRange: "80-180", currency: "USD", currencySymbol: "$",
-          business: "Lake Victoria Resorts", location: { lat: -2.5164, lng: 32.9170 },
-          address: "Mwanza, Lake Victoria", country: "Tanzania", region: "Mwanza", city: "Mwanza",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Beautiful resort on the shores of Lake Victoria",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-7", name: "City Center Hotel", category: "Building & Hotels",
-          serviceType: "Boutique Hotel", priceRange: "60-120", currency: "USD", currencySymbol: "$",
-          business: "City Hospitality Group", location: { lat: -6.8120, lng: 39.2840 },
-          address: "City Center, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Boutique hotel in the heart of the city",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-8", name: "Beachfront Villa", category: "Building & Hotels",
-          serviceType: "Private Villa", priceRange: "300-600", currency: "USD", currencySymbol: "$",
-          business: "Luxury Villas Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Private beachfront villa with pool and staff",
-          rating: "5", type: "service"
-        },
-        {
-          id: "hotel-9", name: "Safari Camp", category: "Building & Hotels",
-          serviceType: "Safari Lodge", priceRange: "200-400", currency: "USD", currencySymbol: "$",
-          business: "Serengeti Safari Camps", location: { lat: -2.3333, lng: 34.8333 },
-          address: "Serengeti National Park", country: "Tanzania", region: "Mara", city: "Serengeti",
-          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Luxury safari camp in the heart of Serengeti",
-          rating: "5", type: "service"
-        },
-        {
-          id: "hotel-10", name: "Budget Hostel", category: "Building & Hotels",
-          serviceType: "Hostel", priceRange: "20-50", currency: "USD", currencySymbol: "$",
-          business: "Backpackers Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Affordable hostel for backpackers and travelers",
-          rating: "3", type: "service"
-        },
-        {
-          id: "hotel-11", name: "Executive Suites", category: "Building & Hotels",
-          serviceType: "Serviced Apartments", priceRange: "150-300", currency: "USD", currencySymbol: "$",
-          business: "Executive Stays Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Luxury serviced apartments for business travelers",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-12", name: "Family Resort", category: "Building & Hotels",
-          serviceType: "Family Resort", priceRange: "100-250", currency: "USD", currencySymbol: "$",
-          business: "Family Fun Resorts", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Family-friendly resort with kids activities",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-13", name: "Beach Bungalows", category: "Building & Hotels",
-          serviceType: "Beach Bungalows", priceRange: "80-150", currency: "USD", currencySymbol: "$",
-          business: "Island Paradise Resorts", location: { lat: -6.1659, lng: 39.2026 },
-          address: "Zanzibar Beach", country: "Tanzania", region: "Zanzibar", city: "Zanzibar",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Traditional beach bungalows with ocean views",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-14", name: "City Loft", category: "Building & Hotels",
-          serviceType: "Modern Loft", priceRange: "120-200", currency: "USD", currencySymbol: "$",
-          business: "Urban Living Tanzania", location: { lat: -6.8120, lng: 39.2840 },
-          address: "City Center, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Modern loft apartment in the city center",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-15", name: "Mountain Retreat", category: "Building & Hotels",
-          serviceType: "Mountain Retreat", priceRange: "90-180", currency: "USD", currencySymbol: "$",
-          business: "Mountain Escape Resorts", location: { lat: -3.0674, lng: 37.3556 },
-          address: "Kilimanjaro Foothills", country: "Tanzania", region: "Kilimanjaro", city: "Moshi",
-          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Peaceful mountain retreat for nature lovers",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-16", name: "Luxury Tent Camp", category: "Building & Hotels",
-          serviceType: "Glamping", priceRange: "150-300", currency: "USD", currencySymbol: "$",
-          business: "Luxury Camping Tanzania", location: { lat: -2.3333, lng: 34.8333 },
-          address: "Serengeti Plains", country: "Tanzania", region: "Mara", city: "Serengeti",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Luxury tent camping experience in the wild",
-          rating: "5", type: "service"
-        },
-        {
-          id: "hotel-17", name: "Business Center Hotel", category: "Building & Hotels",
-          serviceType: "Conference Hotel", priceRange: "100-220", currency: "USD", currencySymbol: "$",
-          business: "Business Travel Tanzania", location: { lat: -6.8120, lng: 39.2840 },
-          address: "CBD, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Hotel with full business and conference facilities",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-18", name: "Island Resort", category: "Building & Hotels",
-          serviceType: "Private Island Resort", priceRange: "250-500", currency: "USD", currencySymbol: "$",
-          business: "Island Luxury Resorts", location: { lat: -6.1659, lng: 39.2026 },
-          address: "Private Island, Zanzibar", country: "Tanzania", region: "Zanzibar", city: "Zanzibar",
-          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Exclusive private island resort experience",
-          rating: "5", type: "service"
-        },
-        {
-          id: "hotel-19", name: "Garden Hotel", category: "Building & Hotels",
-          serviceType: "Boutique Garden Hotel", priceRange: "70-140", currency: "USD", currencySymbol: "$",
-          business: "Garden Retreat Hotels", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Charming boutique hotel with beautiful gardens",
-          rating: "4", type: "service"
-        },
-        {
-          id: "hotel-20", name: "Lake View Lodge", category: "Building & Hotels",
-          serviceType: "Lake View Lodge", priceRange: "60-120", currency: "USD", currencySymbol: "$",
-          business: "Lake View Hospitality", location: { lat: -2.5164, lng: 32.9170 },
-          address: "Mwanza, Lake Victoria", country: "Tanzania", region: "Mwanza", city: "Mwanza",
-          images: ["https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Comfortable lodge with stunning lake views",
-          rating: "4", type: "service"
-        }
-      ];
-
-      // BIDHAA 20 ZA VEHICLES
-      const sampleVehicles = [
-        {
-          id: "vehicle-1", name: "Toyota RAV4 2023", category: "Vehicles",
-          price: 45000000, currency: "TZS", currencySymbol: "TSh", stock: 3,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Brand new Toyota RAV4 2023 model with full features",
-          brand: "Toyota", condition: "new", rating: 4.8, reviews: 12, type: "product"
-        },
-        {
-          id: "vehicle-2", name: "Honda CR-V 2022", category: "Vehicles",
-          price: 38000000, currency: "TZS", currencySymbol: "TSh", stock: 2,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Well-maintained Honda CR-V 2022 with low mileage",
-          brand: "Honda", condition: "used", rating: 4.6, reviews: 8, type: "product"
-        },
-        {
-          id: "vehicle-3", name: "BMW X5 2021", category: "Vehicles",
-          price: 85000000, currency: "TZS", currencySymbol: "TSh", stock: 1,
-          business: "Luxury Motors Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Luxury BMW X5 with premium features",
-          brand: "BMW", condition: "used", rating: 4.9, reviews: 5, type: "product"
-        },
-        {
-          id: "vehicle-4", name: "Toyota Hilux 2023", category: "Vehicles",
-          price: 52000000, currency: "TZS", currencySymbol: "TSh", stock: 4,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "New Toyota Hilux double cabin pickup truck",
-          brand: "Toyota", condition: "new", rating: 4.7, reviews: 15, type: "product"
-        },
-        {
-          id: "vehicle-5", name: "Mercedes Benz C-Class", category: "Vehicles",
-          price: 68000000, currency: "TZS", currencySymbol: "TSh", stock: 2,
-          business: "Luxury Motors Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Elegant Mercedes Benz C-Class sedan",
-          brand: "Mercedes", condition: "used", rating: 4.8, reviews: 7, type: "product"
-        },
-        {
-          id: "vehicle-6", name: "Nissan X-Trail 2022", category: "Vehicles",
-          price: 42000000, currency: "TZS", currencySymbol: "TSh", stock: 3,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Comfortable Nissan X-Trail SUV",
-          brand: "Nissan", condition: "used", rating: 4.5, reviews: 9, type: "product"
-        },
-        {
-          id: "vehicle-7", name: "Toyota Corolla 2023", category: "Vehicles",
-          price: 32000000, currency: "TZS", currencySymbol: "TSh", stock: 5,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Fuel-efficient Toyota Corolla sedan",
-          brand: "Toyota", condition: "new", rating: 4.6, reviews: 11, type: "product"
-        },
-        {
-          id: "vehicle-8", name: "Land Rover Discovery", category: "Vehicles",
-          price: 95000000, currency: "TZS", currencySymbol: "TSh", stock: 1,
-          business: "Luxury Motors Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Premium Land Rover Discovery SUV",
-          brand: "Land Rover", condition: "used", rating: 4.9, reviews: 4, type: "product"
-        },
-        {
-          id: "vehicle-9", name: "Mitsubishi Pajero", category: "Vehicles",
-          price: 45000000, currency: "TZS", currencySymbol: "TSh", stock: 2,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Reliable Mitsubishi Pajero 4x4",
-          brand: "Mitsubishi", condition: "used", rating: 4.4, reviews: 8, type: "product"
-        },
-        {
-          id: "vehicle-10", name: "Hyundai Tucson 2023", category: "Vehicles",
-          price: 38000000, currency: "TZS", currencySymbol: "TSh", stock: 3,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Modern Hyundai Tucson with advanced features",
-          brand: "Hyundai", condition: "new", rating: 4.5, reviews: 6, type: "product"
-        },
-        {
-          id: "vehicle-11", name: "Toyota Hiace Minibus", category: "Vehicles",
-          price: 55000000, currency: "TZS", currencySymbol: "TSh", stock: 2,
-          business: "Commercial Vehicles Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Toyota Hiace minibus for passenger transport",
-          brand: "Toyota", condition: "new", rating: 4.3, reviews: 10, type: "product"
-        },
-        {
-          id: "vehicle-12", name: "Ford Ranger 2022", category: "Vehicles",
-          price: 48000000, currency: "TZS", currencySymbol: "TSh", stock: 3,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Powerful Ford Ranger pickup truck",
-          brand: "Ford", condition: "used", rating: 4.6, reviews: 7, type: "product"
-        },
-        {
-          id: "vehicle-13", name: "Lexus RX 350", category: "Vehicles",
-          price: 72000000, currency: "TZS", currencySymbol: "TSh", stock: 1,
-          business: "Luxury Motors Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Luxury Lexus RX 350 SUV",
-          brand: "Lexus", condition: "used", rating: 4.9, reviews: 3, type: "product"
-        },
-        {
-          id: "vehicle-14", name: "Suzuki Vitara 2023", category: "Vehicles",
-          price: 35000000, currency: "TZS", currencySymbol: "TSh", stock: 4,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Compact Suzuki Vitara SUV",
-          brand: "Suzuki", condition: "new", rating: 4.4, reviews: 8, type: "product"
-        },
-        {
-          id: "vehicle-15", name: "Toyota Land Cruiser", category: "Vehicles",
-          price: 120000000, currency: "TZS", currencySymbol: "TSh", stock: 1,
-          business: "Luxury Motors Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Premium Toyota Land Cruiser V8",
-          brand: "Toyota", condition: "used", rating: 4.9, reviews: 2, type: "product"
-        },
-        {
-          id: "vehicle-16", name: "Honda Civic 2023", category: "Vehicles",
-          price: 34000000, currency: "TZS", currencySymbol: "TSh", stock: 3,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Sporty Honda Civic sedan",
-          brand: "Honda", condition: "new", rating: 4.7, reviews: 9, type: "product"
-        },
-        {
-          id: "vehicle-17", name: "Isuzu D-Max", category: "Vehicles",
-          price: 46000000, currency: "TZS", currencySymbol: "TSh", stock: 2,
-          business: "Commercial Vehicles Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Durable Isuzu D-Max pickup truck",
-          brand: "Isuzu", condition: "new", rating: 4.5, reviews: 6, type: "product"
-        },
-        {
-          id: "vehicle-18", name: "BMW 3 Series", category: "Vehicles",
-          price: 58000000, currency: "TZS", currencySymbol: "TSh", stock: 1,
-          business: "Luxury Motors Tanzania", location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Sporty BMW 3 Series sedan",
-          brand: "BMW", condition: "used", rating: 4.8, reviews: 4, type: "product"
-        },
-        {
-          id: "vehicle-19", name: "Toyota Premio 2022", category: "Vehicles",
-          price: 36000000, currency: "TZS", currencySymbol: "TSh", stock: 4,
-          business: "AutoWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Comfortable Toyota Premio sedan",
-          brand: "Toyota", condition: "used", rating: 4.6, reviews: 7, type: "product"
-        },
-        {
-          id: "vehicle-20", name: "Mercedes Sprinter", category: "Vehicles",
-          price: 65000000, currency: "TZS", currencySymbol: "TSh", stock: 2,
-          business: "Commercial Vehicles Tanzania", location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          description: "Mercedes Sprinter passenger van",
-          brand: "Mercedes", condition: "new", rating: 4.7, reviews: 5, type: "product"
+          rating: "5",
+          type: "service"
         }
       ];
 
       const sampleItems = [
         ...sampleElectronics,
-        ...sampleFashion,
-        ...sampleHotels,
-        ...sampleVehicles
+        ...sampleGeneralGoods,
+        ...sampleBuildingHotels
       ];
 
       const combinedItems = [...sampleItems, ...storedProducts, ...storedServices];
@@ -1116,8 +453,7 @@ function ProductSearch() {
       "laptop", "laptops", "computer", "notebook", 
       "phone", "mobile", "smartphone", "cellphone",
       "hotel", "hotels", "motel", "accommodation",
-      "shoes", "shoe", "sneakers", "footwear",
-      "car", "cars", "vehicle", "vehicles", "toyota", "honda"
+      "shoes", "shoe", "sneakers", "footwear"
     ];
     
     commonSearches.forEach(search => {
@@ -1267,6 +603,9 @@ function ProductSearch() {
         break;
       case "hotels":
         category = "Building & Hotels";
+        break;
+      case "phones":
+        category = "Electronics & Devices";
         break;
       case "cars":
         category = "Vehicles";
@@ -1473,7 +812,6 @@ function ProductSearch() {
       case 'Electronics & Devices': return 'fa-laptop';
       case 'General Goods': return 'fa-tshirt';
       case 'Building & Hotels': return 'fa-hotel';
-      case 'Vehicles': return 'fa-car';
       default: return 'fa-box';
     }
   };
@@ -1483,7 +821,6 @@ function ProductSearch() {
       case 'Electronics & Devices': return 'primary';
       case 'General Goods': return 'warning';
       case 'Building & Hotels': return 'success';
-      case 'Vehicles': return 'danger';
       default: return 'secondary';
     }
   };
@@ -1493,7 +830,6 @@ function ProductSearch() {
       case 'Electronics & Devices': return 'bg-primary';
       case 'General Goods': return 'bg-warning';
       case 'Building & Hotels': return 'bg-success';
-      case 'Vehicles': return 'bg-danger';
       default: return 'bg-secondary';
     }
   };
@@ -1519,6 +855,97 @@ function ProductSearch() {
       return `${item.currencySymbol || '$'} ${item.priceRange}`;
     }
     return `${item.currencySymbol || '$'} ${item.price?.toLocaleString() || '0'}`;
+  };
+
+  // NAVBAR YA KAWALIDA (YA KWA MTAANDAO)
+  const RegularNavbar = () => {
+    return (
+      <div className="fixed-top bg-white border-bottom shadow-sm" style={{ zIndex: 1030 }}>
+        <div className="container-fluid p-3">
+          <div className="row align-items-center">
+            {/* Menu Button */}
+            <div className="col-auto">
+              <button
+                className="btn btn-light rounded-circle"
+                onClick={toggleSidebar}
+                style={{ 
+                  width: '45px', 
+                  height: '45px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <i className="fas fa-bars text-dark"></i>
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="col">
+              <div className="input-group input-group-lg position-relative">
+                <input
+                  type="text"
+                  className="form-control border-0 bg-light rounded-pill ps-5"
+                  placeholder="Search products, services..."
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  onFocus={handleSearchInputFocus}
+                  style={{ fontSize: '1rem' }}
+                />
+                {/* Search Icon Inside Input */}
+                <div className="position-absolute top-50 start-0 translate-middle-y ps-3">
+                  <i className="fas fa-search text-muted"></i>
+                </div>
+              </div>
+
+              {/* Search Suggestions Dropdown */}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
+                  <div className="bg-white border rounded-3 shadow-lg">
+                    {searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        className="btn btn-light w-100 text-start p-3 border-bottom"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        style={{ 
+                          border: 'none',
+                          borderRadius: '0',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        <div className="d-flex align-items-center">
+                          <i className="fas fa-search me-3 text-muted"></i>
+                          <div>
+                            <div className="fw-semibold text-dark">{suggestion}</div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Account Icon */}
+            <div className="col-auto ms-2">
+              <button
+                className="btn btn-light rounded-circle border"
+                onClick={handleAccountClick}
+                style={{ 
+                  width: '45px', 
+                  height: '45px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <i className="bi bi-person text-dark"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // NAVBAR YA SLIDE (YA KWA WAVUTIAJI)
@@ -1783,7 +1210,7 @@ function ProductSearch() {
     return <SearchPage />;
   }
 
-  // BEAUTIFUL SIDEBAR COMPONENT WITH WHITE BACKGROUND - SIZE IMEPUNGULIWA
+  // BEAUTIFUL SIDEBAR COMPONENT WITH WHITE BACKGROUND
   const SidebarMenu = () => {
     return (
       <>
@@ -1805,7 +1232,7 @@ function ProductSearch() {
           }}
         ></div>
 
-        {/* Sidebar - NOW WITH SMALLER SIZE */}
+        {/* Sidebar - NOW WITH WHITE BACKGROUND */}
         <div 
           className={`sidebar-menu ${showSidebar ? 'active' : ''}`}
           style={{
@@ -1813,8 +1240,8 @@ function ProductSearch() {
             top: 0,
             left: 0,
             bottom: 0,
-            width: '280px', // IMEPUNGULIWA KUTOKA 320px
-            background: '#ffffff',
+            width: '320px',
+            background: '#ffffff', // WHITE BACKGROUND
             zIndex: 1100,
             transform: showSidebar ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 0.3s ease',
@@ -1822,56 +1249,55 @@ function ProductSearch() {
             overflowY: 'auto'
           }}
         >
-          {/* Sidebar Header - SIZE IMEPUNGULIWA */}
+          {/* Sidebar Header */}
           <div className="sidebar-header" style={{
-            padding: '15px', // IMEPUNGULIWA KUTOKA 20px
+            padding: '20px',
             background: '#f8f9fa',
             borderBottom: '1px solid #e9ecef'
           }}>
             <div className="d-flex align-items-center justify-content-between">
               <div className="d-flex align-items-center">
-                <i className="fas fa-bars text-primary me-2 fs-6"></i> {/* SIZE IMEPUNGULIWA */}
-                <h6 className="text-dark mb-0 fw-bold" style={{ fontSize: '0.95rem' }}>Browse Categories</h6> {/* SIZE IMEPUNGULIWA */}
+                <i className="fas fa-bars text-primary me-3 fs-5"></i>
+                <h5 className="text-dark mb-0 fw-bold">Browse Categories</h5>
               </div>
               <button 
                 className="btn btn-close"
                 onClick={toggleSidebar}
-                style={{ fontSize: '0.8rem' }} // SIZE IMEPUNGULIWA
               ></button>
             </div>
           </div>
 
-          {/* Sidebar Content - SIZE IMEPUNGULIWA */}
-          <div className="sidebar-content" style={{ padding: '15px' }}> {/* IMEPUNGULIWA KUTOKA 20px */}
-            {/* Welcome Section - SIZE IMEPUNGULIWA */}
-            <div className="welcome-section mb-3"> {/* IMEPUNGULIWA KUTOKA mb-4 */}
-              <div className="text-center text-dark mb-2"> {/* IMEPUNGULIWA KUTOKA mb-3 */}
-                <i className="fas fa-shopping-bag fa-lg mb-2 text-primary"></i> {/* SIZE IMEPUNGULIWA */}
-                <h6 className="fw-bold" style={{ fontSize: '0.9rem' }}>Find What You Need</h6> {/* SIZE IMEPUNGULIWA */}
-                <small className="text-muted" style={{ fontSize: '0.75rem' }}>Browse through our categories</small> {/* SIZE IMEPUNGULIWA */}
+          {/* Sidebar Content */}
+          <div className="sidebar-content" style={{ padding: '20px' }}>
+            {/* Welcome Section */}
+            <div className="welcome-section mb-4">
+              <div className="text-center text-dark mb-3">
+                <i className="fas fa-shopping-bag fa-2x mb-2 text-primary"></i>
+                <h6 className="fw-bold">Find What You Need</h6>
+                <small className="text-muted">Browse through our categories</small>
               </div>
             </div>
 
-            {/* Home Link Button - SIZE IMEPUNGULIWA */}
-            <div className="home-link-section mb-3"> {/* IMEPUNGULIWA KUTOKA mb-4 */}
+            {/* Home Link Button */}
+            <div className="home-link-section mb-4">
               <Link 
                 to="/" 
-                className="btn btn-primary w-100 d-flex align-items-center justify-content-center py-2" 
+                className="btn btn-primary w-100 d-flex align-items-center justify-content-center py-3"
                 style={{
-                  borderRadius: '10px', // IMEPUNGULIWA KUTOKA 12px
+                  borderRadius: '12px',
                   textDecoration: 'none',
                   fontWeight: '600',
-                  fontSize: '0.85rem', // SIZE IMEPUNGULIWA
+                  fontSize: '1rem',
                   border: 'none'
                 }}
                 onClick={() => setShowSidebar(false)}
               >
-                <i className="fas fa-home me-2 fs-6"></i> {/* SIZE IMEPUNGULIWA */}
+                <i className="fas fa-home me-3 fs-5"></i>
                 Home Page
               </Link>
             </div>
 
-            {/* Categories List - SIZE IMEPUNGULIWA */}
+            {/* Categories List */}
             <div className="categories-list">
               {categories.map((category) => (
                 <button
@@ -1881,108 +1307,106 @@ function ProductSearch() {
                   style={{
                     background: activeCategory === category.id ? 'rgba(0, 123, 255, 0.1)' : '#ffffff',
                     border: activeCategory === category.id ? '2px solid #007bff' : '1px solid #e9ecef',
-                    borderRadius: '10px', // IMEPUNGULIWA KUTOKA 12px
-                    padding: '12px', // IMEPUNGULIWA KUTOKA 15px
+                    borderRadius: '12px',
+                    padding: '15px',
                     color: activeCategory === category.id ? '#007bff' : '#495057',
                     transition: 'all 0.3s ease',
                     cursor: 'pointer'
                   }}
                 >
                   <div className="d-flex align-items-center">
-                    <div className="category-icon me-2" style={{ // IMEPUNGULIWA KUTOKA me-3
-                      width: '32px', // IMEPUNGULIWA KUTOKA 40px
-                      height: '32px', // IMEPUNGULIWA KUTOKA 40px
+                    <div className="category-icon me-3" style={{
+                      width: '40px',
+                      height: '40px',
                       background: activeCategory === category.id ? '#007bff' : 'rgba(0, 123, 255, 0.1)',
-                      borderRadius: '8px', // IMEPUNGULIWA KUTOKA 10px
+                      borderRadius: '10px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '0.9rem', // SIZE IMEPUNGULIWA
+                      fontSize: '1.1rem',
                       color: activeCategory === category.id ? '#ffffff' : '#007bff'
                     }}>
                       <i className={`fas ${category.icon}`}></i>
                     </div>
                     <div className="flex-grow-1">
-                      <div className="fw-semibold" style={{ fontSize: '0.8rem' }}>{category.name}</div> {/* SIZE IMEPUNGULIWA */}
-                      <small className={activeCategory === category.id ? "text-primary" : "text-muted"} style={{ fontSize: '0.7rem' }}>{category.description}</small> {/* SIZE IMEPUNGULIWA */}
+                      <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{category.name}</div>
+                      <small className={activeCategory === category.id ? "text-primary" : "text-muted"} style={{ fontSize: '0.75rem' }}>{category.description}</small>
                     </div>
                     {activeCategory === category.id && (
-                      <i className="fas fa-check text-success ms-1" style={{ fontSize: '0.8rem' }}></i> 
+                      <i className="fas fa-check text-success ms-2"></i>
                     )}
                   </div>
                 </button>
               ))}
             </div>
 
-            {/* Help & Support Section - SIZE IMEPUNGULIWA */}
-            <div className="help-section mt-3 pt-3 border-top border-secondary border-opacity-25"> {/* SIZE IMEPUNGULIWA */}
-              <h6 className="text-dark fw-semibold mb-2" style={{ fontSize: '0.85rem' }}>Help & Support</h6> {/* SIZE IMEPUNGULIWA */}
+            {/* Help & Support Section */}
+            <div className="help-section mt-4 pt-4 border-top border-secondary border-opacity-25">
+              <h6 className="text-dark fw-semibold mb-3">Help & Support</h6>
               
               <button 
-                className="btn btn-outline-info w-100 mb-2 d-flex align-items-center justify-content-center" 
+                className="btn btn-outline-info w-100 mb-3 d-flex align-items-center justify-content-center"
                 onClick={handleHelpClick}
                 style={{
-                  borderRadius: '8px', // IMEPUNGULIWA KUTOKA 10px
-                  padding: '10px', // IMEPUNGULIWA KUTOKA 12px
+                  borderRadius: '10px',
+                  padding: '12px',
                   border: '2px solid #17a2b8',
                   color: '#17a2b8',
-                  fontWeight: '600',
-                  fontSize: '0.8rem' // SIZE IMEPUNGULIWA
+                  fontWeight: '600'
                 }}
               >
-                <i className="fas fa-question-circle me-2 fs-6"></i> {/* SIZE IMEPUNGULIWA */}
+                <i className="fas fa-question-circle me-2 fs-5"></i>
                 Help Center
               </button>
             </div>
 
-            {/* Language Selector - SIZE IMEPUNGULIWA */}
-            <div className="language-section mt-3 pt-3 border-top border-secondary border-opacity-25"> {/* SIZE IMEPUNGULIWA */}
-              <h6 className="text-dark fw-semibold mb-2" style={{ fontSize: '0.85rem' }}>Language</h6> {/* SIZE IMEPUNGULIWA */}
+            {/* Language Selector */}
+            <div className="language-section mt-4 pt-4 border-top border-secondary border-opacity-25">
+              <h6 className="text-dark fw-semibold mb-3">Language</h6>
               
               <div className="position-relative">
                 <button 
                   className="btn btn-outline-success w-100 d-flex align-items-center justify-content-between"
                   onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
                   style={{
-                    borderRadius: '8px', // IMEPUNGULIWA KUTOKA 10px
-                    padding: '10px', // IMEPUNGULIWA KUTOKA 12px
+                    borderRadius: '10px',
+                    padding: '12px',
                     border: '2px solid #28a745',
                     color: '#28a745',
-                    fontWeight: '600',
-                    fontSize: '0.8rem' // SIZE IMEPUNGULIWA
+                    fontWeight: '600'
                   }}
                 >
                   <div className="d-flex align-items-center">
-                    <i className="fas fa-globe me-2 fs-6"></i> {/* SIZE IMEPUNGULIWA */}
+                    <i className="fas fa-globe me-2 fs-5"></i>
                     <span>{selectedLanguage}</span>
                   </div>
-                  <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '0.7rem' }}></i> {/* SIZE IMEPUNGULIWA */}
+                  <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`}></i>
                 </button>
 
-                {/* Language Dropdown - SIZE IMEPUNGULIWA */}
+                {/* Language Dropdown */}
                 {showLanguageDropdown && (
                   <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
-                    <div className="bg-white border rounded-2 shadow-lg" style={{ maxHeight: '180px', overflowY: 'auto' }}> {/* SIZE IMEPUNGULIWA */}
+                    <div className="bg-white border rounded-3 shadow-lg" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                       {languages.map((language) => (
                         <button
                           key={language.code}
-                          className={`btn btn-light w-100 text-start p-2 border-bottom ${ /* IMEPUNGULIWA KUTOKA p-3 */
+                          className={`btn btn-light w-100 text-start p-3 border-bottom ${
                             selectedLanguage === language.name ? 'bg-primary text-white' : ''
                           }`}
                           onClick={() => handleLanguageSelect(language)}
                           style={{ 
                             border: 'none',
                             borderRadius: '0',
-                            fontSize: '0.8rem' // SIZE IMEPUNGULIWA
+                            fontSize: '0.9rem'
                           }}
                         >
                           <div className="d-flex align-items-center">
-                            <span className="me-2 fs-6">{language.flag}</span> {/* SIZE IMEPUNGULIWA */}
+                            <span className="me-3 fs-6">{language.flag}</span>
                             <div>
                               <div className="fw-semibold">{language.name}</div>
                             </div>
                             {selectedLanguage === language.name && (
-                              <i className="fas fa-check ms-auto" style={{ fontSize: '0.7rem' }}></i> 
+                              <i className="fas fa-check ms-auto"></i>
                             )}
                           </div>
                         </button>
@@ -1993,26 +1417,25 @@ function ProductSearch() {
               </div>
             </div>
 
-            {/* Quick Actions - SIZE IMEPUNGULIWA */}
-            <div className="quick-actions mt-3 pt-3 border-top border-secondary border-opacity-25"> {/* SIZE IMEPUNGULIWA */}
-              <h6 className="text-dark fw-semibold mb-2" style={{ fontSize: '0.85rem' }}>Quick Actions</h6> {/* SIZE IMEPUNGULIWA */}
+            {/* Quick Actions */}
+            <div className="quick-actions mt-4 pt-4 border-top border-secondary border-opacity-25">
+              <h6 className="text-dark fw-semibold mb-3">Quick Actions</h6>
               
               <button 
                 className="btn btn-outline-primary w-100 mb-2 d-flex align-items-center justify-content-center"
                 onClick={handleFilterClick}
                 style={{
-                  borderRadius: '8px', // IMEPUNGULIWA KUTOKA 10px
-                  padding: '10px', // IMEPUNGULIWA KUTOKA 12px
+                  borderRadius: '10px',
+                  padding: '12px',
                   border: '2px solid #007bff',
                   color: '#007bff',
-                  fontWeight: '600',
-                  fontSize: '0.8rem' // SIZE IMEPUNGULIWA
+                  fontWeight: '600'
                 }}
               >
-                <i className="fas fa-filter me-2" style={{ fontSize: '0.7rem' }}></i> {/* SIZE IMEPUNGULIWA */}
+                <i className="fas fa-filter me-2"></i>
                 Advanced Filters
                 {getActiveFiltersCount() > 0 && (
-                  <span className="badge bg-primary text-white ms-2" style={{ fontSize: '0.6rem' }}> {/* SIZE IMEPUNGULIWA */}
+                  <span className="badge bg-primary text-white ms-2">
                     {getActiveFiltersCount()}
                   </span>
                 )}
@@ -2022,15 +1445,14 @@ function ProductSearch() {
                 className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
                 onClick={clearSearch}
                 style={{
-                  borderRadius: '8px', // IMEPUNGULIWA KUTOKA 10px
-                  padding: '10px', // IMEPUNGULIWA KUTOKA 12px
+                  borderRadius: '1010px',
+                  padding: '12px',
                   fontWeight: '600',
                   background: '#007bff',
-                  border: 'none',
-                  fontSize: '0.8rem' // SIZE IMEPUNGULIWA
+                  border: 'none'
                 }}
               >
-                <i className="fas fa-eraser me-2" style={{ fontSize: '0.7rem' }}></i> {/* SIZE IMEPUNGULIWA */}
+                <i className="fas fa-eraser me-2"></i>
                 Clear All Filters
               </button>
             </div>
@@ -2043,7 +1465,9 @@ function ProductSearch() {
   // Main Component Render
   return (
     <div className="min-vh-100 bg-white">
-      {/* Fixed Top Header */}
+      {/* Fixed Top Header - NAVBAR MBILI TOFAUTI */}
+      {/* UNACHAGUA NAVBAR GANI KUTUMIA HAPA: */}
+      {/* <RegularNavbar /> AU <SlideNavbar /> */}
       <SlideNavbar />
 
       {/* Quick Categories Bar */}
@@ -2122,13 +1546,38 @@ function ProductSearch() {
       {/* Sidebar Menu */}
       <SidebarMenu />
 
-      {/* Main Content - MARGIN TOP IMEONGEXWA */}
-      <div className="container-fluid bg-white" style={{ paddingTop: '160px', paddingBottom: '20px' }}> {/* IMEBADILISHWA KUTOKA 140px */}
+      {/* Main Content */}
+      <div className="container-fluid bg-white" style={{ paddingTop: '140px', paddingBottom: '20px' }}>
         {/* Loading State */}
         {isLoading && (
           <div className="text-center py-5">
             <div className="spinner-border text-primary mb-3"></div>
             <p className="text-muted">Loading products...</p>
+          </div>
+        )}
+
+        {/* Results Summary */}
+        {!isLoading && (
+          <div className="row mb-3">
+            <div className="col-12">
+              <div className="d-flex justify-content-between align-items-center">
+                <h6 className="text-dark mb-0 fw-bold">
+                  {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
+                  {filters.category && ` in ${filters.category}`}
+                  {searchQuery && ` for "${searchQuery}"`}
+                  {searchResults.some(item => item.isFuzzyMatch) && " (showing similar results)"}
+                </h6>
+                {(getActiveFiltersCount() > 0 || searchQuery.trim() !== "") && (
+                  <button
+                    className="btn btn-sm btn-outline-primary rounded-pill"
+                    onClick={clearSearch}
+                  >
+                    <i className="fas fa-times me-1"></i>
+                    Clear All
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -2149,106 +1598,107 @@ function ProductSearch() {
                 </button>
               </div>
             ) : (
-              // HORIZONTAL SCROLL CONTAINER FOR MOBILE
-              <div className="col-12">
-                <div className="horizontal-scroll-container">
-                  <div className="horizontal-scroll-content">
-                    {searchResults.map((item) => (
-                      <div key={item.id} className="horizontal-scroll-item">
-                        {/* Product Card */}
-                        <div className="card h-100 border-0 shadow-sm product-card" style={{ borderRadius: '12px', overflow: 'hidden', minWidth: '160px' }}>
-                          
-                          {/* Image Section */}
-                          <div className="position-relative">
-                            <img
-                              src={getItemImage(item)}
-                              className="card-img-top"
-                              alt={item.name}
-                              style={{ 
-                                height: '100px', 
-                                objectFit: 'cover',
-                                width: '100%'
-                              }}
-                              onError={(e) => {
-                                e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
-                              }}
-                            />
-                            
-                            {/* Stock Status - IMEBAAKIWA PEKEE */}
-                            {item.type === 'product' && (
-                              <div className="position-absolute top-0 end-0 m-1">
-                                <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
-                                  <small>{item.stock > 0 ? 'In Stock' : 'Out'}</small>
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Rating Badge */}
-                            <div className="position-absolute bottom-0 start-0 m-1">
-                              <span className="badge bg-white text-dark px-2 py-1 rounded-pill shadow-sm" style={{ fontSize: '0.6rem' }}>
-                                <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
-                                <small className="fw-bold">{item.rating || '4.0'}</small>
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Card Body */}
-                          <div className="card-body p-2 d-flex flex-column">
-                            {/* Product Title */}
-                            <h6 className="card-title text-dark fw-bold mb-1" style={{ lineHeight: '1.2', fontSize: '0.8rem' }}>
-                              {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
-                            </h6>
-
-                            {/* Business Name */}
-                            <p className="card-text text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
-                              <i className="fas fa-store me-1 text-primary"></i>
-                              {item.businessName || item.business}
-                            </p>
-
-                            {/* Price */}
-                            <div className="mb-2 mt-auto">
-                              <h6 className="text-success fw-bold mb-0" style={{ fontSize: '0.9rem', lineHeight: '1.1' }}>
-                                {formatPrice(item)}
-                              </h6>
-                              <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                                {item.type === 'product' ? 'Inclusive of VAT' : 'Per night'}
-                              </small>
-                            </div>
-
-                            {/* Location */}
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                              <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                                <i className="fas fa-map-marker-alt text-primary me-1"></i>
-                                {item.location ? calculateDistance(item.location.lat, item.location.lng) : item.city}
-                              </small>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="d-flex gap-1 mt-auto">
-                              <button
-                                className="btn custom-primary-btn flex-fill rounded-pill py-1"
-                                onClick={() => handleViewDetails(item.id)}
-                                style={{ fontSize: '0.7rem' }}
-                              >
-                                <i className="fas fa-eye me-1"></i>
-                                View
-                              </button>
-                              <button
-                                className="btn btn-success rounded-pill py-1 px-2"
-                                onClick={() => handleContactBusiness(item)}
-                                style={{ fontSize: '0.7rem' }}
-                                title="Contact Business"
-                              >
-                                <i className="fas fa-phone"></i>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+              searchResults.map((item) => (
+                <div key={item.id} className="col-6 col-lg-2">
+                  {/* Product Card */}
+                  <div className="card h-100 border-0 shadow-sm product-card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                    
+                    {/* Image Section */}
+                    <div className="position-relative">
+                      <img
+                        src={getItemImage(item)}
+                        className="card-img-top"
+                        alt={item.name}
+                        style={{ 
+                          height: '100px', 
+                          objectFit: 'cover',
+                          width: '100%'
+                        }}
+                        onError={(e) => {
+                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
+                        }}
+                      />
+                      
+                      {/* Category Badge */}
+                      <div className="position-absolute top-0 start-0 m-1">
+                        <span className="badge bg-primary text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                          <i className={`fas ${getCategoryIcon(item.category)} me-1`} style={{ fontSize: '0.5rem' }}></i>
+                          <small>{item.category === 'Building & Hotels' ? 'Hotel' : item.category.split(' ')[0]}</small>
+                        </span>
                       </div>
-                    ))}
+
+                      {/* Stock Status */}
+                      {item.type === 'product' && (
+                        <div className="position-absolute top-0 end-0 m-1">
+                          <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
+                            <small>{item.stock > 0 ? 'In Stock' : 'Out'}</small>
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Rating Badge */}
+                      <div className="position-absolute bottom-0 start-0 m-1">
+                        <span className="badge bg-white text-dark px-2 py-1 rounded-pill shadow-sm" style={{ fontSize: '0.6rem' }}>
+                          <i className="fas fa-star text-warning me-1" style={{ fontSize: '0.5rem' }}></i>
+                          <small className="fw-bold">{item.rating || '4.0'}</small>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="card-body p-2 d-flex flex-column">
+                      {/* Product Title */}
+                      <h6 className="card-title text-dark fw-bold mb-1" style={{ lineHeight: '1.2', fontSize: '0.8rem' }}>
+                        {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
+                      </h6>
+
+                      {/* Business Name */}
+                      <p className="card-text text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
+                        <i className="fas fa-store me-1 text-primary"></i>
+                        {item.businessName || item.business}
+                      </p>
+
+                      {/* Price */}
+                      <div className="mb-2 mt-auto">
+                        <h6 className="text-success fw-bold mb-0" style={{ fontSize: '0.9rem', lineHeight: '1.1' }}>
+                          {formatPrice(item)}
+                        </h6>
+                        <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                          {item.type === 'product' ? 'Inclusive of VAT' : 'Per night'}
+                        </small>
+                      </div>
+
+                      {/* Location */}
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                          <i className="fas fa-map-marker-alt text-primary me-1"></i>
+                          {item.location ? calculateDistance(item.location.lat, item.location.lng) : item.city}
+                        </small>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="d-flex gap-1 mt-auto">
+                        <button
+                          className="btn custom-primary-btn flex-fill rounded-pill py-1"
+                          onClick={() => handleViewDetails(item.id)}
+                          style={{ fontSize: '0.7rem' }}
+                        >
+                          <i className="fas fa-eye me-1"></i>
+                          View
+                        </button>
+                        <button
+                          className="btn btn-outline-primary rounded-pill py-1 px-2"
+                          onClick={() => handleContactBusiness(item)}
+                          style={{ fontSize: '0.7rem' }}
+                          title="Contact Business"
+                        >
+                          <i className="fas fa-phone"></i>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))
             )}
           </div>
         )}
@@ -2290,7 +1740,6 @@ function ProductSearch() {
                       <option value="Electronics & Devices">Electronics & Devices</option>
                       <option value="General Goods">General Goods</option>
                       <option value="Building & Hotels">Building & Hotels</option>
-                      <option value="Vehicles">Vehicles</option>
                     </select>
                   </div>
 
@@ -2442,32 +1891,6 @@ function ProductSearch() {
           box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
         }
         
-        /* Horizontal Scroll Styles for Mobile */
-        .horizontal-scroll-container {
-          width: 100%;
-          overflow-x: auto;
-          overflow-y: hidden;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-          padding-bottom: 10px;
-        }
-        
-        .horizontal-scroll-container::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .horizontal-scroll-content {
-          display: flex;
-          gap: 12px;
-          padding: 0 8px;
-          min-width: min-content;
-        }
-        
-        .horizontal-scroll-item {
-          flex: 0 0 auto;
-        }
-        
         /* Sidebar Styles */
         .sidebar-menu {
           scrollbar-width: thin;
@@ -2544,44 +1967,13 @@ function ProductSearch() {
           .quick-category-label {
             font-size: 0.6rem !important;
           }
-          
-          /* Horizontal scroll specific for mobile */
-          .horizontal-scroll-container {
-            margin-left: -8px;
-            margin-right: -8px;
-            width: calc(100% + 16px);
-          }
-          
-          .horizontal-scroll-content {
-            padding: 0 12px;
-          }
-          
-          .horizontal-scroll-item {
-            width: 160px;
-          }
         }
 
-        /* Desktop Optimizations */
+        /* Laptop Optimizations */
         @media (min-width: 992px) {
           .col-lg-2 {
             flex: 0 0 auto;
             width: 16.66666667%;
-          }
-          
-          /* Hide horizontal scroll on desktop */
-          .horizontal-scroll-container {
-            overflow-x: visible;
-          }
-          
-          .horizontal-scroll-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            padding: 0;
-          }
-          
-          .horizontal-scroll-item {
-            width: auto;
           }
         }
       `}</style>
