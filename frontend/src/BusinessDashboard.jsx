@@ -1,4 +1,4 @@
-// src/BusinessDashboard.jsx - IMPROVED & COMPLETE VERSION
+// src/BusinessDashboard.jsx - IMPROVED & COMPLETE VERSION WITH VEHICLES CATEGORY
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -11,6 +11,7 @@ function BusinessDashboard() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [showGeneralForm, setShowGeneralForm] = useState(false);
+  const [showVehicleForm, setShowVehicleForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -63,6 +64,32 @@ function BusinessDashboard() {
     imagePreviews: []
   });
 
+  // Vehicle Form State (New Category)
+  const [vehicleForm, setVehicleForm] = useState({
+    name: "",
+    category: "Vehicles",
+    price: "",
+    currency: "USD",
+    stock: "",
+    description: "",
+    vehicleType: "car",
+    brand: "",
+    model: "",
+    year: "",
+    mileage: "",
+    fuelType: "petrol",
+    transmission: "manual",
+    color: "",
+    condition: "used-good",
+    features: "",
+    country: "Tanzania",
+    region: "",
+    city: "",
+    address: "",
+    images: [],
+    imagePreviews: []
+  });
+
   // Service Form State (Building & Hotels)
   const [serviceForm, setServiceForm] = useState({
     name: "",
@@ -103,6 +130,13 @@ function BusinessDashboard() {
       color: "warning",
       description: "Clothing, shoes, items without technical specifications"
     },
+    "vehicles": {
+      name: "Vehicles",
+      type: "product",
+      icon: "fa-car",
+      color: "danger",
+      description: "Cars, motorcycles, bicycles, airplanes, vehicles"
+    },
     "building": {
       name: "Building & Hotels",
       type: "service",
@@ -136,6 +170,18 @@ function BusinessDashboard() {
     "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad"],
     "South Africa": ["Johannesburg", "Cape Town", "Durban", "Pretoria"]
   };
+
+  // Vehicle Types
+  const vehicleTypes = [
+    "car", "motorcycle", "bicycle", "truck", "bus", "van", 
+    "suv", "pickup", "boat", "airplane", "helicopter", "scooter"
+  ];
+
+  // Fuel Types
+  const fuelTypes = ["petrol", "diesel", "electric", "hybrid", "cng", "lpg"];
+
+  // Transmission Types
+  const transmissionTypes = ["manual", "automatic", "semi-automatic", "cvt"];
 
   // Service Types for Buildings/Hotels
   const serviceTypes = [
@@ -199,12 +245,13 @@ function BusinessDashboard() {
     setShowProductForm(false);
     setShowGeneralForm(false);
     setShowServiceForm(false);
+    setShowVehicleForm(false);
     setEditingItem(null);
   };
 
   // Helper function to generate random coordinates
   const getRandomLat = () => {
-    const currentCountry = productForm.country || generalForm.country || serviceForm.country;
+    const currentCountry = productForm.country || generalForm.country || vehicleForm.country || serviceForm.country;
     switch(currentCountry) {
       case 'Tanzania': return -6.3690 + (Math.random() * 0.1 - 0.05);
       case 'Kenya': return -1.2921 + (Math.random() * 0.1 - 0.05);
@@ -216,7 +263,7 @@ function BusinessDashboard() {
   };
 
   const getRandomLng = () => {
-    const currentCountry = productForm.country || generalForm.country || serviceForm.country;
+    const currentCountry = productForm.country || generalForm.country || vehicleForm.country || serviceForm.country;
     switch(currentCountry) {
       case 'Tanzania': return 34.8888 + (Math.random() * 0.1 - 0.05);
       case 'Kenya': return 36.8219 + (Math.random() * 0.1 - 0.05);
@@ -248,6 +295,11 @@ function BusinessDashboard() {
               ...prev,
               imagePreviews: [...prev.imagePreviews, ...newPreviews]
             }));
+          } else if (formType === 'vehicle') {
+            setVehicleForm(prev => ({
+              ...prev,
+              imagePreviews: [...prev.imagePreviews, ...newPreviews]
+            }));
           } else if (formType === 'service') {
             setServiceForm(prev => ({
               ...prev,
@@ -269,6 +321,11 @@ function BusinessDashboard() {
       }));
     } else if (formType === 'general') {
       setGeneralForm(prev => ({
+        ...prev,
+        imagePreviews: prev.imagePreviews.filter((_, i) => i !== index)
+      }));
+    } else if (formType === 'vehicle') {
+      setVehicleForm(prev => ({
         ...prev,
         imagePreviews: prev.imagePreviews.filter((_, i) => i !== index)
       }));
@@ -426,6 +483,84 @@ function BusinessDashboard() {
     }
   };
 
+  // Vehicle Management (New Category)
+  const handleVehicleFormChange = (e) => {
+    const { name, value } = e.target;
+    setVehicleForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddVehicle = async (e) => {
+    e.preventDefault();
+    
+    try {
+      if (!vehicleForm.name || !vehicleForm.price || !vehicleForm.stock) {
+        alert("Please fill in all required fields (Name, Price, Stock)");
+        return;
+      }
+
+      const selectedCountry = countries.find(c => c.name === vehicleForm.country);
+      
+      const newVehicle = {
+        id: editingItem ? editingItem.id : `vehicle-${Date.now()}`,
+        name: vehicleForm.name,
+        category: vehicleForm.category,
+        price: parseInt(vehicleForm.price),
+        currency: vehicleForm.currency,
+        currencySymbol: selectedCountry?.currencySymbol || "$",
+        stock: parseInt(vehicleForm.stock),
+        description: vehicleForm.description,
+        vehicleType: vehicleForm.vehicleType,
+        brand: vehicleForm.brand,
+        model: vehicleForm.model,
+        year: vehicleForm.year,
+        mileage: vehicleForm.mileage,
+        fuelType: vehicleForm.fuelType,
+        transmission: vehicleForm.transmission,
+        color: vehicleForm.color,
+        condition: vehicleForm.condition,
+        features: vehicleForm.features.split('\n').filter(feature => feature.trim() !== ''),
+        country: vehicleForm.country,
+        region: vehicleForm.region,
+        city: vehicleForm.city,
+        address: vehicleForm.address,
+        location: { lat: getRandomLat(), lng: getRandomLng() },
+        images: vehicleForm.imagePreviews, // ✅ Now storing actual images
+        businessId: business.id,
+        businessName: business.businessName,
+        businessPhone: business.phone,
+        businessEmail: business.email,
+        businessAddress: business.address,
+        lastUpdated: new Date().toISOString().split('T')[0],
+        status: "active",
+        rating: 4.0 + (Math.random() * 1.0),
+        reviews: Math.floor(Math.random() * 50),
+        type: "product",
+        requiresSpecifications: false
+      };
+
+      let updatedProducts;
+      if (editingItem) {
+        updatedProducts = products.map(p => p.id === editingItem.id ? newVehicle : p);
+      } else {
+        updatedProducts = [...products, newVehicle];
+      }
+
+      setProducts(updatedProducts);
+      localStorage.setItem(`products_${business.id}`, JSON.stringify(updatedProducts));
+      
+      // Update global items storage for search functionality
+      updateGlobalItemsStorage(updatedProducts, services);
+      
+      resetVehicleForm();
+      updateStats(updatedProducts, services);
+      
+      alert(editingItem ? "Vehicle updated successfully!" : "Vehicle added successfully!");
+    } catch (error) {
+      console.error("Error adding vehicle:", error);
+      alert("Failed to add vehicle. Please try again.");
+    }
+  };
+
   // Service Management (Hotels/Buildings)
   const handleServiceFormChange = (e) => {
     const { name, value } = e.target;
@@ -563,6 +698,31 @@ function BusinessDashboard() {
           reviews: 15,
           type: "product"
         },
+        // Sample vehicles
+        {
+          id: "veh-1",
+          name: "Toyota Land Cruiser V8",
+          category: "Vehicles",
+          price: 185000000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 2,
+          business: "Premium Motors Tanzania",
+          businessName: "Premium Motors Tanzania",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Masaki, Dar es Salaam",
+          country: "Tanzania",
+          region: "Dar es Salaam",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
+          description: "Luxury SUV with premium features",
+          brand: "Toyota",
+          vehicleType: "suv",
+          condition: "new",
+          rating: 4.8,
+          reviews: 12,
+          type: "product"
+        },
         // Sample hotel
         {
           id: "hotel-1",
@@ -641,6 +801,35 @@ function BusinessDashboard() {
     });
     setEditingItem(null);
     setShowGeneralForm(false);
+  };
+
+  const resetVehicleForm = () => {
+    setVehicleForm({
+      name: "",
+      category: "Vehicles",
+      price: "",
+      currency: "USD",
+      stock: "",
+      description: "",
+      vehicleType: "car",
+      brand: "",
+      model: "",
+      year: "",
+      mileage: "",
+      fuelType: "petrol",
+      transmission: "manual",
+      color: "",
+      condition: "used-good",
+      features: "",
+      country: "Tanzania",
+      region: "",
+      city: "",
+      address: "",
+      images: [],
+      imagePreviews: []
+    });
+    setEditingItem(null);
+    setShowVehicleForm(false);
   };
 
   const resetServiceForm = () => {
@@ -734,6 +923,33 @@ function BusinessDashboard() {
       });
       setShowGeneralForm(true);
       setActiveCategory('general');
+    } else if (item.category === "Vehicles") {
+      setVehicleForm({
+        name: item.name,
+        category: item.category,
+        price: item.price.toString(),
+        currency: item.currency || "USD",
+        stock: item.stock.toString(),
+        description: item.description,
+        vehicleType: item.vehicleType || "car",
+        brand: item.brand || "",
+        model: item.model || "",
+        year: item.year || "",
+        mileage: item.mileage || "",
+        fuelType: item.fuelType || "petrol",
+        transmission: item.transmission || "manual",
+        color: item.color || "",
+        condition: item.condition || "used-good",
+        features: item.features?.join('\n') || "",
+        country: item.country || "Tanzania",
+        region: item.region || "",
+        city: item.city || "",
+        address: item.address || "",
+        images: item.images || [],
+        imagePreviews: item.images || [] // ✅ Load existing images
+      });
+      setShowVehicleForm(true);
+      setActiveCategory('vehicles');
     } else {
       setServiceForm({
         name: item.name,
@@ -766,7 +982,7 @@ function BusinessDashboard() {
   const handleDeleteItem = (itemId, category) => {
     if (window.confirm(`Are you sure you want to delete this item? This action cannot be undone.`)) {
       try {
-        if (category === "Electronics & Devices" || category === "General Goods") {
+        if (category === "Electronics & Devices" || category === "General Goods" || category === "Vehicles") {
           const updatedProducts = products.filter(p => p.id !== itemId);
           setProducts(updatedProducts);
           localStorage.setItem(`products_${business.id}`, JSON.stringify(updatedProducts));
@@ -800,6 +1016,8 @@ function BusinessDashboard() {
       setProductForm(prev => ({ ...prev, country: countryName, currency }));
     } else if (formType === 'general') {
       setGeneralForm(prev => ({ ...prev, country: countryName, currency }));
+    } else if (formType === 'vehicle') {
+      setVehicleForm(prev => ({ ...prev, country: countryName, currency }));
     } else {
       setServiceForm(prev => ({ ...prev, country: countryName, currency }));
     }
@@ -811,6 +1029,8 @@ function BusinessDashboard() {
       return products.filter(item => item.category === "Electronics & Devices");
     } else if (activeCategory === 'general') {
       return products.filter(item => item.category === "General Goods");
+    } else if (activeCategory === 'vehicles') {
+      return products.filter(item => item.category === "Vehicles");
     } else {
       return services;
     }
@@ -991,6 +1211,16 @@ function BusinessDashboard() {
                     </div>
 
                     <div className="col-md-3 mb-4">
+                      <div className="card bg-danger text-white">
+                        <div className="card-body text-center">
+                          <i className="fas fa-car fa-2x mb-3"></i>
+                          <h5>Vehicles</h5>
+                          <h2>{products.filter(p => p.category === "Vehicles").length}</h2>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-3 mb-4">
                       <div className="card bg-success text-white">
                         <div className="card-body text-center">
                           <i className="fas fa-building fa-2x mb-3"></i>
@@ -1075,17 +1305,26 @@ function BusinessDashboard() {
                         if (activeCategory === 'electronics') {
                           setShowProductForm(true);
                           setShowGeneralForm(false);
+                          setShowVehicleForm(false);
                           setShowServiceForm(false);
                           setEditingItem(null);
                         } else if (activeCategory === 'general') {
                           setShowGeneralForm(true);
                           setShowProductForm(false);
+                          setShowVehicleForm(false);
+                          setShowServiceForm(false);
+                          setEditingItem(null);
+                        } else if (activeCategory === 'vehicles') {
+                          setShowVehicleForm(true);
+                          setShowProductForm(false);
+                          setShowGeneralForm(false);
                           setShowServiceForm(false);
                           setEditingItem(null);
                         } else {
                           setShowServiceForm(true);
                           setShowProductForm(false);
                           setShowGeneralForm(false);
+                          setShowVehicleForm(false);
                           setEditingItem(null);
                         }
                       }}
@@ -1348,7 +1587,6 @@ Long battery life"
                       </div>
                       <div className="card-body">
                         <form onSubmit={handleAddGeneral}>
-                          {/* Similar form structure as electronics but for general goods */}
                           <div className="row">
                             <div className="col-md-6 mb-3">
                               <label className="form-label">Product Name *</label>
@@ -1608,7 +1846,338 @@ Easy to clean"
                     </div>
                   )}
 
-                  {/* Service Form (Building & Hotels) - Similar structure but for services */}
+                  {/* Vehicle Form (New Category) */}
+                  {activeCategory === 'vehicles' && showVehicleForm && (
+                    <div className="card mb-4 border-0 shadow-sm">
+                      <div className="card-header bg-danger text-white">
+                        <h5 className="mb-0">
+                          <i className="fas fa-car me-2"></i>
+                          {editingItem ? "Edit Vehicle" : "Add New Vehicle"}
+                        </h5>
+                      </div>
+                      <div className="card-body">
+                        <form onSubmit={handleAddVehicle}>
+                          <div className="row">
+                            <div className="col-md-6 mb-3">
+                              <label className="form-label">Vehicle Name *</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                name="name"
+                                value={vehicleForm.name}
+                                onChange={handleVehicleFormChange}
+                                placeholder="e.g., Toyota Land Cruiser V8"
+                                required
+                              />
+                            </div>
+                            <div className="col-md-6 mb-3">
+                              <label className="form-label">Vehicle Type *</label>
+                              <select
+                                className="form-select"
+                                name="vehicleType"
+                                value={vehicleForm.vehicleType}
+                                onChange={handleVehicleFormChange}
+                                required
+                              >
+                                {vehicleTypes.map(type => (
+                                  <option key={type} value={type}>
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="row">
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Brand *</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                name="brand"
+                                value={vehicleForm.brand}
+                                onChange={handleVehicleFormChange}
+                                placeholder="e.g., Toyota, Honda, BMW"
+                                required
+                              />
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Model</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                name="model"
+                                value={vehicleForm.model}
+                                onChange={handleVehicleFormChange}
+                                placeholder="e.g., Land Cruiser, Civic, X5"
+                              />
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Year</label>
+                              <input
+                                type="number"
+                                className="form-control"
+                                name="year"
+                                value={vehicleForm.year}
+                                onChange={handleVehicleFormChange}
+                                placeholder="e.g., 2023"
+                                min="1900"
+                                max="2030"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="row">
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Price *</label>
+                              <input
+                                type="number"
+                                className="form-control"
+                                name="price"
+                                value={vehicleForm.price}
+                                onChange={handleVehicleFormChange}
+                                required
+                              />
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Currency</label>
+                              <select
+                                className="form-select"
+                                name="currency"
+                                value={vehicleForm.currency}
+                                onChange={handleVehicleFormChange}
+                              >
+                                {countries.map(country => (
+                                  <option key={country.code} value={country.currency}>
+                                    {country.currency} ({country.currencySymbol})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Stock Quantity *</label>
+                              <input
+                                type="number"
+                                className="form-control"
+                                name="stock"
+                                value={vehicleForm.stock}
+                                onChange={handleVehicleFormChange}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="row">
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Mileage (km)</label>
+                              <input
+                                type="number"
+                                className="form-control"
+                                name="mileage"
+                                value={vehicleForm.mileage}
+                                onChange={handleVehicleFormChange}
+                                placeholder="e.g., 50000"
+                              />
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Fuel Type</label>
+                              <select
+                                className="form-select"
+                                name="fuelType"
+                                value={vehicleForm.fuelType}
+                                onChange={handleVehicleFormChange}
+                              >
+                                {fuelTypes.map(type => (
+                                  <option key={type} value={type}>
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Transmission</label>
+                              <select
+                                className="form-select"
+                                name="transmission"
+                                value={vehicleForm.transmission}
+                                onChange={handleVehicleFormChange}
+                              >
+                                {transmissionTypes.map(type => (
+                                  <option key={type} value={type}>
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="mb-3">
+                            <label className="form-label">Description *</label>
+                            <textarea
+                              className="form-control"
+                              name="description"
+                              rows="3"
+                              value={vehicleForm.description}
+                              onChange={handleVehicleFormChange}
+                              placeholder="Describe the vehicle's features, condition, and specifications..."
+                              required
+                            ></textarea>
+                          </div>
+
+                          <div className="mb-3">
+                            <label className="form-label">Features (one per line)</label>
+                            <textarea
+                              className="form-control"
+                              name="features"
+                              rows="3"
+                              value={vehicleForm.features}
+                              onChange={handleVehicleFormChange}
+                              placeholder="Air Conditioning
+Power Windows
+Bluetooth Connectivity
+Leather Seats"
+                            ></textarea>
+                          </div>
+
+                          <div className="row">
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Condition</label>
+                              <select
+                                className="form-select"
+                                name="condition"
+                                value={vehicleForm.condition}
+                                onChange={handleVehicleFormChange}
+                              >
+                                {conditions.map(condition => (
+                                  <option key={condition} value={condition}>
+                                    {condition.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Color</label>
+                              <select
+                                className="form-select"
+                                name="color"
+                                value={vehicleForm.color}
+                                onChange={handleVehicleFormChange}
+                              >
+                                <option value="">Select Color</option>
+                                {colors.map(color => (
+                                  <option key={color} value={color}>{color}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Country *</label>
+                              <select
+                                className="form-select"
+                                name="country"
+                                value={vehicleForm.country}
+                                onChange={(e) => handleCountryChange('vehicle', e.target.value)}
+                                required
+                              >
+                                {countries.map(country => (
+                                  <option key={country.code} value={country.name}>
+                                    {country.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="row">
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Region/State</label>
+                              <select
+                                className="form-select"
+                                name="region"
+                                value={vehicleForm.region}
+                                onChange={handleVehicleFormChange}
+                              >
+                                <option value="">Select Region</option>
+                                {regionsByCountry[vehicleForm.country]?.map(region => (
+                                  <option key={region} value={region}>{region}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">City</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                name="city"
+                                value={vehicleForm.city}
+                                onChange={handleVehicleFormChange}
+                              />
+                            </div>
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label">Address</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                name="address"
+                                value={vehicleForm.address}
+                                onChange={handleVehicleFormChange}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Image Upload - FIXED */}
+                          <div className="mb-3">
+                            <label className="form-label">Vehicle Images</label>
+                            <input
+                              type="file"
+                              className="form-control"
+                              multiple
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(e.target.files, 'vehicle')}
+                            />
+                            <small className="text-muted">Upload vehicle images (multiple selection supported)</small>
+                            
+                            {vehicleForm.imagePreviews.length > 0 && (
+                              <div className="mt-3">
+                                <label className="form-label">Image Previews:</label>
+                                <div className="d-flex flex-wrap gap-2">
+                                  {vehicleForm.imagePreviews.map((preview, index) => (
+                                    <div key={index} className="position-relative">
+                                      <img 
+                                        src={preview} 
+                                        alt={`Preview ${index + 1}`}
+                                        className="rounded border"
+                                        style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="btn btn-danger btn-sm position-absolute top-0 end-0"
+                                        onClick={() => removeImage(index, 'vehicle')}
+                                      >
+                                        <i className="fas fa-times"></i>
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="d-flex gap-2">
+                            <button type="submit" className="btn btn-danger">
+                              <i className="fas fa-save me-2"></i>
+                              {editingItem ? "Update Vehicle" : "Add Vehicle"}
+                            </button>
+                            <button type="button" className="btn btn-secondary" onClick={resetVehicleForm}>
+                              <i className="fas fa-times me-2"></i>
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Service Form (Building & Hotels) */}
                   {activeCategory === 'building' && showServiceForm && (
                     <div className="card mb-4 border-0 shadow-sm">
                       <div className="card-header bg-success text-white">
@@ -1619,7 +2188,6 @@ Easy to clean"
                       </div>
                       <div className="card-body">
                         <form onSubmit={handleAddService}>
-                          {/* Service form fields similar to previous implementation */}
                           <div className="row">
                             <div className="col-md-6 mb-3">
                               <label className="form-label">Service Name *</label>
@@ -1959,6 +2527,9 @@ Airport Transfer"
                                     )}
                                     {item.serviceType && (
                                       <div><i className="fas fa-building me-1"></i> {item.serviceType}</div>
+                                    )}
+                                    {item.vehicleType && (
+                                      <div><i className="fas fa-car me-1"></i> {item.vehicleType}</div>
                                     )}
                                   </div>
 
