@@ -1,4 +1,4 @@
-// src/ProductDetailPage.jsx - MODERN & ATTRACTIVE DESIGN
+// src/ProductDetailPage.jsx - RESPONSIVE DESIGN FOR MOBILE & LAPTOP
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
@@ -556,49 +556,51 @@ function ProductDetailPage() {
         </nav>
 
         <div className="row g-4">
-          {/* Image Gallery - MODERN DESIGN */}
-          <div className="col-lg-7">
+          {/* Image Gallery - RESPONSIVE DESIGN */}
+          <div className="col-lg-7 col-xl-8">
             <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
               <div className="card-body p-0">
-                {/* Main Large Image */}
+                {/* Main Large Image - RESPONSIVE HEIGHT */}
                 <div 
                   className="main-image-container position-relative cursor-pointer"
                   onClick={() => openImageModal(selectedImageIndex)}
                   style={{ 
-                    height: '500px', 
-                    background: `url(${itemImages[selectedImageIndex]}) center/cover no-repeat`,
+                    height: 'clamp(300px, 40vh, 500px)', // Responsive height
+                    background: `url(${itemImages[selectedImageIndex]}) center/contain no-repeat`,
+                    backgroundColor: '#f8f9fa',
                     cursor: 'zoom-in'
                   }}
                 >
                   {/* Image Overlay */}
                   <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
                     style={{ background: 'rgba(0,0,0,0.1)', transition: 'all 0.3s ease' }}>
-                    <div className="text-white text-center opacity-0 hover-opacity-100" style={{ transition: 'all 0.3s ease' }}>
-                      <i className="fas fa-search-plus fa-2x mb-2"></i>
-                      <p className="mb-0">Click to enlarge</p>
+                    <div className="text-white text-center" style={{ opacity: 0.8 }}>
+                      <i className="fas fa-search-plus fa-lg mb-2 d-none d-md-block"></i>
+                      <i className="fas fa-search-plus mb-2 d-md-none"></i>
+                      <p className="mb-0 small d-none d-sm-block">Click to enlarge</p>
                     </div>
                   </div>
 
-                  {/* Image Navigation */}
+                  {/* Image Navigation - RESPONSIVE SIZE */}
                   {itemImages.length > 1 && (
                     <>
                       <button 
-                        className="btn btn-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-3 shadow"
+                        className="btn btn-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ms-lg-3 shadow d-none d-md-flex"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigateImage('prev');
                         }}
-                        style={{ width: '50px', height: '50px' }}
+                        style={{ width: 'clamp(40px, 4vw, 50px)', height: 'clamp(40px, 4vw, 50px)' }}
                       >
                         <i className="fas fa-chevron-left"></i>
                       </button>
                       <button 
-                        className="btn btn-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-3 shadow"
+                        className="btn btn-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 me-lg-3 shadow d-none d-md-flex"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigateImage('next');
                         }}
-                        style={{ width: '50px', height: '50px' }}
+                        style={{ width: 'clamp(40px, 4vw, 50px)', height: 'clamp(40px, 4vw, 50px)' }}
                       >
                         <i className="fas fa-chevron-right"></i>
                       </button>
@@ -606,14 +608,14 @@ function ProductDetailPage() {
                   )}
 
                   {/* Image Counter */}
-                  <div className="position-absolute bottom-0 end-0 m-3">
+                  <div className="position-absolute bottom-0 end-0 m-2 m-lg-3">
                     <span className="badge bg-dark bg-opacity-75 text-white px-3 py-2 rounded-pill">
                       {selectedImageIndex + 1} / {itemImages.length}
                     </span>
                   </div>
                 </div>
 
-                {/* Thumbnail Gallery */}
+                {/* Thumbnail Gallery - RESPONSIVE */}
                 {itemImages.length > 1 && (
                   <div className="p-3 bg-light">
                     <div className="d-flex gap-2 overflow-auto pb-2">
@@ -623,8 +625,8 @@ function ProductDetailPage() {
                           className={`thumbnail-item flex-shrink-0 cursor-pointer ${selectedImageIndex === index ? 'active' : ''}`}
                           onClick={() => setSelectedImageIndex(index)}
                           style={{ 
-                            width: '80px', 
-                            height: '80px',
+                            width: 'clamp(60px, 8vw, 80px)', 
+                            height: 'clamp(60px, 8vw, 80px)',
                             border: selectedImageIndex === index ? '3px solid #007bff' : '2px solid #dee2e6',
                             borderRadius: '10px',
                             overflow: 'hidden',
@@ -636,9 +638,6 @@ function ProductDetailPage() {
                             src={img} 
                             alt={`Thumbnail ${index + 1}`}
                             className="w-100 h-100 object-fit-cover"
-                            style={{ transition: 'transform 0.3s ease' }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                           />
                         </div>
                       ))}
@@ -649,15 +648,16 @@ function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Product Information - MODERN DESIGN */}
-          <div className="col-lg-5">
+          {/* Product Information - RESPONSIVE DESIGN */}
+          <div className="col-lg-5 col-xl-4">
             <div className="card border-0 shadow-lg rounded-4 h-100">
-              <div className="card-body p-4 d-flex flex-column">
+              <div className="card-body p-3 p-lg-4 d-flex flex-column">
                 {/* Category and Status */}
                 <div className="d-flex justify-content-between align-items-start mb-3">
                   <span className={`badge bg-${categoryBadgeColor} px-3 py-2 rounded-pill`}>
                     <i className={`fas ${categoryIcon} me-2`}></i>
-                    {item.category}
+                    <span className="d-none d-sm-inline">{item.category}</span>
+                    <span className="d-sm-none">{item.category.split(' ')[0]}</span>
                   </span>
                   {item.type === 'product' ? (
                     <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-3 py-2`}>
@@ -666,33 +666,34 @@ function ProductDetailPage() {
                   ) : (
                     <span className="badge bg-info px-3 py-2">
                       <i className="fas fa-concierge-bell me-1"></i>
-                      Service Available
+                      <span className="d-none d-sm-inline">Service Available</span>
+                      <span className="d-sm-none">Available</span>
                     </span>
                   )}
                 </div>
 
                 {/* Product Title */}
-                <h1 className="h2 fw-bold text-dark mb-3" style={{ lineHeight: '1.3' }}>
+                <h1 className="h2 fw-bold text-dark mb-3" style={{ lineHeight: '1.3', fontSize: 'clamp(1.5rem, 2.5vw, 2rem)' }}>
                   {item.name}
                 </h1>
 
                 {/* Rating and Reviews */}
-                <div className="d-flex align-items-center mb-3">
-                  <div className="d-flex align-items-center me-3">
+                <div className="d-flex align-items-center mb-3 flex-wrap">
+                  <div className="d-flex align-items-center me-3 mb-1">
                     <div className="me-2">
                       {renderStars(item.rating || 4.0)}
                     </div>
                     <span className="fw-bold text-dark">{item.rating || 4.0}</span>
                   </div>
-                  <span className="text-muted">({item.reviews || 0} reviews)</span>
-                  <span className="badge bg-light text-dark ms-3">
+                  <span className="text-muted me-3 mb-1">({item.reviews || 0} reviews)</span>
+                  <span className="badge bg-light text-dark mb-1">
                     {getCountryFlag(item.country)} {item.country}
                   </span>
                 </div>
 
                 {/* Price Section */}
                 <div className="mb-4">
-                  <h2 className="text-success fw-bold mb-2" style={{ fontSize: '2.5rem' }}>
+                  <h2 className="text-success fw-bold mb-2" style={{ fontSize: 'clamp(1.8rem, 3vw, 2.5rem)' }}>
                     {formatPrice(item)}
                   </h2>
                   {item.type === 'product' && (
@@ -706,7 +707,7 @@ function ProductDetailPage() {
                 {/* Quick Info */}
                 <div className="row g-3 mb-4">
                   {item.brand && (
-                    <div className="col-6">
+                    <div className="col-sm-6 col-12">
                       <div className="d-flex align-items-center text-muted">
                         <i className="fas fa-tag me-2 text-primary"></i>
                         <small>Brand: {item.brand}</small>
@@ -714,7 +715,7 @@ function ProductDetailPage() {
                     </div>
                   )}
                   {item.condition && (
-                    <div className="col-6">
+                    <div className="col-sm-6 col-12">
                       <div className="d-flex align-items-center text-muted">
                         <i className="fas fa-certificate me-2 text-warning"></i>
                         <small>Condition: {item.condition}</small>
@@ -722,7 +723,7 @@ function ProductDetailPage() {
                     </div>
                   )}
                   {item.vehicleType && (
-                    <div className="col-6">
+                    <div className="col-sm-6 col-12">
                       <div className="d-flex align-items-center text-muted">
                         <i className="fas fa-car me-2 text-danger"></i>
                         <small>Type: {item.vehicleType}</small>
@@ -730,7 +731,7 @@ function ProductDetailPage() {
                     </div>
                   )}
                   {item.serviceType && (
-                    <div className="col-6">
+                    <div className="col-sm-6 col-12">
                       <div className="d-flex align-items-center text-muted">
                         <i className="fas fa-building me-2 text-success"></i>
                         <small>Service: {item.serviceType}</small>
@@ -744,7 +745,7 @@ function ProductDetailPage() {
                   <button 
                     className="btn btn-primary btn-lg py-3 fw-bold rounded-pill"
                     onClick={handleContactBusiness}
-                    style={{ fontSize: '1.1rem' }}
+                    style={{ fontSize: 'clamp(1rem, 1.5vw, 1.1rem)' }}
                   >
                     <i className="fas fa-phone-alt me-2"></i>
                     Contact Business
@@ -786,59 +787,51 @@ function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Details Tabs - MODERN DESIGN */}
+        {/* Details Tabs - RESPONSIVE DESIGN */}
         <div className="row mt-4">
           <div className="col-12">
             <div className="card border-0 shadow-lg rounded-4">
               <div className="card-header bg-white border-0 py-3">
-                <ul className="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-3">
-                  <li className="nav-item">
-                    <button 
-                      className={`nav-link rounded-2 ${activeTab === 'details' ? 'active bg-primary text-white' : 'text-dark'}`}
-                      onClick={() => setActiveTab('details')}
-                    >
-                      <i className="fas fa-info-circle me-2"></i>
-                      Product Details
-                    </button>
-                  </li>
+                <div className="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-3 flex-nowrap overflow-auto">
+                  <button 
+                    className={`nav-link rounded-2 text-nowrap ${activeTab === 'details' ? 'active bg-primary text-white' : 'text-dark'}`}
+                    onClick={() => setActiveTab('details')}
+                  >
+                    <i className="fas fa-info-circle me-2"></i>
+                    Details
+                  </button>
                   {item.requiresSpecifications && item.specifications && (
-                    <li className="nav-item">
-                      <button 
-                        className={`nav-link rounded-2 ${activeTab === 'specs' ? 'active bg-primary text-white' : 'text-dark'}`}
-                        onClick={() => setActiveTab('specs')}
-                      >
-                        <i className="fas fa-list-alt me-2"></i>
-                        Specifications
-                      </button>
-                    </li>
-                  )}
-                  <li className="nav-item">
                     <button 
-                      className={`nav-link rounded-2 ${activeTab === 'features' ? 'active bg-primary text-white' : 'text-dark'}`}
-                      onClick={() => setActiveTab('features')}
+                      className={`nav-link rounded-2 text-nowrap ${activeTab === 'specs' ? 'active bg-primary text-white' : 'text-dark'}`}
+                      onClick={() => setActiveTab('specs')}
                     >
-                      <i className="fas fa-star me-2"></i>
-                      Features
+                      <i className="fas fa-list-alt me-2"></i>
+                      Specifications
                     </button>
-                  </li>
-                  {item.type === 'service' && (
-                    <li className="nav-item">
-                      <button 
-                        className={`nav-link rounded-2 ${activeTab === 'amenities' ? 'active bg-primary text-white' : 'text-dark'}`}
-                        onClick={() => setActiveTab('amenities')}
-                      >
-                        <i className="fas fa-concierge-bell me-2"></i>
-                        Amenities & Services
-                      </button>
-                    </li>
                   )}
-                </ul>
+                  <button 
+                    className={`nav-link rounded-2 text-nowrap ${activeTab === 'features' ? 'active bg-primary text-white' : 'text-dark'}`}
+                    onClick={() => setActiveTab('features')}
+                  >
+                    <i className="fas fa-star me-2"></i>
+                    Features
+                  </button>
+                  {item.type === 'service' && (
+                    <button 
+                      className={`nav-link rounded-2 text-nowrap ${activeTab === 'amenities' ? 'active bg-primary text-white' : 'text-dark'}`}
+                      onClick={() => setActiveTab('amenities')}
+                    >
+                      <i className="fas fa-concierge-bell me-2"></i>
+                      Amenities
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="card-body p-4">
+              <div className="card-body p-3 p-lg-4">
                 {activeTab === 'details' && (
                   <div>
                     <h5 className="fw-bold mb-4 text-dark">Product Description</h5>
-                    <p className="text-muted lead" style={{ lineHeight: '1.8', fontSize: '1.1rem' }}>
+                    <p className="text-muted lead" style={{ lineHeight: '1.8', fontSize: 'clamp(1rem, 1.2vw, 1.1rem)' }}>
                       {item.description || 'No description available.'}
                     </p>
                     {item.type === 'service' && item.policies && (
@@ -861,7 +854,7 @@ function ProductDetailPage() {
                       {item.specifications.map((spec, index) => {
                         const { key, value } = formatSpecification(spec);
                         return (
-                          <div key={index} className="col-md-6">
+                          <div key={index} className="col-md-6 col-12">
                             <div className="card bg-light border-0 h-100">
                               <div className="card-body">
                                 <div className="d-flex justify-content-between align-items-start">
@@ -884,7 +877,7 @@ function ProductDetailPage() {
                     </h5>
                     <div className="row g-3">
                       {(item.features || []).map((feature, index) => (
-                        <div key={index} className="col-md-6 col-lg-4">
+                        <div key={index} className="col-lg-4 col-md-6 col-12">
                           <div className="card border-0 bg-primary bg-opacity-10 h-100">
                             <div className="card-body text-center">
                               <div className="d-flex align-items-center justify-content-center">
@@ -895,42 +888,6 @@ function ProductDetailPage() {
                           </div>
                         </div>
                       ))}
-                      {item.size && (
-                        <div className="col-md-6 col-lg-4">
-                          <div className="card border-0 bg-warning bg-opacity-10 h-100">
-                            <div className="card-body text-center">
-                              <div className="d-flex align-items-center justify-content-center">
-                                <i className="fas fa-ruler-combined text-warning me-2"></i>
-                                <span>Size: {item.size}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {item.color && (
-                        <div className="col-md-6 col-lg-4">
-                          <div className="card border-0 bg-info bg-opacity-10 h-100">
-                            <div className="card-body text-center">
-                              <div className="d-flex align-items-center justify-content-center">
-                                <i className="fas fa-palette text-info me-2"></i>
-                                <span>Color: {item.color}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {item.material && (
-                        <div className="col-md-6 col-lg-4">
-                          <div className="card border-0 bg-success bg-opacity-10 h-100">
-                            <div className="card-body text-center">
-                              <div className="d-flex align-items-center justify-content-center">
-                                <i className="fas fa-cube text-success me-2"></i>
-                                <span>Material: {item.material}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -938,7 +895,7 @@ function ProductDetailPage() {
                 {activeTab === 'amenities' && item.type === 'service' && (
                   <div>
                     <div className="row g-4">
-                      <div className="col-md-6">
+                      <div className="col-lg-6 col-12">
                         <h6 className="fw-bold mb-3 text-dark">
                           <i className="fas fa-spa me-2 text-success"></i>
                           Amenities
@@ -958,7 +915,7 @@ function ProductDetailPage() {
                           ))}
                         </div>
                       </div>
-                      <div className="col-md-6">
+                      <div className="col-lg-6 col-12">
                         <h6 className="fw-bold mb-3 text-dark">
                           <i className="fas fa-concierge-bell me-2 text-primary"></i>
                           Services
@@ -1000,7 +957,7 @@ function ProductDetailPage() {
                 <div className="card-body">
                   <div className="row g-4">
                     {relatedItems.map(relatedItem => (
-                      <div key={relatedItem.id} className="col-md-6 col-lg-4 col-xl-2">
+                      <div key={relatedItem.id} className="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6">
                         <div 
                           className="card h-100 border-0 shadow-sm rounded-3 cursor-pointer product-card"
                           onClick={() => navigate(`/product/${relatedItem.id}`)}
@@ -1039,7 +996,7 @@ function ProductDetailPage() {
                             <h6 className="card-title fw-bold text-dark mb-2" style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
                               {relatedItem.name.length > 50 ? `${relatedItem.name.substring(0, 50)}...` : relatedItem.name}
                             </h6>
-                            <p className="card-text text-success fw-bold mb-2" style={{ fontSize: '1rem' }}>
+                            <p className="card-text text-success fw-bold mb-2">
                               {formatPrice(relatedItem)}
                             </p>
                             <div className="mt-auto">
@@ -1068,38 +1025,38 @@ function ProductDetailPage() {
       {/* Image Modal for Full Screen View */}
       {showImageModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.9)' }} tabIndex="-1">
-          <div className="modal-dialog modal-dialog-centered modal-xl">
+          <div className="modal-dialog modal-dialog-centered modal-xl m-0">
             <div className="modal-content bg-transparent border-0">
-              <div className="modal-header border-0">
+              <div className="modal-header border-0 position-absolute top-0 end-0 z-3">
                 <button 
                   type="button" 
                   className="btn-close btn-close-white" 
                   onClick={closeImageModal}
                 ></button>
               </div>
-              <div className="modal-body text-center">
+              <div className="modal-body p-0 d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
                 <img 
                   src={itemImages[selectedImageIndex]} 
                   alt="Full size product view"
-                  className="img-fluid rounded-3"
-                  style={{ maxHeight: '70vh', objectFit: 'contain' }}
+                  className="img-fluid"
+                  style={{ maxWidth: '90%', maxHeight: '80vh', objectFit: 'contain' }}
                 />
                 {itemImages.length > 1 && (
-                  <div className="mt-4">
+                  <div className="position-absolute bottom-0 start-50 translate-middle-x mb-4">
                     <button 
-                      className="btn btn-light rounded-circle me-3"
+                      className="btn btn-light rounded-circle me-2"
                       onClick={() => navigateImage('prev')}
-                      style={{ width: '60px', height: '60px' }}
+                      style={{ width: '50px', height: '50px' }}
                     >
                       <i className="fas fa-chevron-left"></i>
                     </button>
-                    <span className="text-white mx-3">
+                    <span className="text-white mx-2">
                       {selectedImageIndex + 1} / {itemImages.length}
                     </span>
                     <button 
-                      className="btn btn-light rounded-circle ms-3"
+                      className="btn btn-light rounded-circle ms-2"
                       onClick={() => navigateImage('next')}
-                      style={{ width: '60px', height: '60px' }}
+                      style={{ width: '50px', height: '50px' }}
                     >
                       <i className="fas fa-chevron-right"></i>
                     </button>
@@ -1131,12 +1088,36 @@ function ProductDetailPage() {
           transition: all 0.3s ease;
         }
         
+        .product-card:active {
+          transform: scale(0.98);
+        }
+        
         .cursor-pointer {
           cursor: pointer;
         }
         
         .object-fit-cover {
           object-fit: cover;
+        }
+
+        /* Responsive optimizations */
+        @media (max-width: 576px) {
+          .container {
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+        }
+        
+        @media (min-width: 1200px) {
+          .container {
+            max-width: 1140px;
+          }
+        }
+        
+        @media (min-width: 1400px) {
+          .container {
+            max-width: 1320px;
+          }
         }
       `}</style>
     </div>

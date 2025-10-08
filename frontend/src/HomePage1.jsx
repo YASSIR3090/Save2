@@ -1,6 +1,8 @@
-// src/HomePage1.jsx - IMPROVED & COMPLETE VERSION
+// src/HomePage1.jsx - FIXED VERSION WITH PROPER HERO SECTION VISIBILITY
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { auth, googleProvider } from './firebase.jsx';
+import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 function HomePage1() {
   const [featuredItems, setFeaturedItems] = useState([]);
@@ -8,7 +10,56 @@ function HomePage1() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authMode, setAuthMode] = useState("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Quick access categories
+  const quickCategories = [
+    { 
+      id: "all", 
+      name: "All", 
+      icon: "fa-grid", 
+      color: "#007bff"
+    },
+    { 
+      id: "electronics", 
+      name: "Electronics", 
+      icon: "fa-laptop", 
+      color: "#007bff"
+    },
+    { 
+      id: "fashion", 
+      name: "Fashion", 
+      icon: "fa-tshirt", 
+      color: "#007bff"
+    },
+    { 
+      id: "hotels", 
+      name: "Hotels", 
+      icon: "fa-hotel", 
+      color: "#007bff"
+    },
+    { 
+      id: "cars", 
+      name: "Vehicles", 
+      icon: "fa-car", 
+      color: "#007bff"
+    },
+  ];
 
   // Categories data
   const categoryData = [
@@ -35,6 +86,14 @@ function HomePage1() {
       color: "success",
       description: "Hotels, apartments, and luxury properties",
       image: "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600"
+    },
+    {
+      id: "vehicles",
+      name: "Vehicles",
+      icon: "fa-car",
+      color: "danger",
+      description: "Cars, motorcycles, and transportation",
+      image: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600"
     }
   ];
 
@@ -47,6 +106,136 @@ function HomePage1() {
     { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
     { code: "CN", name: "China", flag: "🇨🇳" }
   ];
+
+  // Authentication Functions
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const userData = {
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          picture: user.photoURL,
+          emailVerified: user.emailVerified
+        };
+        setUser(userData);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+      } else {
+        setUser(null);
+        localStorage.removeItem('currentUser');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setAuthLoading(true);
+      setAuthError("");
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      const userData = {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        picture: user.photoURL,
+        emailVerified: user.emailVerified
+      };
+      
+      setUser(userData);
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      setShowAuthModal(false);
+      
+    } catch (error) {
+      console.error("Google authentication failed:", error);
+      setAuthError("Error signing in with Google. Please try again.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleEmailSignUp = async (e) => {
+    e.preventDefault();
+    try {
+      setAuthLoading(true);
+      setAuthError("");
+      
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const user = result.user;
+      
+      const userData = {
+        uid: user.uid,
+        name: user.email.split('@')[0],
+        email: user.email,
+        picture: null,
+        emailVerified: user.emailVerified
+      };
+      
+      setUser(userData);
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      setShowAuthModal(false);
+      
+    } catch (error) {
+      console.error("Email sign up failed:", error);
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleEmailSignIn = async (e) => {
+    e.preventDefault();
+    try {
+      setAuthLoading(true);
+      setAuthError("");
+      
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const user = result.user;
+      
+      const userData = {
+        uid: user.uid,
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        picture: user.photoURL,
+        emailVerified: user.emailVerified
+      };
+      
+      setUser(userData);
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      setShowAuthModal(false);
+      
+    } catch (error) {
+      console.error("Email sign in failed:", error);
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      localStorage.removeItem('currentUser');
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
+
+  const handleAccountClick = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleBusinessDashboard = () => {
+    if (user) {
+      navigate('/business-dashboard');
+    } else {
+      setShowAuthModal(true);
+    }
+  };
 
   // Load featured items and categories
   const loadHomeData = useCallback(async () => {
@@ -80,8 +269,8 @@ function HomePage1() {
         allItems = [...allItems, ...productsWithBusiness, ...servicesWithBusiness];
       });
 
-      // Sample featured items
-      const sampleFeaturedItems = [
+      // Comprehensive sample data
+      const sampleItems = [
         {
           id: "elec-1",
           name: "Dell Latitude Laptop",
@@ -160,52 +349,69 @@ function HomePage1() {
           reviews: 15,
           type: "product",
           featured: true
+        },
+        {
+          id: "veh-1",
+          name: "Toyota Land Cruiser V8",
+          category: "Vehicles",
+          price: 185000000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 2,
+          business: "Premium Motors Tanzania",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Dar es Salaam",
+          country: "Tanzania",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600"],
+          description: "Luxury SUV with premium features",
+          rating: 4.8,
+          reviews: 12,
+          type: "product",
+          featured: true
+        },
+        {
+          id: "gen-2",
+          name: "Women's Handbag",
+          category: "General Goods",
+          price: 45000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 10,
+          business: "Fashion Store Tanzania",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Dar es Salaam",
+          country: "Tanzania",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=600"],
+          description: "Elegant leather handbag for women",
+          rating: 4.1,
+          reviews: 8,
+          type: "product",
+          featured: true
         }
       ];
 
       // Combine and select featured items
-      const combinedItems = [...sampleFeaturedItems, ...allItems];
-      const featured = combinedItems
-        .filter(item => item.featured)
-        .slice(0, 6); // Show max 6 featured items
+      const combinedItems = [...sampleItems, ...allItems];
+      const featured = combinedItems.filter(item => item.featured).slice(0, 12);
 
       setFeaturedItems(featured);
 
     } catch (error) {
       console.error("Error loading home data:", error);
-      // Fallback to sample data if there's an error
-      setFeaturedItems([
-        {
-          id: "elec-1",
-          name: "Dell Latitude Laptop",
-          category: "Electronics & Devices", 
-          price: 1200000,
-          currencySymbol: "TSh",
-          images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600"],
-          rating: 4.5,
-          country: "Tanzania"
-        },
-        {
-          id: "gen-1",
-          name: "Men's Running Shoes",
-          category: "General Goods",
-          price: 85000, 
-          currencySymbol: "TSh",
-          images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=600"],
-          rating: 4.3,
-          country: "Tanzania"
-        },
-        {
-          id: "hotel-1",
-          name: "Serengeti Luxury Hotel",
-          category: "Building & Hotels", 
-          priceRange: "150-300",
-          currencySymbol: "$",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600"],
-          rating: "5",
-          country: "Tanzania"
-        }
-      ]);
+      // Fallback to sample data
+      setFeaturedItems(categoryData.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        category: cat.name,
+        price: 100000,
+        currencySymbol: "TSh",
+        images: [cat.image],
+        rating: 4.5,
+        country: "Tanzania",
+        description: cat.description
+      })));
     } finally {
       setIsLoading(false);
     }
@@ -222,8 +428,6 @@ function HomePage1() {
           });
         },
         () => {
-          console.log("Location access denied");
-          // Set default location (Dar es Salaam)
           setUserLocation({ lat: -6.7924, lng: 39.2083 });
         }
       );
@@ -233,7 +437,17 @@ function HomePage1() {
   useEffect(() => {
     loadHomeData();
     getUserLocation();
+    loadRecentSearches();
   }, [loadHomeData]);
+
+  const loadRecentSearches = () => {
+    try {
+      const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+      setRecentSearches(recent.slice(0, 5));
+    } catch (error) {
+      console.error("Error loading recent searches:", error);
+    }
+  };
 
   // Handle search
   const handleSearch = (e) => {
@@ -241,6 +455,30 @@ function HomePage1() {
     if (searchQuery.trim()) {
       navigate(`/search-results?q=${encodeURIComponent(searchQuery)}`);
     }
+  };
+
+  // Handle search input change
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    if (value.trim() !== "") {
+      // Simple search suggestions
+      const suggestions = recentSearches.filter(search => 
+        search.toLowerCase().includes(value.toLowerCase())
+      ).slice(0, 5);
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  // Handle search suggestion click
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    navigate(`/search-results?q=${encodeURIComponent(suggestion)}`);
   };
 
   // Handle category click
@@ -260,6 +498,37 @@ function HomePage1() {
       navigate('/business-dashboard');
     } else {
       navigate('/business-auth');
+    }
+  };
+
+  // Toggle sidebar
+  const toggleSidebar = () => {
+    setShowSidebar(!showSidebar);
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (categoryId) => {
+    setActiveCategory(categoryId);
+    let categoryName = "";
+    switch(categoryId) {
+      case "electronics":
+        categoryName = "Electronics & Devices";
+        break;
+      case "fashion":
+        categoryName = "General Goods";
+        break;
+      case "hotels":
+        categoryName = "Building & Hotels";
+        break;
+      case "cars":
+        categoryName = "Vehicles";
+        break;
+      default:
+        categoryName = "";
+    }
+    
+    if (categoryName) {
+      navigate(`/search-results?q=${encodeURIComponent(categoryName)}`);
     }
   };
 
@@ -289,136 +558,673 @@ function HomePage1() {
     return country?.flag || '🏳️';
   };
 
-  return (
-    <div className="min-vh-100">
-      {/* Hero Section */}
-      <section 
-        className="hero-section position-relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          minHeight: '80vh',
-          display: 'flex',
-          alignItems: 'center'
-        }}
-      >
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-6 text-white">
-              <h1 className="display-4 fw-bold mb-4">
-                Find Everything You Need, <span className="text-warning">Anywhere</span>
-              </h1>
-              <p className="lead mb-4">
-                Discover products and services from local businesses and global providers. 
-                From electronics to hotels, find exactly what you're looking for.
-              </p>
+  // Authentication Modal Component
+  const AuthModal = () => {
+    return (
+      <div className={`modal fade ${showAuthModal ? 'show d-block' : ''}`} 
+           style={{ 
+             backgroundColor: 'rgba(0,0,0,0.5)', 
+             position: 'fixed',
+             top: 0,
+             left: 0,
+             right: 0,
+             bottom: 0,
+             zIndex: 9999
+           }} 
+           tabIndex="-1">
+        <div className="d-flex align-items-center justify-content-center min-vh-100 p-3">
+          <div className="modal-dialog modal-dialog-centered" 
+               style={{ 
+                 maxWidth: '420px',
+                 width: '100%',
+                 margin: '0 auto'
+               }}>
+            <div className="modal-content rounded-3 border shadow-lg" 
+                 style={{ 
+                   borderColor: '#e0e0e0', 
+                   backdropFilter: 'blur(10px)',
+                   transform: 'translateY(0)'
+                 }}>
               
-              {/* Search Bar */}
-              <form onSubmit={handleSearch} className="mb-4">
-                <div className="input-group input-group-lg shadow">
-                  <input
-                    type="text"
-                    className="form-control border-0 py-3"
-                    placeholder="Search for products, services, hotels..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ fontSize: '1.1rem' }}
-                  />
-                  <button 
-                    className="btn btn-warning text-dark px-4" 
-                    type="submit"
-                  >
-                    <i className="fas fa-search me-2"></i>
-                    Search
-                  </button>
-                </div>
-              </form>
-
-              {/* Quick Stats */}
-              <div className="row text-center">
-                <div className="col-4">
-                  <div className="border-end border-white">
-                    <h3 className="fw-bold text-warning">500+</h3>
-                    <small>Businesses</small>
+              {/* Header */}
+              <div className="modal-header border-0 pb-0 pt-4 px-4">
+                <div className="w-100 text-center">
+                  <div className="avatar-placeholder mb-3 mx-auto">
+                    <i className="fas fa-user-circle display-4 text-primary"></i>
                   </div>
+                  <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
+                    {user ? "Account Settings" : authMode === "signin" ? "Welcome Back" : "Join ProductFinder"}
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    {user ? "Manage your account" : authMode === "signin" ? "Sign in to your account" : "Create your account to get started"}
+                  </p>
                 </div>
-                <div className="col-4">
-                  <div className="border-end border-white">
-                    <h3 className="fw-bold text-warning">2,000+</h3>
-                    <small>Products</small>
-                  </div>
-                </div>
-                <div className="col-4">
-                  <div>
-                    <h3 className="fw-bold text-warning">100+</h3>
-                    <small>Services</small>
-                  </div>
-                </div>
+                <button 
+                  type="button" 
+                  className="btn-close position-absolute top-0 end-0 m-3" 
+                  onClick={() => setShowAuthModal(false)}
+                  style={{ fontSize: '0.8rem' }}
+                ></button>
               </div>
-            </div>
-            
-            <div className="col-lg-6">
-              <div className="position-relative">
-                <img 
-                  src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800"
-                  alt="Shopping Experience"
-                  className="img-fluid rounded-4 shadow-lg"
-                  style={{ transform: 'rotate(3deg)' }}
-                />
-                <div 
-                  className="position-absolute top-0 start-0 w-100 h-100 rounded-4"
-                  style={{
-                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                ></div>
+              
+              {/* Body */}
+              <div className="modal-body py-4 px-4">
+                {user ? (
+                  // User Profile View
+                  <div className="text-center">
+                    <div className="mb-4">
+                      <img 
+                        src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                        alt={user.name}
+                        className="rounded-circle border"
+                        style={{ 
+                          width: '80px', 
+                          height: '80px', 
+                          objectFit: 'cover',
+                          border: '3px solid #f8f9fa'
+                        }}
+                      />
+                      <h5 className="mt-3 mb-1 fw-bold">{user.name}</h5>
+                      <p className="text-muted mb-3">{user.email}</p>
+                      <div className="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                        <i className="fas fa-check-circle me-2"></i>
+                        {user.emailVerified ? "Email Verified" : "Email Not Verified"}
+                      </div>
+                    </div>
+                    
+                    <div className="row text-start small text-muted mb-4">
+                      <div className="col-12 mb-2">
+                        <i className="fas fa-user me-2"></i>
+                        ID: {user.uid.substring(0, 8)}...
+                      </div>
+                      <div className="col-12">
+                        <i className="fas fa-shield-alt me-2"></i>
+                        Secure Authentication
+                      </div>
+                    </div>
+
+                    <div className="d-grid gap-2 mb-3">
+                      <button
+                        className="btn btn-primary w-100 py-3 rounded-3 fw-medium"
+                        onClick={handleBusinessDashboard}
+                        style={{ fontSize: '1rem' }}
+                      >
+                        <i className="fas fa-chart-line me-2"></i>
+                        Go to Business Dashboard
+                      </button>
+                    </div>
+                    
+                    <button
+                      className="btn btn-outline-danger w-100 py-3 rounded-3 fw-medium"
+                      onClick={handleSignOut}
+                      style={{ fontSize: '1rem' }}
+                    >
+                      <i className="fas fa-sign-out-alt me-2"></i>
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  // Authentication Options
+                  <div className="text-center w-100">
+                    
+                    {/* Email/Password Form */}
+                    <form onSubmit={authMode === "signin" ? handleEmailSignIn : handleEmailSignUp} className="w-100">
+                      <div className="mb-3 w-100">
+                        <input
+                          type="email"
+                          className="form-control form-control-lg rounded-3 border w-100"
+                          placeholder="Enter your email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          style={{ 
+                            padding: '16px', 
+                            fontSize: '16px',
+                            borderColor: '#e0e0e0'
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="mb-3 w-100">
+                        <input
+                          type="password"
+                          className="form-control form-control-lg rounded-3 border w-100"
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          style={{ 
+                            padding: '16px', 
+                            fontSize: '16px',
+                            borderColor: '#e0e0e0'
+                          }}
+                        />
+                      </div>
+
+                      {authMode === "signin" && (
+                        <div className="mb-3 d-flex justify-content-between align-items-center w-100">
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id="rememberMe"
+                              checked={rememberMe}
+                              onChange={(e) => setRememberMe(e.target.checked)}
+                              style={{ cursor: 'pointer' }}
+                            />
+                            <label className="form-check-label small text-muted" htmlFor="rememberMe" style={{ cursor: 'pointer' }}>
+                              Remember me
+                            </label>
+                          </div>
+                          <button type="button" className="btn btn-link p-0 small text-primary text-decoration-none">
+                            Forgot password?
+                          </button>
+                        </div>
+                      )}
+
+                      {authError && (
+                        <div className="alert alert-danger py-3 small rounded-3 w-100 mb-3" role="alert" style={{ border: '1px solid #f5c6cb' }}>
+                          <i className="fas fa-exclamation-triangle me-2"></i>
+                          {authError}
+                        </div>
+                      )}
+
+                      {/* Sign In/Up Button */}
+                      <button
+                        type="submit"
+                        className={`btn btn-primary w-100 py-3 rounded-3 mb-4 ${authLoading ? 'disabled' : ''}`}
+                        disabled={authLoading}
+                        style={{ 
+                          fontSize: '16px', 
+                          fontWeight: '600', 
+                          height: '52px',
+                          background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
+                          border: 'none'
+                        }}
+                      >
+                        {authLoading ? (
+                          <>
+                            <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                            {authMode === "signin" ? "Signing In..." : "Creating Account..."}
+                          </>
+                        ) : (
+                          authMode === "signin" ? "Sign In" : "Create Account"
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="divider mb-4 w-100">
+                      <span className="divider-text text-muted bg-white px-3">or continue with</span>
+                    </div>
+
+                    {/* Google Sign In Button */}
+                    <button
+                      className={`btn btn-outline-secondary w-100 py-3 rounded-3 mb-4 ${authLoading ? 'disabled' : ''}`}
+                      onClick={handleGoogleSignIn}
+                      disabled={authLoading}
+                      style={{ 
+                        borderColor: '#dadce0',
+                        backgroundColor: '#fff',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        height: '52px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {authLoading ? (
+                        <>
+                          <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <img 
+                            src="https://developers.google.com/identity/images/g-logo.png" 
+                            alt="Google" 
+                            style={{ 
+                              width: '18px', 
+                              height: '18px', 
+                              marginRight: '12px' 
+                            }}
+                          />
+                          Continue with Google
+                        </>
+                      )}
+                    </button>
+
+                    {/* Switch between Sign In and Sign Up */}
+                    <div className="text-center mb-3 w-100">
+                      <p className="small text-muted mb-0">
+                        {authMode === "signin" ? "Don't have an account? " : "Already have an account? "}
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 small text-primary fw-bold text-decoration-none"
+                          onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")}
+                          style={{ fontSize: '14px' }}
+                        >
+                          {authMode === "signin" ? "Sign up" : "Sign in"}
+                        </button>
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
 
-        {/* Wave Divider */}
-        <div className="position-absolute bottom-0 start-0 w-100">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-100">
-            <path 
-              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" 
-              opacity=".25" 
-              className="shape-fill"
-              fill="#ffffff"
-            ></path>
-            <path 
-              d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" 
-              opacity=".5" 
-              className="shape-fill"
-              fill="#ffffff"
-            ></path>
-            <path 
-              d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" 
-              className="shape-fill"
-              fill="#ffffff"
-            ></path>
-          </svg>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-5 bg-light">
+  // Navigation Bar Component
+  const NavigationBar = () => {
+    return (
+      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style={{ zIndex: 1030 }}>
         <div className="container">
-          <div className="text-center mb-5">
-            <h2 className="fw-bold mb-3">Browse by Category</h2>
-            <p className="text-muted lead">Find exactly what you're looking for in our organized categories</p>
+          {/* Logo */}
+          <Link className="navbar-brand fw-bold text-primary" to="/">
+            <i className="fas fa-globe-americas me-2"></i>
+            BisRun
+          </Link>
+
+          {/* Search Bar for Desktop */}
+          <div className="d-none d-lg-flex mx-4 flex-grow-1" style={{ maxWidth: '500px' }}>
+            <form onSubmit={handleSearch} className="w-100 position-relative">
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control border-end-0"
+                  placeholder="Search products, services, hotels..."
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  style={{ borderRadius: '25px 0 0 25px' }}
+                />
+                <button 
+                  className="btn btn-primary border-start-0" 
+                  type="submit"
+                  style={{ borderRadius: '0 25px 25px 0' }}
+                >
+                  <i className="fas fa-search"></i>
+                </button>
+              </div>
+
+              {/* Search Suggestions */}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
+                  <div className="bg-white border rounded-3 shadow-lg">
+                    {searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        className="btn btn-light w-100 text-start p-2 border-bottom"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        style={{ border: 'none', borderRadius: '0' }}
+                      >
+                        <i className="fas fa-search me-2 text-muted"></i>
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </form>
           </div>
 
-          {isLoading ? (
-            <div className="text-center py-4">
-              <div className="spinner-border text-primary mb-3"></div>
-              <p>Loading categories...</p>
+          {/* Navigation Items */}
+          <div className="navbar-nav ms-auto align-items-center">
+            {/* Business Dashboard Button */}
+            <button
+              className="btn btn-outline-primary btn-sm me-2 d-none d-md-block"
+              onClick={handleBusinessDashboard}
+            >
+              <i className="fas fa-chart-line me-1"></i>
+              Business
+            </button>
+
+            {/* Account Icon */}
+            <button
+              className="btn btn-light rounded-circle border-0 position-relative"
+              onClick={handleAccountClick}
+              style={{ 
+                width: '40px', 
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {user ? (
+                <img 
+                  src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                  alt={user.name}
+                  className="rounded-circle"
+                  style={{ width: '32px', height: '32px', objectFit: 'cover' }}
+                />
+              ) : (
+                <i className="fas fa-user text-dark"></i>
+              )}
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="btn btn-light rounded-circle ms-2 d-lg-none"
+              onClick={toggleSidebar}
+              style={{ width: '40px', height: '40px' }}
+            >
+              <i className="fas fa-bars"></i>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Search Bar */}
+        <div className="container-fluid d-lg-none border-top mt-2 pt-2">
+          <form onSubmit={handleSearch} className="position-relative">
+            <div className="input-group">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+              />
+              <button className="btn btn-primary" type="submit">
+                <i className="fas fa-search"></i>
+              </button>
             </div>
-          ) : (
+
+            {/* Mobile Search Suggestions */}
+            {showSuggestions && searchSuggestions.length > 0 && (
+              <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
+                <div className="bg-white border rounded-3 shadow-lg">
+                  {searchSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      className="btn btn-light w-100 text-start p-2 border-bottom"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      style={{ border: 'none', borderRadius: '0' }}
+                    >
+                      <i className="fas fa-search me-2 text-muted"></i>
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
+      </nav>
+    );
+  };
+
+  // Quick Categories Bar
+  const QuickCategoriesBar = () => {
+    return (
+      <div className="fixed-top bg-white border-bottom shadow-sm" style={{ top: '76px', zIndex: 1025 }}>
+        <div className="container-fluid px-0">
+          <div className="quick-categories-bar">
+            <div className="d-flex justify-content-around align-items-center px-2 py-2 overflow-auto">
+              {quickCategories.map((category) => (
+                <button
+                  key={category.id}
+                  className={`quick-category-item ${activeCategory === category.id ? 'active' : ''} d-flex flex-column align-items-center position-relative border-0 bg-transparent`}
+                  onClick={() => handleCategorySelect(category.id)}
+                  style={{
+                    padding: '8px 12px',
+                    minWidth: '70px',
+                    transition: 'all 0.3s ease',
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {/* Icon */}
+                  <div className="quick-category-icon mb-1" style={{
+                    width: '28px',
+                    height: '28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    color: activeCategory === category.id ? '#007bff' : '#666666',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    <i className={`fas ${category.icon}`}></i>
+                  </div>
+                  
+                  {/* Label */}
+                  <span className="quick-category-label" style={{
+                    fontSize: '0.65rem',
+                    fontWeight: '600',
+                    color: activeCategory === category.id ? '#007bff' : '#666666',
+                    transition: 'all 0.3s ease',
+                    textAlign: 'center',
+                    lineHeight: '1.1'
+                  }}>
+                    {category.name}
+                  </span>
+
+                  {/* Active Indicator */}
+                  {activeCategory === category.id && (
+                    <div className="position-absolute bottom-0 start-50 translate-middle-x" style={{
+                      width: '4px',
+                      height: '4px',
+                      background: '#007bff',
+                      borderRadius: '50%',
+                      marginBottom: '-2px'
+                    }}></div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-vh-100 bg-white">
+      {/* Navigation */}
+      <NavigationBar />
+      <QuickCategoriesBar />
+      <AuthModal />
+
+      {/* Main Content with proper padding for fixed navbar */}
+      <div style={{ paddingTop: '140px' }}>
+        
+        {/* Hero Section - FIXED: Now properly visible below navbar */}
+        <section 
+          className="hero-section position-relative overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            minHeight: '70vh',
+            display: 'flex',
+            alignItems: 'center',
+            marginTop: '0',
+            paddingTop: '20px',
+            paddingBottom: '60px'
+          }}
+        >
+          <div className="container">
+            <div className="row align-items-center">
+              <div className="col-lg-6 text-white">
+                {/* FIXED: Heading now properly visible */}
+                <h1 className="display-5 fw-bold mb-4" style={{ marginTop: '0' }}>
+                  Find Everything You Need, <span className="text-warning">Anywhere</span>
+                </h1>
+                <p className="lead mb-4">
+                  Discover products and services from local businesses and global providers. 
+                  From electronics to hotels, find exactly what you're looking for.
+                </p>
+                
+                {/* Quick Stats */}
+                <div className="row text-center">
+                  <br></br><br></br><br></br><br></br><br></br><br></br>
+                  <div className="col-4">
+                    <div className="border-end border-white">
+                      <h4 className="fw-bold text-warning">500+</h4>
+                      <small>Businesses</small>
+                    </div>
+                  </div>
+                  <div className="col-4">
+                    <div className="border-end border-white">
+                      <h4 className="fw-bold text-warning">2,000+</h4>
+                      <small>Products</small>
+                    </div>
+                  </div>
+                  <div className="col-4">
+                    <div>
+                      <h4 className="fw-bold text-warning">100+</h4>
+                      <small>Services</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="col-lg-6">
+                <div className="position-relative">
+                  <img 
+                    src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800"
+                    alt="Shopping Experience"
+                    className="img-fluid rounded-4 shadow-lg"
+                    style={{ transform: 'rotate(3deg)' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Wave Divider */}
+          <div className="position-absolute bottom-0 start-0 w-100">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-100">
+              <path 
+                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" 
+                opacity=".25" 
+                className="shape-fill"
+                fill="#ffffff"
+              ></path>
+              <path 
+                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" 
+                opacity=".5" 
+                className="shape-fill"
+                fill="#ffffff"
+              ></path>
+              <path 
+                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" 
+                className="shape-fill"
+                fill="#ffffff"
+              ></path>
+            </svg>
+          </div>
+        </section>
+
+        {/* Featured Products Section with Horizontal Scroll */}
+        <section className="py-5 bg-light">
+          <div className="container">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h3 className="fw-bold mb-2">Featured Products</h3>
+                <p className="text-muted">Handpicked items you'll love</p>
+              </div>
+              <Link to="/search-results" className="btn btn-outline-primary btn-sm">
+                View All <i className="fas fa-arrow-right ms-1"></i>
+              </Link>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary mb-3"></div>
+                <p>Loading featured items...</p>
+              </div>
+            ) : (
+              <div className="position-relative">
+                <div className="d-flex overflow-auto pb-3" style={{ scrollbarWidth: 'thin', msOverflowStyle: 'none' }}>
+                  <div className="d-flex flex-nowrap gap-3">
+                    {featuredItems.map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="card border-0 shadow-sm flex-shrink-0"
+                        style={{ 
+                          width: '280px', 
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onClick={() => handleFeaturedItemClick(item.id)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-5px)';
+                          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                        }}
+                      >
+                        <div className="position-relative">
+                          <img
+                            src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600'}
+                            className="card-img-top"
+                            alt={item.name}
+                            style={{ height: '180px', objectFit: 'cover' }}
+                            onError={(e) => {
+                              e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
+                            }}
+                          />
+                          <div className="position-absolute top-0 end-0 m-2">
+                            <span className="badge bg-warning text-dark">
+                              <i className="fas fa-star me-1"></i>
+                              Featured
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="card-body">
+                          <h6 className="card-title fw-bold text-dark mb-2" style={{ fontSize: '0.9rem' }}>
+                            {item.name}
+                          </h6>
+                          
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <span className="fw-bold text-primary">
+                              {formatPrice(item)}
+                            </span>
+                            <div className="d-flex align-items-center">
+                              {renderStars(item.rating)}
+                              <small className="text-muted ms-1">({item.reviews || 0})</small>
+                            </div>
+                          </div>
+                          
+                          <div className="d-flex justify-content-between align-items-center">
+                            <small className="text-muted">
+                              <i className="fas fa-store me-1 text-primary"></i>
+                              {item.businessName || item.business}
+                            </small>
+                            <small className="text-muted">
+                              {getCountryFlag(item.country)}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Categories Section */}
+        <section className="py-5">
+          <div className="container">
+            <div className="text-center mb-5">
+              <h2 className="fw-bold mb-3">Browse by Category</h2>
+              <p className="text-muted lead">Find exactly what you're looking for in our organized categories</p>
+            </div>
+
             <div className="row g-4">
               {categories.map((category) => (
-                <div key={category.id} className="col-md-4">
+                <div key={category.id} className="col-md-6 col-lg-3">
                   <div 
-                    className="card border-0 shadow-sm h-100 category-card"
+                    className="card border-0 shadow-sm h-100 category-card text-center"
                     onClick={() => handleCategoryClick(category.name)}
                     style={{ 
                       cursor: 'pointer',
@@ -426,13 +1232,13 @@ function HomePage1() {
                       background: `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%), url(${category.image}) center/cover`
                     }}
                   >
-                    <div className="card-body text-center p-4 d-flex flex-column justify-content-center">
+                    <div className="card-body p-4 d-flex flex-column justify-content-center">
                       <div className={`icon-container bg-${category.color} bg-opacity-10 rounded-circle mx-auto mb-3`} 
                            style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <i className={`fas ${category.icon} fa-2x text-${category.color}`}></i>
                       </div>
                       <h5 className="fw-bold text-dark">{category.name}</h5>
-                      <p className="text-muted mb-3">{category.description}</p>
+                      <p className="text-muted mb-3 small">{category.description}</p>
                       <button className={`btn btn-${category.color} btn-sm mt-auto`}>
                         Explore <i className="fas fa-arrow-right ms-2"></i>
                       </button>
@@ -441,259 +1247,208 @@ function HomePage1() {
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* Featured Items Section */}
-      <section className="py-5">
-        <div className="container">
-          <div className="text-center mb-5">
-            <h2 className="fw-bold mb-3">Featured Items</h2>
-            <p className="text-muted lead">Handpicked products and services you'll love</p>
           </div>
+        </section>
 
-          {isLoading ? (
-            <div className="text-center py-4">
-              <div className="spinner-border text-primary mb-3"></div>
-              <p>Loading featured items...</p>
+        {/* All Products Grid Section */}
+        <section className="py-5 bg-light">
+          <div className="container">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h3 className="fw-bold mb-2">All Products</h3>
+                <p className="text-muted">Browse our complete collection</p>
+              </div>
+              <div className="d-flex gap-2">
+                <button className="btn btn-outline-primary btn-sm">
+                  <i className="fas fa-filter me-1"></i>
+                  Filter
+                </button>
+                <button className="btn btn-outline-primary btn-sm">
+                  <i className="fas fa-sort me-1"></i>
+                  Sort
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="row g-4">
-              {featuredItems.length > 0 ? (
-                featuredItems.map((item) => (
-                  <div key={item.id} className="col-md-6 col-lg-4">
+
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary mb-3"></div>
+                <p>Loading products...</p>
+              </div>
+            ) : (
+              <div className="row g-3">
+                {featuredItems.map((item) => (
+                  <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div 
-                      className="card border-0 shadow-sm h-100 featured-card"
+                      className="card h-100 border-0 shadow-sm product-card"
                       onClick={() => handleFeaturedItemClick(item.id)}
-                      style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                      style={{ 
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
                     >
                       <div className="position-relative">
                         <img
                           src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600'}
                           className="card-img-top"
                           alt={item.name}
-                          style={{ height: '200px', objectFit: 'cover' }}
+                          style={{ height: '120px', objectFit: 'cover' }}
                           onError={(e) => {
                             e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
                           }}
                         />
-                        <div className="position-absolute top-0 end-0 m-2">
-                          <span className="badge bg-warning text-dark">
-                            <i className="fas fa-star me-1"></i>
-                            Featured
-                          </span>
-                        </div>
-                        <div className="position-absolute top-0 start-0 m-2">
-                          <span className="badge bg-light text-dark">
-                            {getCountryFlag(item.country)} {item.country}
+                        <div className="position-absolute top-0 start-0 m-1">
+                          <span className="badge bg-primary text-white px-2 py-1" style={{ fontSize: '0.6rem' }}>
+                            {item.category?.split(' ')[0]}
                           </span>
                         </div>
                       </div>
                       
-                      <div className="card-body">
-                        <h6 className="card-title fw-bold text-dark mb-2">{item.name}</h6>
-                        <p className="card-text text-muted small mb-2">
-                          {item.description && item.description.length > 80 
-                            ? `${item.description.substring(0, 80)}...` 
-                            : item.description}
+                      <div className="card-body p-2 d-flex flex-column">
+                        <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                          {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
+                        </h6>
+
+                        <p className="card-text text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
+                          <i className="fas fa-store me-1 text-primary"></i>
+                          {item.businessName || item.business}
                         </p>
-                        
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span className="fw-bold text-primary">
+
+                        <div className="mb-2 mt-auto">
+                          <h6 className="text-success fw-bold mb-0" style={{ fontSize: '0.9rem' }}>
                             {formatPrice(item)}
-                          </span>
-                          <div className="d-flex align-items-center">
-                            {renderStars(item.rating)}
-                            <small className="text-muted ms-1">({item.reviews || 0})</small>
-                          </div>
+                          </h6>
                         </div>
-                        
+
                         <div className="d-flex justify-content-between align-items-center">
-                          <small className="text-muted">
-                            <i className="fas fa-store me-1 text-primary"></i>
-                            {item.businessName || item.business}
-                          </small>
-                          <small className="text-muted">
-                            <i className="fas fa-map-marker-alt me-1 text-danger"></i>
+                          <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                            <i className="fas fa-map-marker-alt text-primary me-1"></i>
                             {item.city}
                           </small>
+                          <div className="d-flex align-items-center">
+                            {renderStars(item.rating)}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="col-12 text-center py-5">
-                  <i className="fas fa-inbox fa-3x text-muted mb-3"></i>
-                  <h5 className="text-muted">No featured items available</h5>
-                  <p className="text-muted">Check back later for new featured products and services</p>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Business CTA Section */}
+        <section className="py-5" style={{ background: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)' }}>
+          <div className="container">
+            <div className="row align-items-center">
+              <div className="col-lg-8 text-white">
+                <h3 className="fw-bold mb-3">Are you a business owner?</h3>
+                <p className="lead mb-4">
+                  List your products and services on ProductFinder to reach thousands of potential customers. 
+                  Join our growing network of businesses today!
+                </p>
+                <div className="d-flex flex-wrap gap-3">
+                  <button 
+                    className="btn btn-warning btn-lg px-4"
+                    onClick={handleBusinessAuth}
+                  >
+                    <i className="fas fa-store me-2"></i>
+                    List Your Business
+                  </button>
+                  <button 
+                    className="btn btn-outline-light btn-lg px-4"
+                    onClick={() => navigate('/business-auth')}
+                  >
+                    <i className="fas fa-chart-line me-2"></i>
+                    Business Dashboard
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-5 bg-light">
-        <div className="container">
-          <div className="text-center mb-5">
-            <h2 className="fw-bold mb-3">How It Works</h2>
-            <p className="text-muted lead">Simple steps to find what you need</p>
-          </div>
-          
-          <div className="row g-4">
-            <div className="col-md-4 text-center">
-              <div className="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3" 
-                   style={{ width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="fas fa-search fa-2x text-primary"></i>
               </div>
-              <h5 className="fw-bold">Search</h5>
-              <p className="text-muted">
-                Use our powerful search to find products and services from local and global providers.
-              </p>
-            </div>
-            
-            <div className="col-md-4 text-center">
-              <div className="bg-success bg-opacity-10 rounded-circle mx-auto mb-3" 
-                   style={{ width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="fas fa-eye fa-2x text-success"></i>
-              </div>
-              <h5 className="fw-bold">Discover</h5>
-              <p className="text-muted">
-                Browse detailed listings with photos, prices, ratings, and business information.
-              </p>
-            </div>
-            
-            <div className="col-md-4 text-center">
-              <div className="bg-warning bg-opacity-10 rounded-circle mx-auto mb-3" 
-                   style={{ width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="fas fa-handshake fa-2x text-warning"></i>
-              </div>
-              <h5 className="fw-bold">Connect</h5>
-              <p className="text-muted">
-                Contact businesses directly or get directions to their location.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Business CTA Section */}
-      <section className="py-5" style={{ background: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)' }}>
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-8 text-white">
-              <h3 className="fw-bold mb-3">Are you a business owner?</h3>
-              <p className="lead mb-4">
-                List your products and services on ProductFinder to reach thousands of potential customers. 
-                Join our growing network of businesses today!
-              </p>
-              <div className="d-flex flex-wrap gap-3">
-                <button 
-                  className="btn btn-warning btn-lg px-4"
-                  onClick={handleBusinessAuth}
-                >
-                  <i className="fas fa-store me-2"></i>
-                  List Your Business
-                </button>
-                <button 
-                  className="btn btn-outline-light btn-lg px-4"
-                  onClick={() => navigate('/business-auth')}
-                >
-                  <i className="fas fa-chart-line me-2"></i>
-                  Business Dashboard
-                </button>
-              </div>
-            </div>
-            <div className="col-lg-4 text-center">
-              <i className="fas fa-rocket fa-6x text-warning opacity-75"></i>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-dark text-white py-5">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-4 mb-4">
-              <h5 className="fw-bold mb-3">
-                <i className="fas fa-globe-americas me-2 text-primary"></i>
-                ProductFinder
-              </h5>
-              <p className="text-light">
-                Connecting customers with businesses worldwide. Find products and services you need, when you need them.
-              </p>
-              <div className="d-flex gap-3">
-                <a href="#!" className="text-light"><i className="fab fa-facebook fa-lg"></i></a>
-                <a href="#!" className="text-light"><i className="fab fa-twitter fa-lg"></i></a>
-                <a href="#!" className="text-light"><i className="fab fa-instagram fa-lg"></i></a>
-                <a href="#!" className="text-light"><i className="fab fa-linkedin fa-lg"></i></a>
-              </div>
-            </div>
-            
-            <div className="col-lg-2 col-6 mb-4">
-              <h6 className="fw-bold mb-3">Explore</h6>
-              <ul className="list-unstyled">
-                <li><Link to="/search" className="text-light text-decoration-none">Search</Link></li>
-                <li><Link to="/" className="text-light text-decoration-none">Categories</Link></li>
-                <li><a href="#!" className="text-light text-decoration-none">Featured</a></li>
-                <li><a href="#!" className="text-light text-decoration-none">Businesses</a></li>
-              </ul>
-            </div>
-            
-            <div className="col-lg-2 col-6 mb-4">
-              <h6 className="fw-bold mb-3">Business</h6>
-              <ul className="list-unstyled">
-                <li><Link to="/business-auth" className="text-light text-decoration-none">List Your Business</Link></li>
-                <li><Link to="/business-dashboard" className="text-light text-decoration-none">Dashboard</Link></li>
-                <li><a href="#!" className="text-light text-decoration-none">Pricing</a></li>
-                <li><a href="#!" className="text-light text-decoration-none">Support</a></li>
-              </ul>
-            </div>
-            
-            <div className="col-lg-4 mb-4">
-              <h6 className="fw-bold mb-3">Stay Updated</h6>
-              <p className="text-light small mb-3">
-                Subscribe to get notifications about new features and updates.
-              </p>
-              <div className="input-group">
-                <input 
-                  type="email" 
-                  className="form-control" 
-                  placeholder="Enter your email"
-                />
-                <button className="btn btn-primary">
-                  <i className="fas fa-paper-plane"></i>
-                </button>
+              <div className="col-lg-4 text-center">
+                <i className="fas fa-rocket fa-6x text-warning opacity-75"></i>
               </div>
             </div>
           </div>
-          
-          <hr className="my-4" />
-          
-          <div className="row align-items-center">
-            <div className="col-md-6">
-              <p className="mb-0 text-light">
-                &copy; 2024 ProductFinder. All rights reserved.
-              </p>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-dark text-white py-5">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-4 mb-4">
+                <h5 className="fw-bold mb-3">
+                  <i className="fas fa-globe-americas me-2 text-primary"></i>
+                  ProductFinder
+                </h5>
+                <p className="text-light">
+                  Connecting customers with businesses worldwide. Find products and services you need, when you need them.
+                </p>
+                <div className="d-flex gap-3">
+                  <a href="#!" className="text-light"><i className="fab fa-facebook fa-lg"></i></a>
+                  <a href="#!" className="text-light"><i className="fab fa-twitter fa-lg"></i></a>
+                  <a href="#!" className="text-light"><i className="fab fa-instagram fa-lg"></i></a>
+                  <a href="#!" className="text-light"><i className="fab fa-linkedin fa-lg"></i></a>
+                </div>
+              </div>
+              
+              <div className="col-lg-2 col-6 mb-4">
+                <h6 className="fw-bold mb-3">Explore</h6>
+                <ul className="list-unstyled">
+                  <li><Link to="/search" className="text-light text-decoration-none">Search</Link></li>
+                  <li><Link to="/" className="text-light text-decoration-none">Categories</Link></li>
+                  <li><a href="#!" className="text-light text-decoration-none">Featured</a></li>
+                  <li><a href="#!" className="text-light text-decoration-none">Businesses</a></li>
+                </ul>
+              </div>
+              
+              <div className="col-lg-2 col-6 mb-4">
+                <h6 className="fw-bold mb-3">Business</h6>
+                <ul className="list-unstyled">
+                  <li><Link to="/business-auth" className="text-light text-decoration-none">List Your Business</Link></li>
+                  <li><Link to="/business-dashboard" className="text-light text-decoration-none">Dashboard</Link></li>
+                  <li><a href="#!" className="text-light text-decoration-none">Pricing</a></li>
+                  <li><a href="#!" className="text-light text-decoration-none">Support</a></li>
+                </ul>
+              </div>
+              
+              <div className="col-lg-4 mb-4">
+                <h6 className="fw-bold mb-3">Stay Updated</h6>
+                <p className="text-light small mb-3">
+                  Subscribe to get notifications about new features and updates.
+                </p>
+                <div className="input-group">
+                  <input 
+                    type="email" 
+                    className="form-control" 
+                    placeholder="Enter your email"
+                  />
+                  <button className="btn btn-primary">
+                    <i className="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="col-md-6 text-md-end">
-              <a href="#!" className="text-light text-decoration-none me-3">Privacy Policy</a>
-              <a href="#!" className="text-light text-decoration-none me-3">Terms of Service</a>
-              <a href="#!" className="text-light text-decoration-none">Contact</a>
+            
+            <hr className="my-4" />
+            
+            <div className="row align-items-center">
+              <div className="col-md-6">
+                <p className="mb-0 text-light">
+                  &copy; 2024 ProductFinder. All rights reserved.
+                </p>
+              </div>
+              <div className="col-md-6 text-md-end">
+                <a href="#!" className="text-light text-decoration-none me-3">Privacy Policy</a>
+                <a href="#!" className="text-light text-decoration-none me-3">Terms of Service</a>
+                <a href="#!" className="text-light text-decoration-none">Contact</a>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
 
-      {/* Add CDN Links */}
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-      <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+      {/* Custom Styles */}
       <style>
         {`
           .category-card:hover {
@@ -701,7 +1456,7 @@ function HomePage1() {
             box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
           }
           
-          .featured-card:hover {
+          .product-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
           }
@@ -725,17 +1480,37 @@ function HomePage1() {
             transform: translateY(-1px);
           }
           
-          .card {
-            transition: all 0.3s ease;
+          .quick-categories-bar {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
           }
           
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+          .quick-category-item:hover {
+            background: rgba(0, 123, 255, 0.1) !important;
           }
           
-          .fade-in {
-            animation: fadeIn 0.6s ease-in;
+          .quick-category-item.active {
+            background: rgba(0, 123, 255, 0.15) !important;
+          }
+          
+          /* Scrollbar styling */
+          .d-flex.overflow-auto::-webkit-scrollbar {
+            height: 6px;
+          }
+          
+          .d-flex.overflow-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+          }
+          
+          .d-flex.overflow-auto::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+          }
+          
+          .d-flex.overflow-auto::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
           }
         `}
       </style>

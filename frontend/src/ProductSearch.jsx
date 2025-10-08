@@ -1,6 +1,8 @@
-// src/ProductSearch.jsx - BORDER YA CARD IMEKUWA CLICKABLE
+// src/ProductSearch.jsx - COMPLETE FILE WITH WORKING AUTH & BUSINESS DASHBOARD REDIRECT
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { auth, googleProvider } from './firebase.jsx';
+import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 function ProductSearch() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +28,14 @@ function ProductSearch() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authMode, setAuthMode] = useState("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,36 +74,6 @@ function ProductSearch() {
     "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad"],
     "South Africa": ["Johannesburg", "Cape Town", "Durban", "Pretoria"]
   };
-
-  // Languages
-  const languages = [
-    { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "sw", name: "Kiswahili", flag: "🇹🇿" },
-    { code: "fr", name: "French", flag: "🇫🇷" },
-    { code: "es", name: "Spanish", flag: "🇪🇸" },
-    { code: "ar", name: "Arabic", flag: "🇸🇦" },
-    { code: "zh", name: "Chinese", flag: "🇨🇳" },
-    { code: "hi", name: "Hindi", flag: "🇮🇳" },
-    { code: "pt", name: "Portuguese", flag: "🇵🇹" }
-  ];
-
-  // BEAUTIFUL SIDEBAR CATEGORIES WITH WHITE BACKGROUND
-  const categories = [
-    { 
-      id: "all", 
-      name: "All Items", 
-      icon: "fa-grid", 
-      color: "#007bff",
-      description: "Browse all products and services"
-    },
-    { 
-      id: "education", 
-      name: "Education", 
-      icon: "fa-graduation-cap", 
-      color: "#007bff",
-      description: "Courses, books, learning"
-    },
-  ];
 
   // Quick access categories for main page
   const quickCategories = [
@@ -136,6 +116,25 @@ function ProductSearch() {
     loadRecentSearches();
     getUserLocation();
     
+    // Setup auth state listener
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const userData = {
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          picture: user.photoURL,
+          emailVerified: user.emailVerified
+        };
+        setUser(userData);
+        // Save user to localStorage for BusinessDashboard
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+      } else {
+        setUser(null);
+        localStorage.removeItem('currentUser');
+      }
+    });
+
     // Check for URL search parameters
     const urlParams = new URLSearchParams(location.search);
     const urlQuery = urlParams.get('q');
@@ -143,7 +142,149 @@ function ProductSearch() {
       setSearchQuery(urlQuery);
       handleSearch(urlQuery);
     }
+
+    // Cleanup subscription
+    return () => unsubscribe();
   }, [location.search]);
+
+  // Google Authentication Functions - UPDATED WITH DASHBOARD REDIRECT
+  const handleGoogleSignIn = async () => {
+    try {
+      setAuthLoading(true);
+      setAuthError("");
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      const userData = {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        picture: user.photoURL,
+        emailVerified: user.emailVerified
+      };
+      
+      setUser(userData);
+      
+      // Save user to localStorage for BusinessDashboard
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      
+      setShowAuthModal(false);
+      
+      // REDIRECT TO BUSINESS DASHBOARD AFTER SUCCESSFUL LOGIN
+      setTimeout(() => {
+        navigate('/business-dashboard');
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Google authentication failed:", error);
+      setAuthError("Error signing in with Google. Please try again.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Email/Password Sign Up - UPDATED WITH DASHBOARD REDIRECT
+  const handleEmailSignUp = async (e) => {
+    e.preventDefault();
+    try {
+      setAuthLoading(true);
+      setAuthError("");
+      
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const user = result.user;
+      
+      const userData = {
+        uid: user.uid,
+        name: user.email.split('@')[0],
+        email: user.email,
+        picture: null,
+        emailVerified: user.emailVerified
+      };
+      
+      setUser(userData);
+      
+      // Save user to localStorage for BusinessDashboard
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      
+      setShowAuthModal(false);
+      
+      // REDIRECT TO BUSINESS DASHBOARD AFTER SUCCESSFUL SIGNUP
+      setTimeout(() => {
+        navigate('/business-dashboard');
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Email sign up failed:", error);
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Email/Password Sign In - UPDATED WITH DASHBOARD REDIRECT
+  const handleEmailSignIn = async (e) => {
+    e.preventDefault();
+    try {
+      setAuthLoading(true);
+      setAuthError("");
+      
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const user = result.user;
+      
+      const userData = {
+        uid: user.uid,
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        picture: user.photoURL,
+        emailVerified: user.emailVerified
+      };
+      
+      setUser(userData);
+      
+      // Save user to localStorage for BusinessDashboard
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      
+      setShowAuthModal(false);
+      
+      // REDIRECT TO BUSINESS DASHBOARD AFTER SUCCESSFUL LOGIN
+      setTimeout(() => {
+        navigate('/business-dashboard');
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Email sign in failed:", error);
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      localStorage.removeItem('currentUser');
+      alert("You have successfully signed out.");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      alert("Error signing out. Please try again.");
+    }
+  };
+
+  const handleAccountClick = () => {
+    setShowAuthModal(true);
+  };
+
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (showAuthModal) {
+      setEmail("");
+      setPassword("");
+      setAuthError("");
+      setAuthMode("signin");
+    }
+  }, [showAuthModal]);
 
   // Load all items from localStorage and sample data
   const loadAllItems = useCallback(() => {
@@ -220,11 +361,6 @@ function ProductSearch() {
         id: "elec-2", name: "iPhone 15 Pro Max", category: "Electronics & Devices", price: 2500000, currency: "TZS", currencySymbol: "TSh", stock: 3,
         business: "MobileWorld Tanzania", location: { lat: -6.8184, lng: 39.2883 }, address: "Mlimani City Mall, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
         images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "Latest iPhone with titanium design", brand: "Apple", condition: "new", rating: 4.8, reviews: 15, type: "product"
-      },
-      {
-        id: "elec-3", name: "Samsung Galaxy S24", category: "Electronics & Devices", price: 1800000, currency: "TZS", currencySymbol: "TSh", stock: 8,
-        business: "MobileTech Kenya", location: { lat: -1.2921, lng: 36.8219 }, address: "Westlands, Nairobi", country: "Kenya", region: "Nairobi", city: "Nairobi",
-        images: ["https://images.pexels.com/photos/47261/pexels-photo-47261.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "Advanced smartphone with AI features", brand: "Samsung", condition: "new", rating: 4.6, reviews: 12, type: "product"
       }
     ];
 
@@ -233,11 +369,6 @@ function ProductSearch() {
         id: "fash-1", name: "Men's Running Shoes", category: "General Goods", price: 85000, currency: "TZS", currencySymbol: "TSh", stock: 15,
         business: "Sports Gear Tanzania", location: { lat: -6.8184, lng: 39.2883 }, address: "Mlimani City, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
         images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "Comfortable running shoes", brand: "RunPro", condition: "new", rating: 4.3, reviews: 15, type: "product"
-      },
-      {
-        id: "fash-2", name: "Designer Leather Handbag", category: "General Goods", price: 150000, currency: "TZS", currencySymbol: "TSh", stock: 8,
-        business: "Fashion House Dar", location: { lat: -6.8155, lng: 39.2861 }, address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "Luxury designer handbag", brand: "StyleCraft", condition: "new", rating: 4.6, reviews: 8, type: "product"
       }
     ];
 
@@ -246,11 +377,6 @@ function ProductSearch() {
         id: "hotel-1", name: "Serengeti Luxury Hotel", category: "Building & Hotels", serviceType: "5-Star Hotel", priceRange: "150-300", currency: "USD", currencySymbol: "$",
         business: "Serengeti Hospitality Group", location: { lat: -6.8155, lng: 39.2861 }, address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
         images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "5-star luxury hotel with premium amenities", rating: "5", type: "service"
-      },
-      {
-        id: "hotel-2", name: "Kilimanjaro Business Suites", category: "Building & Hotels", serviceType: "Luxury Apartment", priceRange: "80,000-150,000", currency: "TZS", currencySymbol: "TSh",
-        business: "Prime Properties Tanzania", location: { lat: -6.8120, lng: 39.2840 }, address: "City Center, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
-        images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "Modern luxury apartments with business facilities", rating: "4", type: "service"
       }
     ];
 
@@ -259,11 +385,6 @@ function ProductSearch() {
         id: "veh-1", name: "Toyota Land Cruiser V8", category: "Vehicles", price: 185000000, currency: "TZS", currencySymbol: "TSh", stock: 2,
         business: "Premium Motors Tanzania", location: { lat: -6.8155, lng: 39.2861 }, address: "Masaki, Dar es Salaam", country: "Tanzania", region: "Dar es Salaam", city: "Dar es Salaam",
         images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "Luxury SUV with premium features", brand: "Toyota", condition: "new", rating: 4.8, reviews: 12, type: "product"
-      },
-      {
-        id: "veh-2", name: "BMW X5", category: "Vehicles", price: 165000000, currency: "TZS", currencySymbol: "TSh", stock: 3,
-        business: "German Motors Kenya", location: { lat: -1.2921, lng: 36.8219 }, address: "Westlands, Nairobi", country: "Kenya", region: "Nairobi", city: "Nairobi",
-        images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"], description: "Luxury German SUV", brand: "BMW", condition: "new", rating: 4.7, reviews: 9, type: "product"
       }
     ];
 
@@ -315,30 +436,6 @@ function ProductSearch() {
     } catch (error) {
       console.error("Error saving recent search:", error);
     }
-  };
-
-  // IMPROVED FUZZY SEARCH FUNCTION
-  const fuzzySearch = (text, query) => {
-    if (!query.trim()) return { match: true, score: 0 };
-    
-    const textLower = text.toLowerCase();
-    const queryLower = query.toLowerCase();
-    
-    if (textLower.includes(queryLower)) {
-      return { match: true, score: 1.0 };
-    }
-    
-    // Simple partial match for short queries
-    if (queryLower.length >= 3) {
-      const words = textLower.split(/\s+/);
-      for (let word of words) {
-        if (word.includes(queryLower)) {
-          return { match: true, score: 0.8 };
-        }
-      }
-    }
-    
-    return { match: false, score: 0 };
   };
 
   // Generate search suggestions
@@ -522,11 +619,6 @@ function ProductSearch() {
     }
   };
 
-  // Handle filter button click
-  const handleFilterClick = () => {
-    setShowFilterModal(true);
-  };
-
   // Clear all search and filters
   const clearSearch = () => {
     setSearchQuery("");
@@ -543,21 +635,6 @@ function ProductSearch() {
     setHasSearched(false);
     setShowSuggestions(false);
     navigate('/search');
-  };
-
-  // Clear filters only
-  const clearFilters = () => {
-    setFilters({
-      category: "",
-      country: "",
-      region: "",
-      city: "",
-      inStock: true,
-      priceRange: ""
-    });
-    setActiveCategory("all");
-    setSearchResults(allItems);
-    setHasSearched(false);
   };
 
   // Calculate distance for location display
@@ -602,17 +679,12 @@ function ProductSearch() {
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
       window.open(mapsUrl, '_blank');
     } else {
-      alert('Sorry, no location information available for this service. Please contact the business directly.');
+      alert('Sorry, no location information is available for this service. Please contact the business directly.');
     }
   };
 
   const handleViewDetails = (itemId) => {
     navigate(`/product/${itemId}`);
-  };
-
-  const handleAccountClick = () => {
-    const isBusinessAuthenticated = localStorage.getItem('businessAuthenticated') === 'true';
-    navigate(isBusinessAuthenticated ? '/business-dashboard' : '/business-auth');
   };
 
   // Search page handlers
@@ -638,24 +710,6 @@ function ProductSearch() {
     setShowSidebar(!showSidebar);
   };
 
-  // Close sidebar when clicking overlay
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      setShowSidebar(false);
-    }
-  };
-
-  // Language handlers
-  const handleLanguageSelect = (language) => {
-    setSelectedLanguage(language.name);
-    setShowLanguageDropdown(false);
-    alert(`Language changed to ${language.name}`);
-  };
-
-  const handleHelpClick = () => {
-    alert("Welcome to BisConnect Help Center!\n\nFor assistance, please contact:\n📞 Customer Support: +255-123-456-789\n📧 Email: support@bisconnect.com\n\nWe're here to help you find the best products and services!");
-  };
-
   // Helper functions
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -665,34 +719,6 @@ function ProductSearch() {
     if (filters.city) count++;
     if (filters.priceRange) count++;
     return count;
-  };
-
-  const getAvailableRegions = () => {
-    if (!filters.country) return [];
-    return regionsByCountry[filters.country] || [];
-  };
-
-  const getAvailableCities = () => {
-    if (!filters.country || !filters.region) return [];
-    
-    const cities = new Set();
-    allItems.forEach(item => {
-      if (item.country === filters.country && item.region === filters.region && item.city) {
-        cities.add(item.city);
-      }
-    });
-    return Array.from(cities);
-  };
-
-  const renderStars = (rating) => {
-    const numRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 4.0);
-    return Array.from({ length: 5 }, (_, index) => (
-      <i
-        key={index}
-        className={`fas fa-star ${index < Math.floor(numRating) ? 'text-warning' : 'text-muted'}`}
-        style={{ fontSize: '0.7rem' }}
-      ></i>
-    ));
   };
 
   const getCategoryIcon = (category) => {
@@ -705,30 +731,11 @@ function ProductSearch() {
     }
   };
 
-  const getCategoryBadge = (category) => {
-    switch(category) {
-      case 'Electronics & Devices': return 'bg-primary';
-      case 'General Goods': return 'bg-warning';
-      case 'Building & Hotels': return 'bg-success';
-      case 'Vehicles': return 'bg-danger';
-      default: return 'bg-secondary';
-    }
-  };
-
   const getItemImage = (item) => {
     if (item.images && item.images.length > 0) {
       return item.images[0];
     }
     return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
-  };
-
-  const getCountryFlag = (countryName) => {
-    const country = countries.find(c => c.name === countryName);
-    const flagEmojis = {
-      'TZ': '🇹🇿', 'KE': '🇰🇪', 'UG': '🇺🇬', 'US': '🇺🇸', 'GB': '🇬🇧',
-      'EU': '🇪🇺', 'CN': '🇨🇳', 'IN': '🇮🇳', 'ZA': '🇿🇦'
-    };
-    return flagEmojis[country?.code] || '🏳️';
   };
 
   const formatPrice = (item) => {
@@ -738,7 +745,311 @@ function ProductSearch() {
     return `${item.currencySymbol || '$'} ${item.price?.toLocaleString() || '0'}`;
   };
 
-  // NAVBAR YA SLIDE (IMEBORESHWWA)
+  // NEW: Handle Business Dashboard Access
+  const handleBusinessDashboard = () => {
+    if (user) {
+      navigate('/business-dashboard');
+    } else {
+      setShowAuthModal(true);
+    }
+  };
+
+  // Beautiful Authentication Modal Component - UPDATED WITH DASHBOARD REDIRECT
+  const AuthModal = () => {
+    return (
+      <div className={`modal fade ${showAuthModal ? 'show d-block' : ''}`} 
+           style={{ 
+             backgroundColor: 'rgba(0,0,0,0.5)', 
+             position: 'fixed',
+             top: 0,
+             left: 0,
+             right: 0,
+             bottom: 0,
+             zIndex: 9999
+           }} 
+           tabIndex="-1">
+        {/* Centered Container */}
+        <div className="d-flex align-items-center justify-content-center min-vh-100 p-3">
+          <div className="modal-dialog modal-dialog-centered" 
+               style={{ 
+                 maxWidth: '420px',
+                 width: '100%',
+                 margin: '0 auto'
+               }}>
+            <div className="modal-content rounded-3 border shadow-lg" 
+                 style={{ 
+                   borderColor: '#e0e0e0', 
+                   backdropFilter: 'blur(10px)',
+                   transform: 'translateY(0)',
+                   animation: 'modalSlideIn 0.3s ease-out'
+                 }}>
+              
+              {/* Header */}
+              <div className="modal-header border-0 pb-0 pt-4 px-4">
+                <div className="w-100 text-center">
+                  <div className="avatar-placeholder mb-3 mx-auto">
+                    <i className="fas fa-user-circle display-4 text-primary"></i>
+                  </div>
+                  <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
+                    {user ? "Account Settings" : authMode === "signin" ? "Welcome Back" : "Join BisRun"}
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    {user ? "Manage your account" : authMode === "signin" ? "Sign in to your account" : "Create your account to get started"}
+                  </p>
+                </div>
+                <button 
+                  type="button" 
+                  className="btn-close position-absolute top-0 end-0 m-3" 
+                  onClick={() => setShowAuthModal(false)}
+                  style={{ fontSize: '0.8rem' }}
+                ></button>
+              </div>
+              
+              {/* Body */}
+              <div className="modal-body py-4 px-4">
+                {user ? (
+                  // User Profile View
+                  <div className="text-center">
+                    <div className="mb-4">
+                      <img 
+                        src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                        alt={user.name}
+                        className="rounded-circle border"
+                        style={{ 
+                          width: '80px', 
+                          height: '80px', 
+                          objectFit: 'cover',
+                          border: '3px solid #f8f9fa'
+                        }}
+                      />
+                      <h5 className="mt-3 mb-1 fw-bold">{user.name}</h5>
+                      <p className="text-muted mb-3">{user.email}</p>
+                      <div className="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                        <i className="fas fa-check-circle me-2"></i>
+                        {user.emailVerified ? "Email Verified" : "Email Not Verified"}
+                      </div>
+                    </div>
+                    
+                    <div className="row text-start small text-muted mb-4">
+                      <div className="col-12 mb-2">
+                        <i className="fas fa-user me-2"></i>
+                        ID: {user.uid.substring(0, 8)}...
+                      </div>
+                      <div className="col-12">
+                        <i className="fas fa-shield-alt me-2"></i>
+                        Secure Authentication
+                      </div>
+                    </div>
+
+                    {/* NEW: Business Dashboard Button */}
+                    <div className="d-grid gap-2 mb-3">
+                      <button
+                        className="btn btn-primary w-100 py-3 rounded-3 fw-medium"
+                        onClick={handleBusinessDashboard}
+                        style={{ fontSize: '1rem' }}
+                      >
+                        <i className="fas fa-chart-line me-2"></i>
+                        Go to Business Dashboard
+                      </button>
+                    </div>
+                    
+                    <button
+                      className="btn btn-outline-danger w-100 py-3 rounded-3 fw-medium"
+                      onClick={handleSignOut}
+                      style={{ fontSize: '1rem' }}
+                    >
+                      <i className="fas fa-sign-out-alt me-2"></i>
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  // Authentication Options - PERFECTLY CENTERED
+                  <div className="text-center w-100">
+                    
+                    {/* Email/Password Form */}
+                    <form onSubmit={authMode === "signin" ? handleEmailSignIn : handleEmailSignUp} className="w-100">
+                      <div className="mb-3 w-100">
+                        <input
+                          type="email"
+                          className="form-control form-control-lg rounded-3 border w-100"
+                          placeholder="Enter your email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          style={{ 
+                            padding: '16px', 
+                            fontSize: '16px',
+                            borderColor: '#e0e0e0'
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="mb-3 w-100">
+                        <input
+                          type="password"
+                          className="form-control form-control-lg rounded-3 border w-100"
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          style={{ 
+                            padding: '16px', 
+                            fontSize: '16px',
+                            borderColor: '#e0e0e0'
+                          }}
+                        />
+                      </div>
+
+                      {authMode === "signin" && (
+                        <div className="mb-3 d-flex justify-content-between align-items-center w-100">
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id="rememberMe"
+                              checked={rememberMe}
+                              onChange={(e) => setRememberMe(e.target.checked)}
+                              style={{ cursor: 'pointer' }}
+                            />
+                            <label className="form-check-label small text-muted" htmlFor="rememberMe" style={{ cursor: 'pointer' }}>
+                              Remember me
+                            </label>
+                          </div>
+                          <button type="button" className="btn btn-link p-0 small text-primary text-decoration-none">
+                            Forgot password?
+                          </button>
+                        </div>
+                      )}
+
+                      {authError && (
+                        <div className="alert alert-danger py-3 small rounded-3 w-100 mb-3" role="alert" style={{ border: '1px solid #f5c6cb' }}>
+                          <i className="fas fa-exclamation-triangle me-2"></i>
+                          {authError}
+                        </div>
+                      )}
+
+                      {/* Sign In/Up Button */}
+                      <button
+                        type="submit"
+                        className={`btn btn-primary w-100 py-3 rounded-3 mb-4 ${authLoading ? 'disabled' : ''}`}
+                        disabled={authLoading}
+                        style={{ 
+                          fontSize: '16px', 
+                          fontWeight: '600', 
+                          height: '52px',
+                          background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
+                          border: 'none'
+                        }}
+                      >
+                        {authLoading ? (
+                          <>
+                            <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                            {authMode === "signin" ? "Signing In..." : "Creating Account..."}
+                          </>
+                        ) : (
+                          authMode === "signin" ? "Sign In" : "Create Account"
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Divider - Centered */}
+                    <div className="divider mb-4 w-100">
+                      <span className="divider-text text-muted bg-white px-3">or continue with</span>
+                    </div>
+
+                    {/* Google Sign In Button */}
+                    <button
+                      className={`btn btn-outline-secondary w-100 py-3 rounded-3 mb-4 ${authLoading ? 'disabled' : ''}`}
+                      onClick={handleGoogleSignIn}
+                      disabled={authLoading}
+                      style={{ 
+                        borderColor: '#dadce0',
+                        backgroundColor: '#fff',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        height: '52px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#f8f9fa';
+                        e.target.style.borderColor = '#adb5bd';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = '#fff';
+                        e.target.style.borderColor = '#dadce0';
+                      }}
+                    >
+                      {authLoading ? (
+                        <>
+                          <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <img 
+                            src="https://developers.google.com/identity/images/g-logo.png" 
+                            alt="Google" 
+                            style={{ 
+                              width: '18px', 
+                              height: '18px', 
+                              marginRight: '12px' 
+                            }}
+                          />
+                          Continue with Google
+                        </>
+                      )}
+                    </button>
+
+                    {/* NEW: Quick Business Dashboard Access */}
+                    <div className="mb-4">
+                      <button
+                        className="btn btn-outline-primary w-100 py-3 rounded-3 fw-medium"
+                        onClick={() => navigate('/business-dashboard')}
+                        style={{ fontSize: '16px' }}
+                      >
+                        <i className="fas fa-store me-2"></i>
+                        Access Business Dashboard
+                      </button>
+                    </div>
+
+                    {/* Switch between Sign In and Sign Up */}
+                    <div className="text-center mb-3 w-100">
+                      <p className="small text-muted mb-0">
+                        {authMode === "signin" ? "Don't have an account? " : "Already have an account? "}
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 small text-primary fw-bold text-decoration-none"
+                          onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")}
+                          style={{ fontSize: '14px' }}
+                        >
+                          {authMode === "signin" ? "Sign up" : "Sign in"}
+                        </button>
+                      </p>
+                    </div>
+
+                    {/* Terms and Privacy */}
+                    <div className="mt-3 pt-3 border-top w-100">
+                      <p className="small text-muted mb-0 text-center" style={{ lineHeight: '1.4' }}>
+                        By continuing, you agree to our{" "}
+                        <a href="#" className="text-primary text-decoration-none fw-medium">Terms</a>{" "}
+                        and{" "}
+                        <a href="#" className="text-primary text-decoration-none fw-medium">Privacy Policy</a>
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // SlideNavbar Component - UPDATED WITH BUSINESS DASHBOARD BUTTON
   const SlideNavbar = () => {
     return (
       <div className="fixed-top bg-white border-bottom shadow-sm" style={{ zIndex: 1030 }}>
@@ -762,7 +1073,7 @@ function ProductSearch() {
               </button>
             </div>
 
-          {/* Search Bar */}
+            {/* Search Bar */}
             <div className="col">
               <div className="input-group input-group-lg position-relative">
                 <input
@@ -808,462 +1119,226 @@ function ProductSearch() {
               )}
             </div>
             
-            {/* Account Icon */}
+            {/* NEW: Business Dashboard Button */}
             <div className="col-auto ms-2">
               <button
-                className="btn btn-light rounded-circle border"
+                className="btn btn-outline-primary rounded-pill d-flex align-items-center"
+                onClick={handleBusinessDashboard}
+                style={{ 
+                  fontSize: '0.8rem',
+                  padding: '8px 16px',
+                  fontWeight: '600'
+                }}
+              >
+                <i className="fas fa-chart-line me-2"></i>
+                <span className="d-none d-sm-inline">Business</span>
+              </button>
+            </div>
+            
+            {/* Enhanced Account Icon */}
+            <div className="col-auto ms-2">
+              <button
+                className="btn btn-light rounded-circle border position-relative d-flex align-items-center justify-content-center"
                 onClick={handleAccountClick}
                 style={{ 
-                  width: '40px', 
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.9rem'
+                  width: '42px', 
+                  height: '42px',
+                  fontSize: '1rem',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f8f9fa';
+                  e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '';
+                  e.target.style.transform = 'scale(1)';
                 }}
               >
-                <i className="bi bi-person text-dark"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Search Page Component
-  const SearchPage = () => {
-    return (
-      <div className="min-vh-100 bg-white" style={{ zIndex: 1040, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-        {/* Search Page Header */}
-        <div className="bg-white border-bottom shadow-sm">
-          <div className="container-fluid p-3">
-            <div className="row align-items-center">
-              <div className="col-auto">
-                <button
-                  className="btn btn-light rounded-circle"
-                  onClick={handleSearchPageBack}
-                  style={{ 
-                    width: '45px', 
-                    height: '45px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <i className="fas fa-arrow-left"></i>
-                </button>
-              </div>
-              
-              <div className="col">
-                <form onSubmit={handleSearchPageSubmit}>
-                  <div className="input-group input-group-lg position-relative">
-                    <input
-                      type="text"
-                      className="form-control border-0 bg-light rounded-pill ps-4"
-                      placeholder="Search products, services..."
-                      value={searchQuery}
-                      onChange={handleSearchInputChange}
-                      style={{ fontSize: '1rem' }}
-                      autoFocus
-                    />
-                    
-                    {/* Search Button */}
-                    <button
-                      type="submit"
-                      className="btn btn-primary rounded-pill position-absolute end-0 top-50 translate-middle-y me-2"
-                      style={{ 
-                        width: '40px', 
-                        height: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <i className="fas fa-search text-white"></i>
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Search Suggestions */}
-        {showSuggestions && searchSuggestions.length > 0 && (
-          <div className="container-fluid mt-2">
-            <div className="row">
-              <div className="col-12">
-                <div className="bg-white border rounded-3 shadow-sm">
-                  {searchSuggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      className="btn btn-light w-100 text-start p-3 border-bottom"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      style={{ 
-                        border: 'none',
-                        borderRadius: '0',
-                        fontSize: '1rem'
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-search me-3 text-muted"></i>
-                        <div>
-                          <div className="fw-semibold text-dark">{suggestion}</div>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Recent Searches */}
-        {!showSuggestions && recentSearches.length > 0 && (
-          <div className="container-fluid mt-3">
-            <div className="row">
-              <div className="col-12">
-                <h6 className="text-muted mb-3 px-3">Recent Searches</h6>
-                <div className="bg-white border rounded-3 shadow-sm">
-                  {recentSearches.map((search, index) => (
-                    <button
-                      key={index}
-                      className="btn btn-light w-100 text-start p-3 border-bottom"
-                      onClick={() => handleSuggestionClick(search)}
-                      style={{ 
-                        border: 'none',
-                        borderRadius: '0',
-                        fontSize: '1rem'
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-clock me-3 text-muted"></i>
-                        <div>
-                          <div className="fw-semibold text-dark">{search}</div>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Search Page Content */}
-        <div className="container-fluid" style={{ paddingTop: '20px', paddingBottom: '80px' }}>
-          {!hasSearched && searchQuery.trim() === "" && (
-            <div className="text-center py-5">
-              <i className="fas fa-search fa-4x text-muted mb-4"></i>
-              <h4 className="text-muted fw-bold mb-3">Search for Products & Services</h4>
-              <p className="text-muted">Enter your search terms above to find items</p>
-              
-              {/* Quick Categories */}
-              <div className="row mt-5">
-                <div className="col-4 mb-3">
-                  <button 
-                    className="btn btn-outline-primary w-100 py-3"
-                    onClick={() => handleSuggestionClick("Laptop")}
-                  >
-                    <i className="fas fa-laptop fa-2x mb-2"></i>
-                    <div>Electronics</div>
-                  </button>
-                </div>
-                <div className="col-4 mb-3">
-                  <button 
-                    className="btn btn-outline-primary w-100 py-3"
-                    onClick={() => handleSuggestionClick("Shoes")}
-                  >
-                    <i className="fas fa-tshirt fa-2x mb-2"></i>
-                    <div>Fashion</div>
-                  </button>
-                </div>
-                <div className="col-4 mb-3">
-                  <button 
-                    className="btn btn-outline-primary w-100 py-3"
-                    onClick={() => handleSuggestionClick("Hotel")}
-                  >
-                    <i className="fas fa-hotel fa-2x mb-2"></i>
-                    <div>Hotels</div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Show search page when activated
-  if (showSearchPage) {
-    return <SearchPage />;
-  }
-
-  // BEAUTIFUL SIDEBAR COMPONENT WITH WHITE BACKGROUND - SMALL SIZE
-  const SidebarMenu = () => {
-    return (
-      <>
-        {/* Overlay */}
-        <div 
-          className={`sidebar-overlay ${showSidebar ? 'active' : ''}`}
-          onClick={handleOverlayClick}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1090,
-            opacity: showSidebar ? 1 : 0,
-            visibility: showSidebar ? 'visible' : 'hidden',
-            transition: 'all 0.3s ease'
-          }}
-        ></div>
-
-        {/* Sidebar - SMALL SIZE FOR SMARTPHONE */}
-        <div 
-          className={`sidebar-menu ${showSidebar ? 'active' : ''}`}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: '280px',
-            background: '#ffffff',
-            zIndex: 1100,
-            transform: showSidebar ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.3s ease',
-            boxShadow: '2px 0 15px rgba(0,0,0,0.1)',
-            overflowY: 'auto'
-          }}
-        >
-          {/* Sidebar Header - SMALLER */}
-          <div className="sidebar-header" style={{
-            padding: '15px',
-            background: '#f8f9fa',
-            borderBottom: '1px solid #e9ecef'
-          }}>
-            <div className="d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center">
-                <i className="fas fa-bars text-primary me-2" style={{ fontSize: '1rem' }}></i>
-                <h5 className="text-dark mb-0 fw-bold" style={{ fontSize: '1rem' }}>Browse Categories</h5>
-              </div>
-              <button 
-                className="btn btn-close"
-                onClick={toggleSidebar}
-                style={{ fontSize: '0.8rem' }}
-              ></button>
-            </div>
-          </div>
-
-          {/* Sidebar Content - SMALLER PADDING */}
-          <div className="sidebar-content" style={{ padding: '15px' }}>
-            {/* Welcome Section - SMALLER */}
-            <div className="welcome-section mb-3">
-              <div className="text-center text-dark mb-2">
-                <i className="fas fa-shopping-bag mb-1 text-primary" style={{ fontSize: '1.5rem' }}></i>
-                <h6 className="fw-bold mb-1" style={{ fontSize: '0.9rem' }}>Find What You Need</h6>
-                <small className="text-muted" style={{ fontSize: '0.7rem' }}>Browse through our categories</small>
-              </div>
-            </div>
-
-            {/* Home Link Button - SMALLER */}
-            <div className="home-link-section mb-3">
-              <Link 
-                to="/" 
-                className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
-                style={{
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  fontSize: '0.8rem',
-                  border: 'none',
-                  padding: '8px 12px'
-                }}
-                onClick={() => setShowSidebar(false)}
-              >
-                <i className="fas fa-home me-2" style={{ fontSize: '0.8rem' }}></i>
-                Home Page
-              </Link>
-            </div>
-
-            {/* Categories List - SMALLER */}
-            <div className="categories-list">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  className={`category-item w-100 text-start mb-1 ${activeCategory === category.id ? 'active' : ''}`}
-                  onClick={() => handleCategorySelect(category.id)}
-                  style={{
-                    background: activeCategory === category.id ? 'rgba(0, 123, 255, 0.1)' : '#ffffff',
-                    border: activeCategory === category.id ? '1px solid #007bff' : '1px solid #e9ecef',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    color: activeCategory === category.id ? '#007bff' : '#495057',
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <div className="d-flex align-items-center">
-                    <div className="category-icon me-2" style={{
-                      width: '32px',
+                {user ? (
+                  <img 
+                    src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                    alt={user.name}
+                    className="rounded-circle"
+                    style={{ 
+                      width: '32px', 
                       height: '32px',
-                      background: activeCategory === category.id ? '#007bff' : 'rgba(0, 123, 255, 0.1)',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.9rem',
-                      color: activeCategory === category.id ? '#ffffff' : '#007bff'
-                    }}>
-                      <i className={`fas ${category.icon}`}></i>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="fw-medium" style={{ fontSize: '0.8rem' }}>{category.name}</div>
-                      <small className={activeCategory === category.id ? "text-primary" : "text-muted"} style={{ fontSize: '0.65rem' }}>{category.description}</small>
-                    </div>
-                    {activeCategory === category.id && (
-                      <i className="fas fa-check text-success" style={{ fontSize: '0.7rem' }}></i>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Help & Support Section - SMALLER */}
-            <div className="help-section mt-3 pt-3 border-top border-secondary border-opacity-25">
-              <h6 className="text-dark fw-semibold mb-2" style={{ fontSize: '0.8rem' }}>Help & Support</h6>
-              
-              <button 
-                className="btn btn-outline-info w-100 mb-2 d-flex align"
-                onClick={handleHelpClick}
-                style={{
-                  borderRadius: '6px',
-                  padding: '6px 8px',
-                  border: '1px solid #17a2b8',
-                  color: '#17a2b8',
-                  fontWeight: '500',
-                  fontSize: '0.75rem'
-                }}
-              >
-                <i className="fas fa-question-circle me-1" style={{ fontSize: '0.7rem' }}></i>
-                Help Center
-              </button>
-            </div>
-
-            {/* Language Selector - SMALLER */}
-            <div className="language-section mt-3 pt-3 border-top border-secondary border-opacity-25">
-              <h6 className="text-dark fw-semibold mb-2" style={{ fontSize: '0.8rem' }}>Language</h6>
-              
-              <div className="position-relative">
-                <button 
-                  className="btn btn-outline-success w-100 d-flex align-items-center justify-content-between"
-                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                  style={{
-                    borderRadius: '6px',
-                    padding: '6px 8px',
-                    border: '1px solid #28a745',
-                    color: '#28a745',
-                    fontWeight: '500',
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  <div className="d-flex align-items-center">
-                    <i className="fas fa-globe me-1" style={{ fontSize: '0.7rem' }}></i>
-                    <span>{selectedLanguage}</span>
-                  </div>
-                  <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '0.6rem' }}></i>
-                </button>
-
-                {/* Language Dropdown - SMALLER */}
-                {showLanguageDropdown && (
-                  <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
-                    <div className="bg-white border rounded-2 shadow-lg" style={{ maxHeight: '160px', overflowY: 'auto' }}>
-                      {languages.map((language) => (
-                        <button
-                          key={language.code}
-                          className={`btn btn-light w-100 text-start p-2 border-bottom ${
-                            selectedLanguage === language.name ? 'bg-primary text-white' : ''
-                          }`}
-                          onClick={() => handleLanguageSelect(language)}
-                          style={{ 
-                            border: 'none',
-                            borderRadius: '0',
-                            fontSize: '0.75rem'
-                          }}
-                        >
-                          <div className="d-flex align-items-center">
-                            <span className="me-2" style={{ fontSize: '0.8rem' }}>{language.flag}</span>
-                            <div>
-                              <div className="fw-medium">{language.name}</div>
-                            </div>
-                            {selectedLanguage === language.name && (
-                              <i className="fas fa-check ms-auto" style={{ fontSize: '0.6rem' }}></i>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                      objectFit: 'cover'
+                    }}
+                  />
+                ) : (
+                  <i className="fas fa-user text-dark"></i>
                 )}
-              </div>
-            </div>
-
-            {/* Quick Actions - SMALLER */}
-            <div className="quick-actions mt-3 pt-3 border-top border-secondary border-opacity-25">
-              <h6 className="text-dark fw-semibold mb-2" style={{ fontSize: '0.8rem' }}>Quick Actions</h6>
-              
-              <button 
-                className="btn btn-outline-primary w-100 mb-1 d-flex align-items-center justify-content-center"
-                onClick={handleFilterClick}
-                style={{
-                  borderRadius: '6px',
-                  padding: '6px 8px',
-                  border: '1px solid #007bff',
-                  color: '#007bff',
-                  fontWeight: '500',
-                  fontSize: '0.75rem'
-                }}
-              >
-                <i className="fas fa-filter me-1" style={{ fontSize: '0.7rem' }}></i>
-                Advanced Filters
-                {getActiveFiltersCount() > 0 && (
-                  <span className="badge bg-primary text-white ms-1" style={{ fontSize: '0.5rem', padding: '2px 4px' }}>
-                    {getActiveFiltersCount()}
+                
+                {user && (
+                  <span className="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-2 border-white rounded-circle">
+                    <span className="visually-hidden">User logged in</span>
                   </span>
                 )}
               </button>
-
-              <button 
-                className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
-                onClick={clearSearch}
-                style={{
-                  borderRadius: '6px',
-                  padding: '6px 8px',
-                  fontWeight: '500',
-                  background: '#007bff',
-                  border: 'none',
-                  fontSize: '0.75rem'
-                }}
-              >
-                <i className="fas fa-eraser me-1" style={{ fontSize: '0.7rem' }}></i>
-                Clear All Filters
-              </button>
             </div>
           </div>
         </div>
-      </>
+      </div>
     );
   };
 
   // Main Component Render
   return (
     <div className="min-vh-100 bg-white">
-      {/* Fixed Top Header - NAVBAR YA SLIDE */}
+      {/* Custom CSS Styles */}
+      <style>
+        {`
+          /* Centered Modal Animation */
+          @keyframes modalSlideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-20px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          
+          .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+          }
+          
+          /* Perfect Centering */
+          .modal-dialog-centered {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-height: calc(100vh - 1rem) !important;
+          }
+          
+          /* Divider Styling */
+          .divider {
+            position: relative;
+            text-align: center;
+            margin: 25px 0;
+            width: 100%;
+          }
+          
+          .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e0e0e0 50%, transparent 100%);
+            transform: translateY(-50%);
+          }
+          
+          .divider-text {
+            background: white;
+            padding: 0 20px;
+            color: #6c757d;
+            font-size: 14px;
+            position: relative;
+            display: inline-block;
+            font-weight: 500;
+          }
+          
+          .avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          /* Modal Content Styling */
+          .modal-content {
+            border: 1px solid #e0e0e0 !important;
+            box-shadow: 
+              0 25px 50px -12px rgba(0, 0, 0, 0.25),
+              0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.98) !important;
+          }
+          
+          /* Perfect Responsive Design */
+          @media (max-width: 576px) {
+            .modal-dialog {
+              margin: 0 auto !important;
+              max-width: 95% !important;
+              width: 95% !important;
+            }
+            
+            .modal-content {
+              border-radius: 20px !important;
+              margin: 10px !important;
+            }
+            
+            .form-control {
+              font-size: 16px !important;
+              height: 56px !important;
+              padding: 18px !important;
+            }
+            
+            .btn {
+              height: 56px !important;
+              font-size: 16px !important;
+            }
+          }
+          
+          @media (min-width: 577px) and (max-width: 768px) {
+            .modal-dialog {
+              max-width: 400px !important;
+              width: 400px !important;
+            }
+          }
+          
+          @media (min-width: 769px) {
+            .modal-dialog {
+              max-width: 420px !important;
+              width: 420px !important;
+            }
+            
+            .modal-content {
+              border-radius: 20px !important;
+            }
+          }
+          
+          /* Hover effects */
+          .btn-outline-secondary:hover {
+            background-color: #f8f9fa !important;
+            border-color: #adb5bd !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+          }
+          
+          .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3) !important;
+          }
+          
+          /* Focus states for better accessibility */
+          .form-control:focus {
+            border-color: #007bff !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+            transform: translateY(-1px);
+          }
+          
+          /* Smooth transitions */
+          .modal-content,
+          .btn,
+          .form-control {
+            transition: all 0.3s ease;
+          }
+          
+          /* Backdrop blur effect */
+          .modal-backdrop {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.5) !important;
+          }
+        `}
+      </style>
+      
+      {/* Fixed Top Header */}
       <SlideNavbar />
 
       {/* Quick Categories Bar */}
@@ -1339,8 +1414,8 @@ function ProductSearch() {
         </div>
       </div>
 
-      {/* Sidebar Menu */}
-      <SidebarMenu />
+      {/* Authentication Modal */}
+      <AuthModal />
 
       {/* Main Content */}
       <div className="container-fluid bg-white" style={{ paddingTop: '120px', paddingBottom: '20px' }}>
@@ -1374,13 +1449,13 @@ function ProductSearch() {
               </div>
             </div>
 
-            {/* Search Results - BORDER YA CARD IMEKUWA CLICKABLE */}
+            {/* Search Results */}
             <div className="row g-2">
               {searchResults.length === 0 && hasSearched ? (
                 <div className="col-12 text-center py-5">
                   <i className="fas fa-search fa-3x text-muted mb-3"></i>
                   <h5 className="text-dark fw-bold">No matches found</h5>
-                  <p className="text-muted">Try different keywords or check spelling</p>
+                  <p className="text-muted">Try different words or check spelling</p>
                   <button
                     className="btn btn-primary rounded-pill px-4"
                     onClick={clearSearch}
@@ -1392,7 +1467,7 @@ function ProductSearch() {
               ) : (
                 searchResults.map((item) => (
                   <div key={item.id} className="col-6 col-lg-3 col-xl-2">
-                    {/* Product Card - BORDER IMEKUWA CLICKABLE */}
+                    {/* Product Card */}
                     <div 
                       className="card h-100 border-0 shadow-sm product-card clickable-card"
                       style={{ 
@@ -1432,7 +1507,7 @@ function ProductSearch() {
                         {item.type === 'product' && (
                           <div className="position-absolute top-0 end-0 m-1">
                             <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-2 py-1 rounded-pill`} style={{ fontSize: '0.6rem' }}>
-                              <small>{item.stock > 0 ? 'In Stock' : 'Out'}</small>
+                              <small>{item.stock > 0 ? 'In Stock' : 'Out of Stock'}</small>
                             </span>
                           </div>
                         )}
@@ -1477,12 +1552,12 @@ function ProductSearch() {
                           </small>
                         </div>
 
-                        {/* Action Buttons - IMEONDOKA "VIEW" BUTTON */}
+                        {/* Action Buttons */}
                         <div className="d-flex gap-1 mt-auto">
                           <button
                             className="btn btn-outline-primary flex-fill rounded-pill py-1"
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click
+                              e.stopPropagation();
                               handleContactBusiness(item);
                             }}
                             style={{ fontSize: '0.7rem' }}
@@ -1493,7 +1568,7 @@ function ProductSearch() {
                           <button
                             className="btn btn-outline-secondary rounded-pill py-1 px-2"
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click
+                              e.stopPropagation();
                               handleGetDirections(item);
                             }}
                             style={{ fontSize: '0.7rem' }}
@@ -1511,106 +1586,6 @@ function ProductSearch() {
           </>
         )}
       </div>
-
-      {/* Custom CSS */}
-      <style jsx>{`
-        .product-card {
-          transition: all 0.3s ease;
-          border: 1px solid #f0f0f0;
-        }
-        .product-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-        }
-        
-        .clickable-card {
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-        
-        .clickable-card:hover {
-          border-color: #007bff !important;
-          box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2) !important;
-        }
-        
-        /* Sidebar Styles for Small Size */
-        .sidebar-menu {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(0,0,0,0.2) transparent;
-        }
-        
-        .sidebar-menu::-webkit-scrollbar {
-          width: 3px;
-        }
-        
-        .sidebar-menu::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        .sidebar-menu::-webkit-scrollbar-thumb {
-          background: rgba(0,0,0,0.2);
-          border-radius: 1.5px;
-        }
-        
-        .category-item:hover {
-          background: rgba(0, 123, 255, 0.05) !important;
-          transform: translateX(3px);
-          border-color: #007bff !important;
-        }
-        
-        .quick-category-item:hover {
-          background: rgba(0, 123, 255, 0.1) !important;
-          transform: translateY(-2px);
-        }
-        
-        .quick-category-item:hover .quick-category-icon {
-          color: #007bff !important;
-          transform: scale(1.1);
-        }
-        
-        .quick-category-item:hover .quick-category-label {
-          color: #007bff !important;
-        }
-        
-        /* Mobile Optimizations */
-        @media (max-width: 576px) {
-          .container-fluid {
-            padding-left: 6px;
-            padding-right: 6px;
-          }
-          .card-body {
-            padding: 0.5rem;
-          }
-          .btn {
-            font-size: 0.7rem;
-          }
-          .badge {
-            font-size: 0.6rem;
-          }
-          .small {
-            fontSize: 0.65rem;
-          }
-          
-          .sidebar-menu {
-            width: 260px !important;
-          }
-          
-          .quick-category-item {
-            padding: 6px 8px !important;
-            min-width: 60px !important;
-          }
-          
-          .quick-category-icon {
-            width: 24px !important;
-            height: 24px !important;
-            font-size: 0.9rem !important;
-          }
-          
-          .quick-category-label {
-            font-size: 0.6rem !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
