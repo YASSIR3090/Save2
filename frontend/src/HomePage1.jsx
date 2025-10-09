@@ -819,7 +819,7 @@ function HomePage1() {
     );
   };
 
-  // Navigation Bar Component - UPDATED VERSION
+  // Navigation Bar Component - SIMPLIFIED FOR MOBILE
 const NavigationBar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style={{ zIndex: 1030 }}>
@@ -872,9 +872,9 @@ const NavigationBar = () => {
           </form>
         </div>
 
-        {/* Navigation Items - SIMPLIFIED */}
+        {/* Navigation Items - ACCOUNT ICON ONLY FOR BOTH DESKTOP & MOBILE */}
         <div className="navbar-nav ms-auto align-items-center">
-          {/* Account Icon Only */}
+          {/* Account Icon Only - Shows on both desktop and mobile */}
           <button
             className="btn btn-light rounded-circle border-0 position-relative"
             onClick={handleAccountClick}
@@ -911,26 +911,11 @@ const NavigationBar = () => {
               <i className="fas fa-user text-dark" style={{ fontSize: '1.1rem' }}></i>
             )}
           </button>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="btn btn-light rounded-circle ms-2 d-lg-none"
-            onClick={toggleSidebar}
-            style={{ 
-              width: '42px', 
-              height: '42px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <i className="fas fa-bars"></i>
-          </button>
         </div>
       </div>
 
-      {/* Mobile Search Bar */}
-      <div className="container-fluid d-lg-none border-top mt-2 pt-2">
+      {/* Mobile Search Bar - Shows below the main nav on mobile */}
+      <div className="container-fluid d-lg-none border-top mt-2 pt-2 pb-2">
         <form onSubmit={handleSearch} className="position-relative">
           <div className="input-group">
             <input
@@ -939,8 +924,13 @@ const NavigationBar = () => {
               placeholder="Search products, services, hotels..."
               value={searchQuery}
               onChange={handleSearchInputChange}
+              style={{ borderRadius: '20px 0 0 20px' }}
             />
-            <button className="btn btn-primary" type="submit">
+            <button 
+              className="btn btn-primary" 
+              type="submit"
+              style={{ borderRadius: '0 20px 20px 0' }}
+            >
               <i className="fas fa-search"></i>
             </button>
           </div>
