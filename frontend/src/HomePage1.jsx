@@ -819,122 +819,39 @@ function HomePage1() {
     );
   };
 
-  // Navigation Bar Component
-  const NavigationBar = () => {
-    return (
-      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style={{ zIndex: 1030 }}>
-        <div className="container">
-          {/* Logo */}
-          <Link className="navbar-brand fw-bold text-primary" to="/">
-            <i className="fas fa-globe-americas me-2"></i>
-            BisRun
-          </Link>
+  // Navigation Bar Component - UPDATED VERSION
+const NavigationBar = () => {
+  return (
+    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style={{ zIndex: 1030 }}>
+      <div className="container">
+        {/* Logo */}
+        <Link className="navbar-brand fw-bold text-primary" to="/">
+          <i className="fas fa-globe-americas me-2"></i>
+          BisRun
+        </Link>
 
-          {/* Search Bar for Desktop */}
-          <div className="d-none d-lg-flex mx-4 flex-grow-1" style={{ maxWidth: '500px' }}>
-            <form onSubmit={handleSearch} className="w-100 position-relative">
-              <div className="input-group">
-                <input
-                  type="text"
-                  className="form-control border-end-0"
-                  placeholder="Search products, services, hotels..."
-                  value={searchQuery}
-                  onChange={handleSearchInputChange}
-                  style={{ borderRadius: '25px 0 0 25px' }}
-                />
-                <button 
-                  className="btn btn-primary border-start-0" 
-                  type="submit"
-                  style={{ borderRadius: '0 25px 25px 0' }}
-                >
-                  <i className="fas fa-search"></i>
-                </button>
-              </div>
-
-              {/* Search Suggestions */}
-              {showSuggestions && searchSuggestions.length > 0 && (
-                <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
-                  <div className="bg-white border rounded-3 shadow-lg">
-                    {searchSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        className="btn btn-light w-100 text-start p-2 border-bottom"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        style={{ border: 'none', borderRadius: '0' }}
-                      >
-                        <i className="fas fa-search me-2 text-muted"></i>
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </form>
-          </div>
-
-          {/* Navigation Items */}
-          <div className="navbar-nav ms-auto align-items-center">
-            {/* Business Dashboard Button */}
-            <button
-              className="btn btn-outline-primary btn-sm me-2 d-none d-md-block"
-              onClick={handleBusinessDashboard}
-            >
-              <i className="fas fa-chart-line me-1"></i>
-              Business
-            </button>
-
-            {/* Account Icon */}
-            <button
-              className="btn btn-light rounded-circle border-0 position-relative"
-              onClick={handleAccountClick}
-              style={{ 
-                width: '40px', 
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {user ? (
-                <img 
-                  src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
-                  alt={user.name}
-                  className="rounded-circle"
-                  style={{ width: '32px', height: '32px', objectFit: 'cover' }}
-                />
-              ) : (
-                <i className="fas fa-user text-dark"></i>
-              )}
-            </button>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="btn btn-light rounded-circle ms-2 d-lg-none"
-              onClick={toggleSidebar}
-              style={{ width: '40px', height: '40px' }}
-            >
-              <i className="fas fa-bars"></i>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Search Bar */}
-        <div className="container-fluid d-lg-none border-top mt-2 pt-2">
-          <form onSubmit={handleSearch} className="position-relative">
+        {/* Search Bar for Desktop */}
+        <div className="d-none d-lg-flex mx-4 flex-grow-1" style={{ maxWidth: '500px' }}>
+          <form onSubmit={handleSearch} className="w-100 position-relative">
             <div className="input-group">
               <input
                 type="text"
-                className="form-control"
-                placeholder="Search..."
+                className="form-control border-end-0"
+                placeholder="Search products, services, hotels..."
                 value={searchQuery}
                 onChange={handleSearchInputChange}
+                style={{ borderRadius: '25px 0 0 25px' }}
               />
-              <button className="btn btn-primary" type="submit">
+              <button 
+                className="btn btn-primary border-start-0" 
+                type="submit"
+                style={{ borderRadius: '0 25px 25px 0' }}
+              >
                 <i className="fas fa-search"></i>
               </button>
             </div>
 
-            {/* Mobile Search Suggestions */}
+            {/* Search Suggestions */}
             {showSuggestions && searchSuggestions.length > 0 && (
               <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
                 <div className="bg-white border rounded-3 shadow-lg">
@@ -954,9 +871,103 @@ function HomePage1() {
             )}
           </form>
         </div>
-      </nav>
-    );
-  };
+
+        {/* Navigation Items - SIMPLIFIED */}
+        <div className="navbar-nav ms-auto align-items-center">
+          {/* Account Icon Only */}
+          <button
+            className="btn btn-light rounded-circle border-0 position-relative"
+            onClick={handleAccountClick}
+            style={{ 
+              width: '42px', 
+              height: '42px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f8f9fa';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            {user ? (
+              <img 
+                src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                alt={user.name}
+                className="rounded-circle"
+                style={{ 
+                  width: '36px', 
+                  height: '36px', 
+                  objectFit: 'cover',
+                  border: '2px solid #007bff'
+                }}
+              />
+            ) : (
+              <i className="fas fa-user text-dark" style={{ fontSize: '1.1rem' }}></i>
+            )}
+          </button>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="btn btn-light rounded-circle ms-2 d-lg-none"
+            onClick={toggleSidebar}
+            style={{ 
+              width: '42px', 
+              height: '42px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <i className="fas fa-bars"></i>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Search Bar */}
+      <div className="container-fluid d-lg-none border-top mt-2 pt-2">
+        <form onSubmit={handleSearch} className="position-relative">
+          <div className="input-group">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search products, services, hotels..."
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+            />
+            <button className="btn btn-primary" type="submit">
+              <i className="fas fa-search"></i>
+            </button>
+          </div>
+
+          {/* Mobile Search Suggestions */}
+          {showSuggestions && searchSuggestions.length > 0 && (
+            <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
+              <div className="bg-white border rounded-3 shadow-lg">
+                {searchSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    className="btn btn-light w-100 text-start p-2 border-bottom"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    style={{ border: 'none', borderRadius: '0' }}
+                  >
+                    <i className="fas fa-search me-2 text-muted"></i>
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </form>
+      </div>
+    </nav>
+  );
+};
 
   // Quick Categories Bar
   const QuickCategoriesBar = () => {
