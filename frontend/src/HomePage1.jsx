@@ -1,4 +1,4 @@
-// src/HomePage1.jsx - VERSION WITH AMAZON-STYLE SIGN IN + ACCOUNT ICON
+// src/HomePage1.jsx - VERSION WITH RESPONSIVE LAYOUT FOR MOBILE & DESKTOP
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
@@ -761,49 +761,49 @@ function HomePage1() {
     <div className="min-vh-100 bg-white">
       <AuthModal />
 
-      {/* Header with Amazon-style Layout */}
-      <div className="bg-white border-bottom py-3">
+      {/* Header with Responsive Layout */}
+      <div className="bg-white border-bottom py-2 py-md-3">
         <div className="container">
-          <div className="d-flex justify-content-between align-items-center">
+          <div className="d-flex justify-content-between align-items-center flex-nowrap">
             {/* Logo - Left */}
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center flex-shrink-0">
               <Link className="navbar-brand fw-bold text-primary" to="/">
                 <img 
                   src={BisRunLogo} 
                   alt="BisRun Logo" 
                   style={{ 
-                    height: '40px',
+                    height: '35px',
                     width: 'auto'
                   }}
                 />
               </Link>
             </div>
             
-            {/* Search Bar - Center */}
-            <div className="flex-grow-1 mx-4" style={{ maxWidth: '600px' }}>
+            {/* Search Bar - Center - Takes available space */}
+            <div className="flex-grow-1 mx-2 mx-md-3" style={{ minWidth: '0' }}>
               <form onSubmit={handleSearch} className="position-relative">
                 <div className="input-group">
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Search products, services, hotels..."
+                    placeholder="Search products, services..."
                     value={searchQuery}
                     onChange={handleSearchInputChange}
                     style={{ 
-                      borderRadius: '25px 0 0 25px',
+                      borderRadius: '20px 0 0 20px',
                       border: '2px solid #e9ecef',
                       borderRight: 'none',
-                      padding: '12px 20px',
-                      fontSize: '16px'
+                      padding: '8px 12px',
+                      fontSize: '14px'
                     }}
                   />
                   <button 
                     className="btn btn-primary"
                     type="submit"
                     style={{ 
-                      borderRadius: '0 25px 25px 0',
+                      borderRadius: '0 20px 20px 0',
                       border: '2px solid #007bff',
-                      padding: '0 25px'
+                      padding: '0 15px'
                     }}
                   >
                     <i className="fas fa-search"></i>
@@ -831,64 +831,43 @@ function HomePage1() {
               </form>
             </div>
             
-            {/* Amazon-style Sign In + Account - Right */}
-            <div className="d-flex align-items-center">
-               <button
-    className="btn btn-light border-0 d-flex align-items-center gap-2"
-    onClick={handleAccountClick}
-    style={{ 
-      transition: 'all 0.3s ease',
-      padding: '8px 12px',
-      borderRadius: '8px',
-      minWidth: '120px'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = '#f8f9fa';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = '#ffffff';
-    }}
-  >
-    {user ? (
-      // User logged in - show first letter of email or profile picture
-      <>
-        {user.picture ? (
-          <img 
-            src={user.picture} 
-            alt={user.name}
-            className="rounded-circle"
-            style={{ 
-              width: '32px',
-              height: '32px',
-              objectFit: 'cover'
-            }}
-          />
-        ) : (
-          <div 
-            className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
-            style={{ 
-              width: '32px',
-              height: '32px',
-              fontSize: '14px'
-            }}
-          >
-            {user.email?.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <span className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
-          {user.name?.split(' ')[0] || user.email?.split('@')[0]}
-        </span>
-      </>
-    ) : (
-      // User not logged in - show "Sign in" only
-      <>
-        <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.5rem' }}></i>
-        <span className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
-          Sign in
-        </span>
-      </>
-    )}
-  </button>
+            {/* Account Icon Only - Far Right */}
+            <div className="d-flex align-items-center flex-shrink-0 ms-1 ms-md-2">
+              <button
+                className="btn border-0 p-0"
+                onClick={handleAccountClick}
+                style={{ 
+                  background: 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                {user ? (
+                  // User logged in - show icon/avatar
+                  user.picture ? (
+                    <img 
+                      src={user.picture} 
+                      alt={user.name}
+                      className="rounded-circle"
+                      style={{ 
+                        width: '32px',
+                        height: '32px',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
+                    <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.8rem' }}></i>
+                  )
+                ) : (
+                  // User not logged in - show icon only
+                  <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.8rem' }}></i>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -902,20 +881,20 @@ function HomePage1() {
           className="hero-section position-relative overflow-hidden"
           style={{
             background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            minHeight: '60vh',
+            minHeight: '50vh',
             display: 'flex',
             alignItems: 'center',
-            paddingTop: '40px',
-            paddingBottom: '40px'
+            paddingTop: '30px',
+            paddingBottom: '30px'
           }}
         >
           <div className="container">
             <div className="row align-items-center">
               <div className="col-lg-6 text-white">
-                <h1 className="display-5 fw-bold mb-4" style={{ marginTop: '0', fontSize: '2.5rem' }}>
+                <h1 className="display-5 fw-bold mb-3" style={{ marginTop: '0', fontSize: '2rem' }}>
                   Find Everything You Need, <span className="text-warning">Anywhere</span>
                 </h1>
-                <p className="lead mb-4" style={{ fontSize: '1.1rem' }}>
+                <p className="lead mb-3" style={{ fontSize: '1rem' }}>
                   Discover products and services from local businesses and global providers. 
                   From electronics to hotels, find exactly what you're looking for.
                 </p>
@@ -943,7 +922,7 @@ function HomePage1() {
                 </div>
               </div>
               
-              <div className="col-lg-6">
+              <div className="col-lg-6 d-none d-lg-block">
                 <div className="position-relative">
                   <img 
                     src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800"
@@ -981,12 +960,12 @@ function HomePage1() {
         </section>
 
         {/* Featured Products Section with Horizontal Scroll */}
-        <section className="py-5 bg-light">
+        <section className="py-4 py-md-5 bg-light">
           <div className="container">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
               <div>
-                <h3 className="fw-bold mb-2">Featured Products</h3>
-                <p className="text-muted">Handpicked items you'll love</p>
+                <h3 className="fw-bold mb-1 mb-md-2">Featured Products</h3>
+                <p className="text-muted d-none d-md-block">Handpicked items you'll love</p>
               </div>
               <Link to="/search-results" className="btn btn-outline-primary btn-sm">
                 View All <i className="fas fa-arrow-right ms-1"></i>
@@ -1074,16 +1053,16 @@ function HomePage1() {
         </section>
 
         {/* Categories Section */}
-        <section className="py-5">
+        <section className="py-4 py-md-5">
           <div className="container">
-            <div className="text-center mb-5">
-              <h2 className="fw-bold mb-3">Browse by Category</h2>
-              <p className="text-muted lead">Find exactly what you're looking for in our organized categories</p>
+            <div className="text-center mb-4 mb-md-5">
+              <h2 className="fw-bold mb-2 mb-md-3">Browse by Category</h2>
+              <p className="text-muted lead d-none d-md-block">Find exactly what you're looking for in our organized categories</p>
             </div>
 
-            <div className="row g-4">
+            <div className="row g-3 g-md-4">
               {categories.map((category) => (
-                <div key={category.id} className="col-md-6 col-lg-3">
+                <div key={category.id} className="col-6 col-md-6 col-lg-3">
                   <div 
                     className="card border-0 shadow-sm h-100 category-card text-center"
                     onClick={() => handleCategoryClick(category.name)}
@@ -1093,13 +1072,13 @@ function HomePage1() {
                       background: `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%), url(${category.image}) center/cover`
                     }}
                   >
-                    <div className="card-body p-4 d-flex flex-column justify-content-center">
-                      <div className={`icon-container bg-${category.color} bg-opacity-10 rounded-circle mx-auto mb-3`} 
-                           style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="card-body p-3 p-md-4 d-flex flex-column justify-content-center">
+                      <div className={`icon-container bg-${category.color} bg-opacity-10 rounded-circle mx-auto mb-2 mb-md-3`} 
+                           style={{ width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <i className={`fas ${category.icon} fa-2x text-${category.color}`}></i>
                       </div>
-                      <h5 className="fw-bold text-dark">{category.name}</h5>
-                      <p className="text-muted mb-3 small">{category.description}</p>
+                      <h5 className="fw-bold text-dark" style={{ fontSize: '1rem' }}>{category.name}</h5>
+                      <p className="text-muted mb-2 mb-md-3 small d-none d-md-block">{category.description}</p>
                       <button className={`btn btn-${category.color} btn-sm mt-auto`}>
                         Explore <i className="fas fa-arrow-right ms-2"></i>
                       </button>
@@ -1112,12 +1091,12 @@ function HomePage1() {
         </section>
 
         {/* All Products Grid Section */}
-        <section className="py-5 bg-light">
+        <section className="py-4 py-md-5 bg-light">
           <div className="container">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
               <div>
-                <h3 className="fw-bold mb-2">All Products</h3>
-                <p className="text-muted">Browse our complete collection</p>
+                <h3 className="fw-bold mb-1 mb-md-2">All Products</h3>
+                <p className="text-muted d-none d-md-block">Browse our complete collection</p>
               </div>
               <div className="d-flex gap-2">
                 <button className="btn btn-outline-primary btn-sm">
@@ -1137,7 +1116,7 @@ function HomePage1() {
                 <p>Loading products...</p>
               </div>
             ) : (
-              <div className="row g-3">
+              <div className="row g-2 g-md-3">
                 {featuredItems.map((item) => (
                   <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div 
@@ -1200,25 +1179,25 @@ function HomePage1() {
         </section>
 
         {/* Business CTA Section */}
-        <section className="py-5" style={{ background: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)' }}>
+        <section className="py-4 py-md-5" style={{ background: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)' }}>
           <div className="container">
             <div className="row align-items-center">
               <div className="col-lg-8 text-white">
-                <h3 className="fw-bold mb-3">Are you a business owner?</h3>
-                <p className="lead mb-4">
+                <h3 className="fw-bold mb-2 mb-md-3">Are you a business owner?</h3>
+                <p className="lead mb-3 mb-md-4">
                   List your products and services on BisRun to reach thousands of potential customers. 
                   Join our growing network of businesses today!
                 </p>
-                <div className="d-flex flex-wrap gap-3">
+                <div className="d-flex flex-wrap gap-2 gap-md-3">
                   <button 
-                    className="btn btn-warning btn-lg px-4"
+                    className="btn btn-warning btn-lg px-3 px-md-4"
                     onClick={handleBusinessAuth}
                   >
                     <i className="fas fa-store me-2"></i>
                     List Your Business
                   </button>
                   <button 
-                    className="btn btn-outline-light btn-lg px-4"
+                    className="btn btn-outline-light btn-lg px-3 px-md-4"
                     onClick={() => navigate('/business-auth')}
                   >
                     <i className="fas fa-chart-line me-2"></i>
@@ -1226,7 +1205,7 @@ function HomePage1() {
                   </button>
                 </div>
               </div>
-              <div className="col-lg-4 text-center">
+              <div className="col-lg-4 text-center d-none d-lg-block">
                 <i className="fas fa-rocket fa-6x text-warning opacity-75"></i>
               </div>
             </div>
@@ -1234,7 +1213,7 @@ function HomePage1() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-dark text-white py-5">
+        <footer className="bg-dark text-white py-4 py-md-5">
           <div className="container">
             <div className="row">
               <div className="col-lg-4 mb-4">
@@ -1243,14 +1222,14 @@ function HomePage1() {
                     src={BisRunLogo} 
                     alt="BisRun Logo" 
                     style={{ 
-                      height: '40px',
+                      height: '35px',
                       width: 'auto',
-                      marginRight: '12px'
+                      marginRight: '10px'
                     }}
                   />
-                  <span style={{ fontSize: '1.4rem' }}>BisRun</span>
+                  <span style={{ fontSize: '1.3rem' }}>BisRun</span>
                 </h5>
-                <p className="text-light">
+                <p className="text-light small">
                   Connecting customers with businesses worldwide. Find products and services you need, when you need them.
                 </p>
                 <div className="d-flex gap-3">
@@ -1264,20 +1243,20 @@ function HomePage1() {
               <div className="col-lg-2 col-6 mb-4">
                 <h6 className="fw-bold mb-3">Explore</h6>
                 <ul className="list-unstyled">
-                  <li><Link to="/search" className="text-light text-decoration-none">Search</Link></li>
-                  <li><Link to="/" className="text-light text-decoration-none">Categories</Link></li>
-                  <li><a href="#!" className="text-light text-decoration-none">Featured</a></li>
-                  <li><a href="#!" className="text-light text-decoration-none">Businesses</a></li>
+                  <li><Link to="/search" className="text-light text-decoration-none small">Search</Link></li>
+                  <li><Link to="/" className="text-light text-decoration-none small">Categories</Link></li>
+                  <li><a href="#!" className="text-light text-decoration-none small">Featured</a></li>
+                  <li><a href="#!" className="text-light text-decoration-none small">Businesses</a></li>
                 </ul>
               </div>
               
               <div className="col-lg-2 col-6 mb-4">
                 <h6 className="fw-bold mb-3">Business</h6>
                 <ul className="list-unstyled">
-                  <li><Link to="/business-auth" className="text-light text-decoration-none">List Your Business</Link></li>
-                  <li><Link to="/business-dashboard" className="text-light text-decoration-none">Dashboard</Link></li>
-                  <li><a href="#!" className="text-light text-decoration-none">Pricing</a></li>
-                  <li><a href="#!" className="text-light text-decoration-none">Support</a></li>
+                  <li><Link to="/business-auth" className="text-light text-decoration-none small">List Your Business</Link></li>
+                  <li><Link to="/business-dashboard" className="text-light text-decoration-none small">Dashboard</Link></li>
+                  <li><a href="#!" className="text-light text-decoration-none small">Pricing</a></li>
+                  <li><a href="#!" className="text-light text-decoration-none small">Support</a></li>
                 </ul>
               </div>
               
@@ -1299,18 +1278,18 @@ function HomePage1() {
               </div>
             </div>
             
-            <hr className="my-4" />
+            <hr className="my-3 my-md-4" />
             
             <div className="row align-items-center">
               <div className="col-md-6">
-                <p className="mb-0 text-light">
+                <p className="mb-0 text-light small">
                   &copy; 2024 BisRun. All rights reserved.
                 </p>
               </div>
               <div className="col-md-6 text-md-end">
-                <a href="#!" className="text-light text-decoration-none me-3">Privacy Policy</a>
-                <a href="#!" className="text-light text-decoration-none me-3">Terms of Service</a>
-                <a href="#!" className="text-light text-decoration-none">Contact</a>
+                <a href="#!" className="text-light text-decoration-none me-3 small">Privacy Policy</a>
+                <a href="#!" className="text-light text-decoration-none me-3 small">Terms of Service</a>
+                <a href="#!" className="text-light text-decoration-none small">Contact</a>
               </div>
             </div>
           </div>
@@ -1371,27 +1350,87 @@ function HomePage1() {
           /* Mobile Responsive */
           @media (max-width: 768px) {
             .hero-section h1 {
-              font-size: 2rem !important;
+              font-size: 1.8rem !important;
             }
             
             .hero-section .lead {
-              font-size: 1rem !important;
+              font-size: 0.9rem !important;
             }
             
             .container {
-              padding-left: 15px;
-              padding-right: 15px;
+              padding-left: 12px;
+              padding-right: 12px;
             }
             
             .d-flex.justify-content-between.align-items-center {
-              flex-direction: column;
-              gap: 15px;
+              flex-wrap: nowrap !important;
+              gap: 8px;
             }
             
-            .flex-grow-1.mx-4 {
-              margin-left: 0 !important;
-              margin-right: 0 !important;
-              max-width: 100% !important;
+            .flex-grow-1.mx-2 {
+              margin-left: 8px !important;
+              margin-right: 8px !important;
+              min-width: 0 !important;
+            }
+            
+            .navbar-brand img {
+              height: 30px !important;
+            }
+            
+            .form-control {
+              font-size: 14px !important;
+              padding: 6px 10px !important;
+            }
+            
+            .form-control::placeholder {
+              font-size: 12px;
+            }
+            
+            .btn-primary {
+              padding: 0 12px !important;
+            }
+            
+            .fas.fa-user-circle {
+              font-size: 1.6rem !important;
+            }
+          }
+
+          @media (max-width: 576px) {
+            .container {
+              padding-left: 10px;
+              padding-right: 10px;
+            }
+            
+            .navbar-brand img {
+              height: 28px !important;
+            }
+            
+            .form-control {
+              font-size: 13px !important;
+              padding: 5px 8px !important;
+            }
+            
+            .flex-grow-1.mx-2 {
+              margin-left: 6px !important;
+              margin-right: 6px !important;
+            }
+            
+            .fas.fa-user-circle {
+              font-size: 1.5rem !important;
+            }
+          }
+
+          @media (max-width: 400px) {
+            .form-control::placeholder {
+              font-size: 11px;
+            }
+            
+            .navbar-brand img {
+              height: 25px !important;
+            }
+            
+            .fas.fa-user-circle {
+              font-size: 1.4rem !important;
             }
           }
         `}
