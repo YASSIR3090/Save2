@@ -1,4 +1,4 @@
-// src/HomePage1.jsx - VERSION WITH RESPONSIVE LAYOUT FOR MOBILE & DESKTOP
+// src/HomePage1.jsx - VERSION WITH LANGUAGE SELECTOR
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
@@ -26,9 +26,31 @@ function HomePage1() {
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [currentLanguage, setCurrentLanguage] = useState("ENG");
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Languages data
+  const languages = [
+    { code: "ENG", name: "English", flag: "🇺🇸" },
+    { code: "SWA", name: "Kiswahili", flag: "🇹🇿" },
+    { code: "FRA", name: "Français", flag: "🇫🇷" },
+    { code: "SPA", name: "Español", flag: "🇪🇸" },
+    { code: "ARA", name: "العربية", flag: "🇸🇦" },
+    { code: "CHI", name: "中文", flag: "🇨🇳" },
+    { code: "HIN", name: "हिन्दी", flag: "🇮🇳" },
+    { code: "POR", name: "Português", flag: "🇵🇹" },
+    { code: "RUS", name: "Русский", flag: "🇷🇺" },
+    { code: "JPN", name: "日本語", flag: "🇯🇵" },
+    { code: "GER", name: "Deutsch", flag: "🇩🇪" },
+    { code: "ITA", name: "Italiano", flag: "🇮🇹" },
+    { code: "KOR", name: "한국어", flag: "🇰🇷" },
+    { code: "TUR", name: "Türkçe", flag: "🇹🇷" },
+    { code: "DUT", name: "Nederlands", flag: "🇳🇱" },
+    { code: "SWE", name: "Svenska", flag: "🇸🇪" }
+  ];
 
   // Categories data
   const categoryData = [
@@ -75,6 +97,14 @@ function HomePage1() {
     { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
     { code: "CN", name: "China", flag: "🇨🇳" }
   ];
+
+  // Handle language change
+  const handleLanguageChange = (languageCode) => {
+    setCurrentLanguage(languageCode);
+    setShowLanguageDropdown(false);
+    // Here you would typically update the entire app's language
+    console.log("Language changed to:", languageCode);
+  };
 
   // Authentication Functions
   useEffect(() => {
@@ -831,6 +861,61 @@ function HomePage1() {
               </form>
             </div>
             
+            {/* Language Selector - Between Search and Account Icon */}
+            <div className="d-flex align-items-center flex-shrink-0 mx-1 mx-md-2 position-relative">
+              <button
+                className="btn btn-outline-secondary border-0 d-flex align-items-center gap-1"
+                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                style={{ 
+                  background: 'none',
+                  transition: 'all 0.3s ease',
+                  padding: '6px 10px',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }}
+              >
+                <span>{currentLanguage}</span>
+                <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '12px' }}></i>
+              </button>
+
+              {/* Language Dropdown */}
+              {showLanguageDropdown && (
+                <div 
+                  className="position-absolute top-100 end-0 mt-1 bg-white border rounded-3 shadow-lg"
+                  style={{ 
+                    zIndex: 1040,
+                    width: '200px',
+                    maxHeight: '300px',
+                    overflowY: 'auto'
+                  }}
+                >
+                  {languages.map((language) => (
+                    <button
+                      key={language.code}
+                      className={`btn btn-light w-100 text-start p-2 border-bottom ${
+                        currentLanguage === language.code ? 'bg-primary text-white' : ''
+                      }`}
+                      onClick={() => handleLanguageChange(language.code)}
+                      style={{ 
+                        border: 'none', 
+                        borderRadius: '0',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <span className="me-2">{language.flag}</span>
+                      {language.name} ({language.code})
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
             {/* Account Icon Only - Far Right */}
             <div className="d-flex align-items-center flex-shrink-0 ms-1 ms-md-2">
               <button
@@ -959,98 +1044,204 @@ function HomePage1() {
           </div>
         </section>
 
-        {/* Featured Products Section with Horizontal Scroll */}
-        <section className="py-4 py-md-5 bg-light">
-          <div className="container">
-            <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-              <div>
-                <h3 className="fw-bold mb-1 mb-md-2">Featured Products</h3>
-                <p className="text-muted d-none d-md-block">Handpicked items you'll love</p>
-              </div>
-              <Link to="/search-results" className="btn btn-outline-primary btn-sm">
-                View All <i className="fas fa-arrow-right ms-1"></i>
-              </Link>
-            </div>
+       {/* Featured Products Section - No Borders */}
+<section className="py-4 py-md-5 bg-light">
+  <div className="container">
+    <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
+      <div>
+        <h3 className="fw-bold mb-1 mb-md-2">Featured Products</h3>
+        <p className="text-muted d-none d-md-block">Handpicked items you'll love</p>
+      </div>
+      <Link to="/search-results" className="btn btn-outline-primary btn-sm">
+        View All <i className="fas fa-arrow-right ms-1"></i>
+      </Link>
+    </div>
 
-            {isLoading ? (
-              <div className="text-center py-4">
-                <div className="spinner-border text-primary mb-3"></div>
-                <p>Loading featured items...</p>
-              </div>
-            ) : (
-              <div className="position-relative">
-                <div className="d-flex overflow-auto pb-3" style={{ scrollbarWidth: 'thin', msOverflowStyle: 'none' }}>
-                  <div className="d-flex flex-nowrap gap-3">
-                    {featuredItems.map((item) => (
-                      <div 
-                        key={item.id} 
-                        className="card border-0 shadow-sm flex-shrink-0"
-                        style={{ 
-                          width: '280px', 
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onClick={() => handleFeaturedItemClick(item.id)}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-5px)';
-                          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-                        }}
-                      >
-                        <div className="position-relative">
-                          <img
-                            src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                            className="card-img-top"
-                            alt={item.name}
-                            style={{ height: '180px', objectFit: 'cover' }}
-                            onError={(e) => {
-                              e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
-                            }}
-                          />
-                          <div className="position-absolute top-0 end-0 m-2">
-                            <span className="badge bg-warning text-dark">
-                              <i className="fas fa-star me-1"></i>
-                              Featured
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="card-body">
-                          <h6 className="card-title fw-bold text-dark mb-2" style={{ fontSize: '0.9rem' }}>
-                            {item.name}
-                          </h6>
-                          
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fw-bold text-primary">
-                              {formatPrice(item)}
-                            </span>
-                            <div className="d-flex align-items-center">
-                              {renderStars(item.rating)}
-                              <small className="text-muted ms-1">({item.reviews || 0})</small>
-                            </div>
-                          </div>
-                          
-                          <div className="d-flex justify-content-between align-items-center">
-                            <small className="text-muted">
-                              <i className="fas fa-store me-1 text-primary"></i>
-                              {item.businessName || item.business}
-                            </small>
-                            <small className="text-muted">
-                              {getCountryFlag(item.country)}
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+    {isLoading ? (
+      <div className="text-center py-4">
+        <div className="spinner-border text-primary mb-3"></div>
+        <p>Loading featured items...</p>
+      </div>
+    ) : (
+      <div className="position-relative">
+        <div className="d-flex overflow-auto pb-3" style={{ scrollbarWidth: 'thin', msOverflowStyle: 'none' }}>
+          <div className="d-flex flex-nowrap gap-3">
+            {featuredItems.map((item) => (
+              <div 
+                key={item.id} 
+                className="bg-white rounded-4 overflow-hidden"
+                style={{ 
+                  width: '280px', 
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                }}
+                onClick={() => handleFeaturedItemClick(item.id)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.boxShadow = '0 12px 35px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
+                }}
+              >
+                <div className="position-relative">
+                  <img
+                    src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600'}
+                    className="w-100"
+                    alt={item.name}
+                    style={{ 
+                      height: '200px', 
+                      objectFit: 'cover',
+                      objectPosition: 'center'
+                    }}
+                    onError={(e) => {
+                      e.target.src = 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600';
+                    }}
+                  />
+                  <div className="position-absolute top-0 end-0 m-2">
+                    <span className="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                      <i className="fas fa-star me-1"></i>
+                      Featured
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="p-3">
+                  <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem', lineHeight: '1.3' }}>
+                    {item.name}
+                  </h6>
+                  
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="fw-bold text-primary fs-5">
+                      {formatPrice(item)}
+                    </span>
+                    <div className="d-flex align-items-center">
+                      {renderStars(item.rating)}
+                      <small className="text-muted ms-1">({item.reviews || 0})</small>
+                    </div>
+                  </div>
+                  
+                  <div className="d-flex justify-content-between align-items-center">
+                    <small className="text-muted">
+                      <i className="fas fa-store me-1 text-primary"></i>
+                      {item.businessName || item.business}
+                    </small>
+                    <small className="text-muted">
+                      {getCountryFlag(item.country)}
+                    </small>
                   </div>
                 </div>
               </div>
-            )}
+            ))}
           </div>
-        </section>
+        </div>
+      </div>
+    )}
+  </div>
+</section>
+
+{/* All Products Grid Section - No Borders */}
+<section className="py-4 py-md-5">
+  <div className="container">
+    <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
+      <div>
+        <h3 className="fw-bold mb-1 mb-md-2">All Products</h3>
+        <p className="text-muted d-none d-md-block">Browse our complete collection</p>
+      </div>
+      <div className="d-flex gap-2">
+        <button className="btn btn-outline-primary btn-sm">
+          <i className="fas fa-filter me-1"></i>
+          Filter
+        </button>
+        <button className="btn btn-outline-primary btn-sm">
+          <i className="fas fa-sort me-1"></i>
+          Sort
+        </button>
+      </div>
+    </div>
+
+    {isLoading ? (
+      <div className="text-center py-4">
+        <div className="spinner-border text-primary mb-3"></div>
+        <p>Loading products...</p>
+      </div>
+    ) : (
+      <div className="row g-3">
+        {featuredItems.map((item) => (
+          <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div 
+              className="bg-white rounded-3 overflow-hidden h-100"
+              onClick={() => handleFeaturedItemClick(item.id)}
+              style={{ 
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.12)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
+              }}
+            >
+              <div className="position-relative">
+                <img
+                  src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600'}
+                  className="w-100"
+                  alt={item.name}
+                  style={{ 
+                    height: '140px', 
+                    objectFit: 'cover',
+                    objectPosition: 'center'
+                  }}
+                  onError={(e) => {
+                    e.target.src = 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600';
+                  }}
+                />
+                <div className="position-absolute top-0 start-0 m-1">
+                  <span className="badge bg-primary text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.65rem' }}>
+                    {item.category?.split(' ')[0]}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="p-2 d-flex flex-column h-100">
+                <h6 className="text-dark fw-bold mb-1 flex-grow-1" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                  {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
+                </h6>
+
+                <p className="text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
+                  <i className="fas fa-store me-1 text-primary"></i>
+                  {item.businessName || item.business}
+                </p>
+
+                <div className="mb-2">
+                  <h6 className="text-success fw-bold mb-0" style={{ fontSize: '0.9rem' }}>
+                    {formatPrice(item)}
+                  </h6>
+                </div>
+
+                <div className="d-flex justify-content-between align-items-center mt-auto">
+                  <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                    <i className="fas fa-map-marker-alt text-primary me-1"></i>
+                    {item.city}
+                  </small>
+                  <div className="d-flex align-items-center">
+                    {renderStars(item.rating)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
 
         {/* Categories Section */}
         <section className="py-4 py-md-5">
@@ -1393,6 +1584,12 @@ function HomePage1() {
             .fas.fa-user-circle {
               font-size: 1.6rem !important;
             }
+            
+            /* Language selector mobile styles */
+            .btn-outline-secondary {
+              padding: 4px 8px !important;
+              font-size: 12px !important;
+            }
           }
 
           @media (max-width: 576px) {
@@ -1418,6 +1615,11 @@ function HomePage1() {
             .fas.fa-user-circle {
               font-size: 1.5rem !important;
             }
+            
+            .btn-outline-secondary {
+              padding: 3px 6px !important;
+              font-size: 11px !important;
+            }
           }
 
           @media (max-width: 400px) {
@@ -1431,6 +1633,11 @@ function HomePage1() {
             
             .fas.fa-user-circle {
               font-size: 1.4rem !important;
+            }
+            
+            .btn-outline-secondary {
+              padding: 2px 4px !important;
+              font-size: 10px !important;
             }
           }
         `}
