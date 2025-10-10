@@ -1,4 +1,4 @@
-// src/HomePage1.jsx - FIXED VERSION WITH LARGER BISRUN LOGO
+// src/HomePage1.jsx - VERSION WITH AMAZON-STYLE SIGN IN + ACCOUNT ICON
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
@@ -29,40 +29,6 @@ function HomePage1() {
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Quick access categories
-  const quickCategories = [
-    { 
-      id: "all", 
-      name: "All", 
-      icon: "fa-grid", 
-      color: "#007bff"
-    },
-    { 
-      id: "electronics", 
-      name: "Electronics", 
-      icon: "fa-laptop", 
-      color: "#007bff"
-    },
-    { 
-      id: "fashion", 
-      name: "Fashion", 
-      icon: "fa-tshirt", 
-      color: "#007bff"
-    },
-    { 
-      id: "hotels", 
-      name: "Hotels", 
-      icon: "fa-hotel", 
-      color: "#007bff"
-    },
-    { 
-      id: "cars", 
-      name: "Vehicles", 
-      icon: "fa-car", 
-      color: "#007bff"
-    },
-  ];
 
   // Categories data
   const categoryData = [
@@ -504,37 +470,6 @@ function HomePage1() {
     }
   };
 
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
-
-  // Handle category selection
-  const handleCategorySelect = (categoryId) => {
-    setActiveCategory(categoryId);
-    let categoryName = "";
-    switch(categoryId) {
-      case "electronics":
-        categoryName = "Electronics & Devices";
-        break;
-      case "fashion":
-        categoryName = "General Goods";
-        break;
-      case "hotels":
-        categoryName = "Building & Hotels";
-        break;
-      case "cars":
-        categoryName = "Vehicles";
-        break;
-      default:
-        categoryName = "";
-    }
-    
-    if (categoryName) {
-      navigate(`/search-results?q=${encodeURIComponent(categoryName)}`);
-    }
-  };
-
   // Render stars for rating
   const renderStars = (rating) => {
     const numRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 4.0);
@@ -822,265 +757,157 @@ function HomePage1() {
     );
   };
 
-  // Navigation Bar Component - WITH LARGER BISRUN LOGO
-  const NavigationBar = () => {
-    return (
-      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style={{ zIndex: 1000 }}>
+  return (
+    <div className="min-vh-100 bg-white">
+      <AuthModal />
+
+      {/* Header with Amazon-style Layout */}
+      <div className="bg-white border-bottom py-3">
         <div className="container">
-          {/* Logo with LARGER BisRun Logo */}
-          <Link className="navbar-brand fw-bold text-primary d-flex align-items-center" to="/">
-            <img 
-              src={BisRunLogo} 
-              alt="BisRun Logo" 
-              style={{ 
-                height: '100px', // KUBWA ZAIDI (ilikuwa 40px)
-                width: 'auto',
-                marginRight: '12px' // KUBWA ZAIDI
-              }}
-            />
-            <span style={{ 
-              fontSize: '1.6rem', // KUBWA ZAIDI (ilikuwa 1.4rem)
-              fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              
-            </span>
-          </Link>
-
-          {/* Search Bar for Desktop */}
-          <div className="d-none d-lg-flex mx-4 flex-grow-1" style={{ maxWidth: '500px' }}>
-            <form onSubmit={handleSearch} className="w-100 position-relative">
-              <div className="input-group">
-                <input
-                  type="text"
-                  className="form-control border-end-0"
-                  placeholder="Search products, services, hotels..."
-                  value={searchQuery}
-                  onChange={handleSearchInputChange}
-                  style={{ borderRadius: '25px 0 0 25px' }}
-                />
-                <button 
-                  className="btn btn-primary border-start-0" 
-                  type="submit"
-                  style={{ borderRadius: '0 25px 25px 0' }}
-                >
-                  <i className="fas fa-search"></i>
-                </button>
-              </div>
-
-              {/* Search Suggestions */}
-              {showSuggestions && searchSuggestions.length > 0 && (
-                <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
-                  <div className="bg-white border rounded-3 shadow-lg">
-                    {searchSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        className="btn btn-light w-100 text-start p-2 border-bottom"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        style={{ border: 'none', borderRadius: '0' }}
-                      >
-                        <i className="fas fa-search me-2 text-muted"></i>
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </form>
-          </div>
-
-          {/* Navigation Items - ACCOUNT ICON ONLY */}
-          <div className="navbar-nav ms-auto align-items-center">
-            {/* Account Icon Only - Shows on both desktop and mobile */}
-            <button
-              className="btn btn-light rounded-circle border-0 position-relative"
-              onClick={handleAccountClick}
-              style={{ 
-                width: '45px', // KUBWA ZAIDI (ilikuwa 42px)
-                height: '45px', // KUBWA ZAIDI
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              {user ? (
+          <div className="d-flex justify-content-between align-items-center">
+            {/* Logo - Left */}
+            <div className="d-flex align-items-center">
+              <Link className="navbar-brand fw-bold text-primary" to="/">
                 <img 
-                  src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
-                  alt={user.name}
-                  className="rounded-circle"
+                  src={BisRunLogo} 
+                  alt="BisRun Logo" 
                   style={{ 
-                    width: '38px', // KUBWA ZAIDI (ilikuwa 36px)
-                    height: '38px', // KUBWA ZAIDI
-                    objectFit: 'cover',
-                    border: '2px solid #007bff'
+                    height: '40px',
+                    width: 'auto'
                   }}
                 />
-              ) : (
-                <i className="fas fa-user text-dark" style={{ fontSize: '1.2rem' }}></i> // KUBWA ZAIDI
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Search Bar - Shows below the main nav on mobile */}
-        <div className="container-fluid d-lg-none border-top mt-2 pt-2 pb-2">
-          <form onSubmit={handleSearch} className="position-relative">
-            <div className="input-group">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search products, services, hotels..."
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                style={{ borderRadius: '20px 0 0 20px' }}
-              />
-              <button 
-                className="btn btn-primary" 
-                type="submit"
-                style={{ borderRadius: '0 20px 20px 0' }}
-              >
-                <i className="fas fa-search"></i>
-              </button>
+              </Link>
             </div>
-
-            {/* Mobile Search Suggestions */}
-            {showSuggestions && searchSuggestions.length > 0 && (
-              <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
-                <div className="bg-white border rounded-3 shadow-lg">
-                  {searchSuggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      className="btn btn-light w-100 text-start p-2 border-bottom"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      style={{ border: 'none', borderRadius: '0' }}
-                    >
-                      <i className="fas fa-search me-2 text-muted"></i>
-                      {suggestion}
-                    </button>
-                  ))}
+            
+            {/* Search Bar - Center */}
+            <div className="flex-grow-1 mx-4" style={{ maxWidth: '600px' }}>
+              <form onSubmit={handleSearch} className="position-relative">
+                <div className="input-group">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search products, services, hotels..."
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    style={{ 
+                      borderRadius: '25px 0 0 25px',
+                      border: '2px solid #e9ecef',
+                      borderRight: 'none',
+                      padding: '12px 20px',
+                      fontSize: '16px'
+                    }}
+                  />
+                  <button 
+                    className="btn btn-primary"
+                    type="submit"
+                    style={{ 
+                      borderRadius: '0 25px 25px 0',
+                      border: '2px solid #007bff',
+                      padding: '0 25px'
+                    }}
+                  >
+                    <i className="fas fa-search"></i>
+                  </button>
                 </div>
-              </div>
-            )}
-          </form>
-        </div>
-      </nav>
-    );
-  };
 
-  // Quick Categories Bar
-  const QuickCategoriesBar = () => {
-    return (
-      <div className="fixed-top bg-white border-bottom shadow-sm" style={{ top: '86px', zIndex: 1025 }}>
-        <div className="container-fluid px-0">
-          <div className="quick-categories-bar">
-            <div className="d-flex justify-content-around align-items-center px-2 py-2 overflow-auto">
-              {quickCategories.map((category) => (
-                <button
-                  key={category.id}
-                  className={`quick-category-item ${activeCategory === category.id ? 'active' : ''} d-flex flex-column align-items-center position-relative border-0 bg-transparent`}
-                  onClick={() => handleCategorySelect(category.id)}
-                  style={{
-                    padding: '8px 12px',
-                    minWidth: '70px',
-                    transition: 'all 0.3s ease',
-                    borderRadius: '8px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {/* Icon */}
-                  <div className="quick-category-icon mb-1" style={{
-                    width: '28px',
-                    height: '28px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem',
-                    color: activeCategory === category.id ? '#007bff' : '#666666',
-                    transition: 'all 0.3s ease'
-                  }}>
-                    <i className={`fas ${category.icon}`}></i>
+                {/* Search Suggestions */}
+                {showSuggestions && searchSuggestions.length > 0 && (
+                  <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
+                    <div className="bg-white border rounded-3 shadow-lg">
+                      {searchSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          className="btn btn-light w-100 text-start p-2 border-bottom"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          style={{ border: 'none', borderRadius: '0' }}
+                        >
+                          <i className="fas fa-search me-2 text-muted"></i>
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  
-                  {/* Label */}
-                  <span className="quick-category-label" style={{
-                    fontSize: '0.65rem',
-                    fontWeight: '600',
-                    color: activeCategory === category.id ? '#007bff' : '#666666',
-                    transition: 'all 0.3s ease',
-                    textAlign: 'center',
-                    lineHeight: '1.1'
-                  }}>
-                    {category.name}
-                  </span>
-
-                  {/* Active Indicator */}
-                  {activeCategory === category.id && (
-                    <div className="position-absolute bottom-0 start-50 translate-middle-x" style={{
-                      width: '4px',
-                      height: '4px',
-                      background: '#007bff',
-                      borderRadius: '50%',
-                      marginBottom: '-2px'
-                    }}></div>
-                  )}
-                </button>
-              ))}
+                )}
+              </form>
+            </div>
+            
+            {/* Amazon-style Sign In + Account - Right */}
+            <div className="d-flex align-items-center">
+              <button
+                className="btn btn-light border-0 d-flex align-items-center gap-2"
+                onClick={handleAccountClick}
+                style={{ 
+                  transition: 'all 0.3s ease',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  minWidth: '140px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }}
+              >
+                {user ? (
+                  <>
+                    <div className="text-start">
+                      <span className="d-block small text-muted" style={{ lineHeight: '1', fontSize: '0.75rem' }}>
+                        Hello, {user.name?.split(' ')[0]}
+                      </span>
+                      <span className="d-block fw-bold text-dark" style={{ lineHeight: '1', fontSize: '0.9rem' }}>
+                        Account
+                      </span>
+                    </div>
+                    <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.8rem' }}></i>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-start">
+                      <span className="d-block small text-muted" style={{ lineHeight: '1', fontSize: '0.75rem' }}>
+                        Hello, sign in
+                      </span>
+                      <span className="d-block fw-bold text-dark" style={{ lineHeight: '1', fontSize: '0.9rem' }}>
+                        Account & Lists
+                      </span>
+                    </div>
+                    <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.8rem' }}></i>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
       </div>
-    );
-  };
 
-  return (
-    <div className="min-vh-100 bg-white">
-      {/* Navigation */}
-      <NavigationBar />
-      <QuickCategoriesBar />
-      <AuthModal />
-
-      {/* Main Content with proper padding for fixed navbar */}
-      <div style={{ paddingTop: '150px' }}>
+      {/* Main Content */}
+      <div>
         
-        {/* Hero Section - FIXED: Now properly visible below navbar */}
+        {/* Hero Section */}
         <section 
           className="hero-section position-relative overflow-hidden"
           style={{
             background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            minHeight: '70vh',
+            minHeight: '60vh',
             display: 'flex',
             alignItems: 'center',
-            marginTop: '0',
-            paddingTop: '20px',
-            paddingBottom: '60px'
+            paddingTop: '40px',
+            paddingBottom: '40px'
           }}
         >
           <div className="container">
             <div className="row align-items-center">
               <div className="col-lg-6 text-white">
-                {/* FIXED: Heading now properly visible */}
-                <h1 className="display-5 fw-bold mb-4" style={{ marginTop: '0' }}>
+                <h1 className="display-5 fw-bold mb-4" style={{ marginTop: '0', fontSize: '2.5rem' }}>
                   Find Everything You Need, <span className="text-warning">Anywhere</span>
                 </h1>
-                <p className="lead mb-4">
+                <p className="lead mb-4" style={{ fontSize: '1.1rem' }}>
                   Discover products and services from local businesses and global providers. 
                   From electronics to hotels, find exactly what you're looking for.
                 </p>
                 
                 {/* Quick Stats */}
                 <div className="row text-center">
-                  <br></br><br></br><br></br><br></br><br></br><br></br>
                   <div className="col-4">
                     <div className="border-end border-white">
                       <h4 className="fw-bold text-warning">500+</h4>
@@ -1402,12 +1229,12 @@ function HomePage1() {
                     src={BisRunLogo} 
                     alt="BisRun Logo" 
                     style={{ 
-                      height: '40px', // KUBWA ZAIDI (ilikuwa 30px)
+                      height: '40px',
                       width: 'auto',
-                      marginRight: '12px' // KUBWA ZAIDI
+                      marginRight: '12px'
                     }}
                   />
-                  <span style={{ fontSize: '1.4rem' }}>BisRun</span> {/* KUBWA ZAIDI */}
+                  <span style={{ fontSize: '1.4rem' }}>BisRun</span>
                 </h5>
                 <p className="text-light">
                   Connecting customers with businesses worldwide. Find products and services you need, when you need them.
@@ -1508,20 +1335,6 @@ function HomePage1() {
             transform: translateY(-1px);
           }
           
-          .quick-categories-bar {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-          }
-          
-          .quick-category-item:hover {
-            background: rgba(0, 123, 255, 0.1) !important;
-          }
-          
-          .quick-category-item.active {
-            background: rgba(0, 123, 255, 0.15) !important;
-          }
-          
           /* Scrollbar styling */
           .d-flex.overflow-auto::-webkit-scrollbar {
             height: 6px;
@@ -1539,6 +1352,33 @@ function HomePage1() {
           
           .d-flex.overflow-auto::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
+          }
+
+          /* Mobile Responsive */
+          @media (max-width: 768px) {
+            .hero-section h1 {
+              font-size: 2rem !important;
+            }
+            
+            .hero-section .lead {
+              font-size: 1rem !important;
+            }
+            
+            .container {
+              padding-left: 15px;
+              padding-right: 15px;
+            }
+            
+            .d-flex.justify-content-between.align-items-center {
+              flex-direction: column;
+              gap: 15px;
+            }
+            
+            .flex-grow-1.mx-4 {
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+              max-width: 100% !important;
+            }
           }
         `}
       </style>
