@@ -1,8 +1,11 @@
-// src/HomePage1.jsx - FIXED VERSION WITH PROPER HERO SECTION VISIBILITY
+// src/HomePage1.jsx - FIXED VERSION WITH LARGER BISRUN LOGO
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
 import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+
+// IMPORT BISRUN LOGO
+import BisRunLogo from './BisRun.png';
 
 function HomePage1() {
   const [featuredItems, setFeaturedItems] = useState([]);
@@ -593,7 +596,7 @@ function HomePage1() {
                     <i className="fas fa-user-circle display-4 text-primary"></i>
                   </div>
                   <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
-                    {user ? "Account Settings" : authMode === "signin" ? "Welcome Back" : "Join ProductFinder"}
+                    {user ? "Account Settings" : authMode === "signin" ? "Welcome Back" : "Join BisRun"}
                   </h4>
                   <p className="text-muted small mb-0">
                     {user ? "Manage your account" : authMode === "signin" ? "Sign in to your account" : "Create your account to get started"}
@@ -819,39 +822,139 @@ function HomePage1() {
     );
   };
 
-  // Navigation Bar Component - SIMPLIFIED FOR MOBILE
-const NavigationBar = () => {
-  return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style={{ zIndex: 1030 }}>
-      <div className="container">
-        {/* Logo */}
-        <Link className="navbar-brand fw-bold text-primary" to="/">
-          <i className="fas fa-globe-americas me-2"></i>
-          BisRun
-        </Link>
+  // Navigation Bar Component - WITH LARGER BISRUN LOGO
+  const NavigationBar = () => {
+    return (
+      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style={{ zIndex: 1000 }}>
+        <div className="container">
+          {/* Logo with LARGER BisRun Logo */}
+          <Link className="navbar-brand fw-bold text-primary d-flex align-items-center" to="/">
+            <img 
+              src={BisRunLogo} 
+              alt="BisRun Logo" 
+              style={{ 
+                height: '100px', // KUBWA ZAIDI (ilikuwa 40px)
+                width: 'auto',
+                marginRight: '12px' // KUBWA ZAIDI
+              }}
+            />
+            <span style={{ 
+              fontSize: '1.6rem', // KUBWA ZAIDI (ilikuwa 1.4rem)
+              fontWeight: 'bold',
+              background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              
+            </span>
+          </Link>
 
-        {/* Search Bar for Desktop */}
-        <div className="d-none d-lg-flex mx-4 flex-grow-1" style={{ maxWidth: '500px' }}>
-          <form onSubmit={handleSearch} className="w-100 position-relative">
+          {/* Search Bar for Desktop */}
+          <div className="d-none d-lg-flex mx-4 flex-grow-1" style={{ maxWidth: '500px' }}>
+            <form onSubmit={handleSearch} className="w-100 position-relative">
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control border-end-0"
+                  placeholder="Search products, services, hotels..."
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  style={{ borderRadius: '25px 0 0 25px' }}
+                />
+                <button 
+                  className="btn btn-primary border-start-0" 
+                  type="submit"
+                  style={{ borderRadius: '0 25px 25px 0' }}
+                >
+                  <i className="fas fa-search"></i>
+                </button>
+              </div>
+
+              {/* Search Suggestions */}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
+                  <div className="bg-white border rounded-3 shadow-lg">
+                    {searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        className="btn btn-light w-100 text-start p-2 border-bottom"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        style={{ border: 'none', borderRadius: '0' }}
+                      >
+                        <i className="fas fa-search me-2 text-muted"></i>
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Navigation Items - ACCOUNT ICON ONLY */}
+          <div className="navbar-nav ms-auto align-items-center">
+            {/* Account Icon Only - Shows on both desktop and mobile */}
+            <button
+              className="btn btn-light rounded-circle border-0 position-relative"
+              onClick={handleAccountClick}
+              style={{ 
+                width: '45px', // KUBWA ZAIDI (ilikuwa 42px)
+                height: '45px', // KUBWA ZAIDI
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#ffffff';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              {user ? (
+                <img 
+                  src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                  alt={user.name}
+                  className="rounded-circle"
+                  style={{ 
+                    width: '38px', // KUBWA ZAIDI (ilikuwa 36px)
+                    height: '38px', // KUBWA ZAIDI
+                    objectFit: 'cover',
+                    border: '2px solid #007bff'
+                  }}
+                />
+              ) : (
+                <i className="fas fa-user text-dark" style={{ fontSize: '1.2rem' }}></i> // KUBWA ZAIDI
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Search Bar - Shows below the main nav on mobile */}
+        <div className="container-fluid d-lg-none border-top mt-2 pt-2 pb-2">
+          <form onSubmit={handleSearch} className="position-relative">
             <div className="input-group">
               <input
                 type="text"
-                className="form-control border-end-0"
+                className="form-control"
                 placeholder="Search products, services, hotels..."
                 value={searchQuery}
                 onChange={handleSearchInputChange}
-                style={{ borderRadius: '25px 0 0 25px' }}
+                style={{ borderRadius: '20px 0 0 20px' }}
               />
               <button 
-                className="btn btn-primary border-start-0" 
+                className="btn btn-primary" 
                 type="submit"
-                style={{ borderRadius: '0 25px 25px 0' }}
+                style={{ borderRadius: '0 20px 20px 0' }}
               >
                 <i className="fas fa-search"></i>
               </button>
             </div>
 
-            {/* Search Suggestions */}
+            {/* Mobile Search Suggestions */}
             {showSuggestions && searchSuggestions.length > 0 && (
               <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
                 <div className="bg-white border rounded-3 shadow-lg">
@@ -871,98 +974,14 @@ const NavigationBar = () => {
             )}
           </form>
         </div>
-
-        {/* Navigation Items - ACCOUNT ICON ONLY FOR BOTH DESKTOP & MOBILE */}
-        <div className="navbar-nav ms-auto align-items-center">
-          {/* Account Icon Only - Shows on both desktop and mobile */}
-          <button
-            className="btn btn-light rounded-circle border-0 position-relative"
-            onClick={handleAccountClick}
-            style={{ 
-              width: '42px', 
-              height: '42px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f8f9fa';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#ffffff';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            {user ? (
-              <img 
-                src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
-                alt={user.name}
-                className="rounded-circle"
-                style={{ 
-                  width: '36px', 
-                  height: '36px', 
-                  objectFit: 'cover',
-                  border: '2px solid #007bff'
-                }}
-              />
-            ) : (
-              <i className="fas fa-user text-dark" style={{ fontSize: '1.1rem' }}></i>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Search Bar - Shows below the main nav on mobile */}
-      <div className="container-fluid d-lg-none border-top mt-2 pt-2 pb-2">
-        <form onSubmit={handleSearch} className="position-relative">
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search products, services, hotels..."
-              value={searchQuery}
-              onChange={handleSearchInputChange}
-              style={{ borderRadius: '20px 0 0 20px' }}
-            />
-            <button 
-              className="btn btn-primary" 
-              type="submit"
-              style={{ borderRadius: '0 20px 20px 0' }}
-            >
-              <i className="fas fa-search"></i>
-            </button>
-          </div>
-
-          {/* Mobile Search Suggestions */}
-          {showSuggestions && searchSuggestions.length > 0 && (
-            <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
-              <div className="bg-white border rounded-3 shadow-lg">
-                {searchSuggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    className="btn btn-light w-100 text-start p-2 border-bottom"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    style={{ border: 'none', borderRadius: '0' }}
-                  >
-                    <i className="fas fa-search me-2 text-muted"></i>
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </form>
-      </div>
-    </nav>
-  );
-};
+      </nav>
+    );
+  };
 
   // Quick Categories Bar
   const QuickCategoriesBar = () => {
     return (
-      <div className="fixed-top bg-white border-bottom shadow-sm" style={{ top: '76px', zIndex: 1025 }}>
+      <div className="fixed-top bg-white border-bottom shadow-sm" style={{ top: '86px', zIndex: 1025 }}>
         <div className="container-fluid px-0">
           <div className="quick-categories-bar">
             <div className="d-flex justify-content-around align-items-center px-2 py-2 overflow-auto">
@@ -1032,7 +1051,7 @@ const NavigationBar = () => {
       <AuthModal />
 
       {/* Main Content with proper padding for fixed navbar */}
-      <div style={{ paddingTop: '140px' }}>
+      <div style={{ paddingTop: '150px' }}>
         
         {/* Hero Section - FIXED: Now properly visible below navbar */}
         <section 
@@ -1346,7 +1365,7 @@ const NavigationBar = () => {
               <div className="col-lg-8 text-white">
                 <h3 className="fw-bold mb-3">Are you a business owner?</h3>
                 <p className="lead mb-4">
-                  List your products and services on ProductFinder to reach thousands of potential customers. 
+                  List your products and services on BisRun to reach thousands of potential customers. 
                   Join our growing network of businesses today!
                 </p>
                 <div className="d-flex flex-wrap gap-3">
@@ -1378,9 +1397,17 @@ const NavigationBar = () => {
           <div className="container">
             <div className="row">
               <div className="col-lg-4 mb-4">
-                <h5 className="fw-bold mb-3">
-                  <i className="fas fa-globe-americas me-2 text-primary"></i>
-                  ProductFinder
+                <h5 className="fw-bold mb-3 d-flex align-items-center">
+                  <img 
+                    src={BisRunLogo} 
+                    alt="BisRun Logo" 
+                    style={{ 
+                      height: '40px', // KUBWA ZAIDI (ilikuwa 30px)
+                      width: 'auto',
+                      marginRight: '12px' // KUBWA ZAIDI
+                    }}
+                  />
+                  <span style={{ fontSize: '1.4rem' }}>BisRun</span> {/* KUBWA ZAIDI */}
                 </h5>
                 <p className="text-light">
                   Connecting customers with businesses worldwide. Find products and services you need, when you need them.
@@ -1436,7 +1463,7 @@ const NavigationBar = () => {
             <div className="row align-items-center">
               <div className="col-md-6">
                 <p className="mb-0 text-light">
-                  &copy; 2024 ProductFinder. All rights reserved.
+                  &copy; 2024 BisRun. All rights reserved.
                 </p>
               </div>
               <div className="col-md-6 text-md-end">
