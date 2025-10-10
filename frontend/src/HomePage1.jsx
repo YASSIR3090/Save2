@@ -1,4 +1,4 @@
-// src/HomePage1.jsx - VERSION WITH LOGO ONLY AND ACCOUNT ICON ONLY (NO TEXT)
+// src/HomePage1.jsx - VERSION WITH AMAZON-STYLE SIGN IN + ACCOUNT ICON
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
@@ -759,14 +759,13 @@ function HomePage1() {
 
   return (
     <div className="min-vh-100 bg-white">
-      {/* NO NAVBAR AND NO QUICK CATEGORIES BAR */}
       <AuthModal />
 
-      {/* Simple Header with Logo Left and Account Icon Right */}
+      {/* Header with Amazon-style Layout */}
       <div className="bg-white border-bottom py-3">
         <div className="container">
           <div className="d-flex justify-content-between align-items-center">
-            {/* Logo - Far Left */}
+            {/* Logo - Left */}
             <div className="d-flex align-items-center">
               <Link className="navbar-brand fw-bold text-primary" to="/">
                 <img 
@@ -780,50 +779,8 @@ function HomePage1() {
               </Link>
             </div>
             
-            {/* Account Button - Far Right - ICON ONLY (NO TEXT) */}
-            <div className="d-flex align-items-center">
-              <button
-                className="btn btn-light rounded-circle border-0 position-relative"
-                onClick={handleAccountClick}
-                style={{ 
-                  width: '45px',
-                  height: '45px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f8f9fa';
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-              >
-                {user ? (
-                  <img 
-                    src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
-                    alt={user.name}
-                    className="rounded-circle"
-                    style={{ 
-                      width: '38px',
-                      height: '38px',
-                      objectFit: 'cover',
-                      border: '2px solid #007bff'
-                    }}
-                  />
-                ) : (
-                  <i className="fas fa-user text-dark" style={{ fontSize: '1.2rem' }}></i>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Search Bar - Below Logo and Account */}
-          <div className="row mt-3">
-            <div className="col-12">
+            {/* Search Bar - Center */}
+            <div className="flex-grow-1 mx-4" style={{ maxWidth: '600px' }}>
               <form onSubmit={handleSearch} className="position-relative">
                 <div className="input-group">
                   <input
@@ -833,21 +790,20 @@ function HomePage1() {
                     value={searchQuery}
                     onChange={handleSearchInputChange}
                     style={{ 
-                      borderRadius: '25px',
+                      borderRadius: '25px 0 0 25px',
                       border: '2px solid #e9ecef',
+                      borderRight: 'none',
                       padding: '12px 20px',
                       fontSize: '16px'
                     }}
                   />
                   <button 
-                    className="btn btn-primary position-absolute end-0"
+                    className="btn btn-primary"
                     type="submit"
                     style={{ 
                       borderRadius: '0 25px 25px 0',
                       border: '2px solid #007bff',
-                      borderLeft: 'none',
-                      height: '100%',
-                      padding: '0 20px'
+                      padding: '0 25px'
                     }}
                   >
                     <i className="fas fa-search"></i>
@@ -873,6 +829,66 @@ function HomePage1() {
                   </div>
                 )}
               </form>
+            </div>
+            
+            {/* Amazon-style Sign In + Account - Right */}
+            <div className="d-flex align-items-center">
+               <button
+    className="btn btn-light border-0 d-flex align-items-center gap-2"
+    onClick={handleAccountClick}
+    style={{ 
+      transition: 'all 0.3s ease',
+      padding: '8px 12px',
+      borderRadius: '8px',
+      minWidth: '120px'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.backgroundColor = '#f8f9fa';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.backgroundColor = '#ffffff';
+    }}
+  >
+    {user ? (
+      // User logged in - show first letter of email or profile picture
+      <>
+        {user.picture ? (
+          <img 
+            src={user.picture} 
+            alt={user.name}
+            className="rounded-circle"
+            style={{ 
+              width: '32px',
+              height: '32px',
+              objectFit: 'cover'
+            }}
+          />
+        ) : (
+          <div 
+            className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+            style={{ 
+              width: '32px',
+              height: '32px',
+              fontSize: '14px'
+            }}
+          >
+            {user.email?.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <span className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
+          {user.name?.split(' ')[0] || user.email?.split('@')[0]}
+        </span>
+      </>
+    ) : (
+      // User not logged in - show "Sign in" only
+      <>
+        <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.5rem' }}></i>
+        <span className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
+          Sign in
+        </span>
+      </>
+    )}
+  </button>
             </div>
           </div>
         </div>
@@ -1365,6 +1381,17 @@ function HomePage1() {
             .container {
               padding-left: 15px;
               padding-right: 15px;
+            }
+            
+            .d-flex.justify-content-between.align-items-center {
+              flex-direction: column;
+              gap: 15px;
+            }
+            
+            .flex-grow-1.mx-4 {
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+              max-width: 100% !important;
             }
           }
         `}
