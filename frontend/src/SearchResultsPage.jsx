@@ -1,8 +1,8 @@
-// src/SearchResultsPage.jsx - FIXED VERSION WITH UPLOADED IMAGES SUPPORT
+// src/SearchResultsPage.jsx - UPDATED VERSION WITH COMPLETE DATA LOADING
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-function SearchResultsPage() {
+const SearchResultsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchResults, setSearchResults] = useState([]);
@@ -13,10 +13,9 @@ function SearchResultsPage() {
   const [allItems, setAllItems] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
   const [sortBy, setSortBy] = useState("relevance");
-  const [showSearchPage, setShowSearchPage] = useState(false);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
 
-  // FUZZY SEARCH FUNCTIONS (same as before)
+  // FUZZY SEARCH FUNCTIONS
   const levenshteinDistance = (str1, str2) => {
     const track = Array(str2.length + 1).fill(null).map(() =>
       Array(str1.length + 1).fill(null));
@@ -56,25 +55,18 @@ function SearchResultsPage() {
     const queryLower = query.toLowerCase();
     const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
     
-    // Check for exact match first
     if (textLower.includes(queryLower)) {
       return { match: true, score: 1.0 };
     }
     
-    // Check for partial matches
     if (queryLower.length >= 2) {
-      // Check if any word in text starts with query
       const words = textLower.split(/\s+/);
       for (let word of words) {
         if (word.startsWith(queryLower.substring(0, Math.min(3, queryLower.length)))) {
           return { match: true, score: 0.8 };
         }
-        if (queryLower.startsWith(word.substring(0, Math.min(3, word.length)))) {
-          return { match: true, score: 0.8 };
-        }
       }
       
-      // Check using similarity score
       let bestSimilarity = 0;
       for (let word of words) {
         if (word.length >= 2) {
@@ -93,20 +85,10 @@ function SearchResultsPage() {
       }
     }
     
-    // For multiple word queries
     if (queryWords.length > 1) {
       for (let word of queryWords) {
         if (word.length >= 2 && textLower.includes(word)) {
           return { match: true, score: 0.7 };
-        }
-        
-        for (let textWord of textLower.split(/\s+/)) {
-          if (textWord.length >= 2) {
-            const wordSimilarity = calculateSimilarity(textWord, word);
-            if (wordSimilarity >= 0.6) {
-              return { match: true, score: wordSimilarity };
-            }
-          }
         }
       }
     }
@@ -114,49 +96,49 @@ function SearchResultsPage() {
     return { match: false, score: 0 };
   };
 
-  // CRITICAL FIX: Improved data loading with uploaded images support
-  const loadAllItems = useCallback(() => {
+  // LOAD ALL ITEMS FROM ALL SOURCES - CRITICAL FIX
+  const loadAllItemsFromStorage = () => {
     try {
-      console.log("Loading all items from storage...");
-      
       const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
-      let storedProducts = [];
-      let storedServices = [];
-      
+      let allItems = [];
+
       // Load items from all businesses
       allBusinesses.forEach(business => {
         const businessProducts = JSON.parse(localStorage.getItem(`products_${business.id}`)) || [];
         const businessServices = JSON.parse(localStorage.getItem(`services_${business.id}`)) || [];
         
-        console.log(`Business: ${business.businessName}, Products: ${businessProducts.length}, Services: ${businessServices.length}`);
-        
         const productsWithBusiness = businessProducts.map(product => ({
           ...product,
           businessName: business.businessName,
-          businessPhone: business.phone,
-          businessEmail: business.email,
-          businessAddress: business.address,
-          type: "product"
+          type: "product",
+          featured: product.featured || false
         }));
         
         const servicesWithBusiness = businessServices.map(service => ({
           ...service,
           businessName: business.businessName,
-          businessPhone: business.phone,
-          businessEmail: business.email,
-          businessAddress: business.address,
-          type: "service"
+          type: "service",
+          featured: service.featured || false
         }));
         
-        storedProducts = [...storedProducts, ...productsWithBusiness];
-        storedServices = [...storedServices, ...servicesWithBusiness];
+        allItems = [...allItems, ...productsWithBusiness, ...servicesWithBusiness];
       });
 
-      console.log(`Total stored products: ${storedProducts.length}`);
-      console.log(`Total stored services: ${storedServices.length}`);
+      return allItems;
+    } catch (error) {
+      console.error("Error loading items from storage:", error);
+      return [];
+    }
+  };
 
-      // Comprehensive sample data
-      const sampleElectronics = [
+  // Load all items
+  const loadAllItems = useCallback(() => {
+    try {
+      // Load stored items from businesses
+      const storedItems = loadAllItemsFromStorage();
+
+      // Comprehensive sample data (same as HomePage1)
+      const sampleItems = [
         {
           id: "elec-1",
           name: "Dell Latitude Laptop",
@@ -167,25 +149,16 @@ function SearchResultsPage() {
           stock: 5,
           business: "TechHub Tanzania",
           location: { lat: -6.7924, lng: 39.2083 },
-          address: "Samora Avenue, Dar es Salaam",
+          address: "Dar es Salaam",
           country: "Tanzania",
-          region: "Dar es Salaam",
           city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=300"],
-          lastUpdated: "2024-01-15",
+          images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600"],
           description: "High-performance business laptop with latest Intel Core i7 processor",
-          specifications: ["Processor: Intel Core i7-1165G7", "RAM: 16GB DDR4", "Storage: 512GB SSD"],
-          features: ["Backlit Keyboard", "Fingerprint Reader", "Windows 11 Pro"],
-          brand: "Dell",
-          condition: "new",
-          requiresSpecifications: true,
           rating: 4.5,
           reviews: 23,
-          type: "product"
-        }
-      ];
-
-      const sampleGeneralGoods = [
+          type: "product",
+          featured: true
+        },
         {
           id: "gen-1",
           name: "Men's Running Shoes",
@@ -196,57 +169,55 @@ function SearchResultsPage() {
           stock: 15,
           business: "Sports Gear Tanzania",
           location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City, Dar es Salaam",
+          address: "Dar es Salaam", 
           country: "Tanzania",
-          region: "Dar es Salaam",
           city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          lastUpdated: "2024-01-14",
+          images: ["https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=600"],
           description: "Comfortable running shoes designed for maximum performance",
-          features: ["Lightweight Design", "Breathable Mesh", "Shock Absorption"],
-          brand: "RunPro",
-          condition: "new",
-          size: "L",
-          color: "Black",
-          material: "Mesh",
-          requiresSpecifications: false,
           rating: 4.3,
           reviews: 15,
-          type: "product"
-        }
-      ];
-
-      const sampleBuildingHotels = [
+          type: "product",
+          featured: true
+        },
         {
-          id: "hotel-1",
+          id: "hotel-1", 
           name: "Serengeti Luxury Hotel",
           category: "Building & Hotels",
-          serviceType: "Hotel",
+          serviceType: "5-Star Hotel",
           priceRange: "150-300",
-          currency: "USD",
+          currency: "USD", 
           currencySymbol: "$",
           business: "Serengeti Hospitality Group",
           location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam",
-          country: "Tanzania",
-          region: "Dar es Salaam",
+          address: "Dar es Salaam",
+          country: "Tanzania", 
           city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          lastUpdated: "2024-01-15",
+          images: ["https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600"],
           description: "5-star luxury hotel with premium amenities and excellent service",
-          amenities: ["Swimming Pool", "Spa", "Restaurant", "Free WiFi", "24/7 Room Service"],
-          services: ["Room Service", "Airport Transfer", "Tour Booking", "Laundry Service"],
-          contactInfo: "+255 789 456 123 | info@serengetihotel.com",
-          capacity: "100 guests, 50 luxury rooms",
           rating: "5",
-          checkInTime: "14:00",
-          checkOutTime: "12:00",
-          policies: "Free cancellation 24 hours before check-in",
-          type: "service"
-        }
-      ];
-
-      const sampleVehicles = [
+          type: "service",
+          featured: true
+        },
+        {
+          id: "elec-2",
+          name: "iPhone 15 Pro Max", 
+          category: "Electronics & Devices",
+          price: 2500000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 3,
+          business: "MobileWorld Tanzania",
+          location: { lat: -6.8184, lng: 39.2883 },
+          address: "Dar es Salaam",
+          country: "Tanzania",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600"],
+          description: "Latest iPhone with titanium design and advanced camera system",
+          rating: 4.8,
+          reviews: 15,
+          type: "product",
+          featured: true
+        },
         {
           id: "veh-1",
           name: "Toyota Land Cruiser V8",
@@ -257,35 +228,78 @@ function SearchResultsPage() {
           stock: 2,
           business: "Premium Motors Tanzania",
           location: { lat: -6.8155, lng: 39.2861 },
-          address: "Masaki, Dar es Salaam",
+          address: "Dar es Salaam",
           country: "Tanzania",
-          region: "Dar es Salaam",
           city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          lastUpdated: "2024-01-14",
+          images: ["https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600"],
           description: "Luxury SUV with premium features",
-          features: ["4.6L V8 Engine", "Leather Interior", "Sunroof", "Navigation System"],
-          brand: "Toyota",
-          condition: "new",
-          requiresSpecifications: false,
           rating: 4.8,
           reviews: 12,
+          type: "product",
+          featured: true
+        },
+        {
+          id: "gen-2",
+          name: "Women's Handbag",
+          category: "General Goods",
+          price: 45000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 10,
+          business: "Fashion Store Tanzania",
+          location: { lat: -6.8155, lng: 39.2861 },
+          address: "Dar es Salaam",
+          country: "Tanzania",
+          city: "Dar es Salaam",
+          images: ["https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=600"],
+          description: "Elegant leather handbag for women",
+          rating: 4.1,
+          reviews: 8,
+          type: "product",
+          featured: true
+        },
+        {
+          id: "elec-3",
+          name: "Apple iPhone 16 Pro (256GB) - Latest Model with Advanced Features",
+          category: "Electronics",
+          price: 3200000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 8,
+          business: "TechHub Tanzania",
+          images: ["https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600"],
+          description: "Latest iPhone 16 Pro with Face ID and advanced camera system. A18 Pro chip, 256GB storage, and premium features for professional use.",
+          rating: 4.8,
+          reviews: 45,
+          type: "product"
+        },
+        {
+          id: "elec-4",
+          name: "Samsung Galaxy S25 Ultra AI (512GB) - Premium Edition",
+          category: "Electronics",
+          price: 2800000,
+          currency: "TZS",
+          currencySymbol: "TSh",
+          stock: 6,
+          business: "TechHub Tanzania",
+          images: ["https://images.pexels.com/photos/47261/pexels-photo-47261.jpeg?auto=compress&cs=tinysrgb&w=600"],
+          description: "Samsung Galaxy S25 Ultra with AI capabilities, S Pen, quad camera system, and advanced display technology for the best mobile experience.",
+          rating: 4.7,
+          reviews: 28,
           type: "product"
         }
       ];
 
-      const allItems = [
-        ...sampleElectronics,
-        ...sampleGeneralGoods, 
-        ...sampleBuildingHotels,
-        ...sampleVehicles,
-        ...storedProducts,
-        ...storedServices
-      ];
+      // Combine stored items with sample items
+      const combinedItems = [...storedItems, ...sampleItems];
+      
+      // Remove duplicates based on ID
+      const uniqueItems = combinedItems.filter((item, index, self) =>
+        index === self.findIndex((t) => t.id === item.id)
+      );
 
-      console.log(`Total combined items: ${allItems.length}`);
-      setAllItems(allItems);
-      return allItems;
+      setAllItems(uniqueItems);
+      return uniqueItems;
     } catch (error) {
       console.error("Error loading items:", error);
       return [];
@@ -322,14 +336,8 @@ function SearchResultsPage() {
       if (fuzzySearch(item.category, query).match) {
         suggestions.add(item.category);
       }
-      if (item.brand && fuzzySearch(item.brand, query).match) {
-        suggestions.add(item.brand);
-      }
-      if (item.businessName && fuzzySearch(item.businessName, query).match) {
-        suggestions.add(item.businessName);
-      }
-      if (item.serviceType && fuzzySearch(item.serviceType, query).match) {
-        suggestions.add(item.serviceType);
+      if (fuzzySearch(item.business, query).match) {
+        suggestions.add(item.business);
       }
     });
 
@@ -340,19 +348,14 @@ function SearchResultsPage() {
   const performSearch = useCallback((query, items) => {
     if (!query.trim()) return items;
 
-    console.log(`Performing search for: "${query}" on ${items.length} items`);
-    
     const filtered = items.map(item => {
       const searchableText = `
         ${item.name || ''}
         ${item.category || ''}
         ${item.businessName || item.business || ''}
-        ${item.brand || ''}
-        ${item.serviceType || ''}
         ${item.description || ''}
-        ${item.country || ''}
-        ${item.city || ''}
-        ${item.region || ''}
+        ${item.serviceType || ''}
+        ${item.brand || ''}
       `.toLowerCase();
 
       const searchResult = fuzzySearch(searchableText, query);
@@ -363,7 +366,6 @@ function SearchResultsPage() {
       };
     }).filter(item => item.searchScore > 0);
 
-    console.log(`Found ${filtered.length} results for "${query}"`);
     return filtered.sort((a, b) => b.searchScore - a.searchScore);
   }, []);
 
@@ -389,27 +391,11 @@ function SearchResultsPage() {
     }
   }, []);
 
-  // CRITICAL FIX: Listen for data updates
-  useEffect(() => {
-    const checkForDataUpdates = () => {
-      const lastUpdate = localStorage.getItem('dataLastUpdated');
-      if (lastUpdate !== dataLastUpdated) {
-        console.log('Data update detected in SearchResults, reloading...');
-        initializeSearch();
-      }
-    };
-
-    // Check every 2 seconds for updates
-    const interval = setInterval(checkForDataUpdates, 2000);
-    return () => clearInterval(interval);
-  }, [dataLastUpdated]);
-
   // Initialize search
   const initializeSearch = useCallback(async () => {
     setIsLoading(true);
     
     try {
-      console.log("Initializing search...");
       const items = await loadAllItems();
       loadRecentSearches();
       
@@ -420,10 +406,7 @@ function SearchResultsPage() {
       let results = performSearch(query, items);
       results = sortResults(results, sortBy);
       
-      // LIMIT TO 7 RESULTS ONLY
-      setSearchResults(results.slice(0, 7));
-      
-      // Update data timestamp
+      setSearchResults(results);
       setDataLastUpdated(localStorage.getItem('dataLastUpdated'));
       
     } catch (error) {
@@ -433,6 +416,21 @@ function SearchResultsPage() {
       setIsLoading(false);
     }
   }, [location.search, loadAllItems, performSearch, sortResults, sortBy, loadRecentSearches]);
+
+  // Listen for data updates
+  useEffect(() => {
+    const checkForDataUpdates = () => {
+      const lastUpdate = localStorage.getItem('dataLastUpdated');
+      if (lastUpdate !== dataLastUpdated) {
+        console.log('Data updated detected, reloading search...');
+        initializeSearch();
+      }
+    };
+
+    // Check every 2 seconds for updates
+    const interval = setInterval(checkForDataUpdates, 2000);
+    return () => clearInterval(interval);
+  }, [dataLastUpdated, initializeSearch]);
 
   useEffect(() => {
     initializeSearch();
@@ -452,18 +450,20 @@ function SearchResultsPage() {
     }
   };
 
-  // Handle search suggestion click
-  const handleSuggestionClick = (suggestion) => {
-    setSearchQuery(suggestion);
-    setShowSuggestions(false);
-    navigate(`/search-results?q=${encodeURIComponent(suggestion)}`);
-  };
-
-  // Handle search submit
-  const handleSearchSubmit = (e) => {
+  // Handle search
+  const handleSearch = (e) => {
     e.preventDefault();
-    setShowSuggestions(false);
-    navigate(`/search-results?q=${encodeURIComponent(searchQuery)}`);
+    if (searchQuery.trim()) {
+      // Save to recent searches
+      const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+      const filtered = recent.filter(item => item.toLowerCase() !== searchQuery.toLowerCase());
+      filtered.unshift(searchQuery);
+      localStorage.setItem('recentSearches', JSON.stringify(filtered.slice(0, 10)));
+      
+      navigate(`/search-results?q=${encodeURIComponent(searchQuery)}`);
+      setShowSuggestions(false);
+      initializeSearch();
+    }
   };
 
   // Handle sort change
@@ -475,12 +475,59 @@ function SearchResultsPage() {
     setSearchResults(sortedResults);
   };
 
-  const handleBackToSearch = () => {
-    navigate('/search');
+  // Handle search input focus
+  const handleSearchInputFocus = () => {
+    if (searchQuery.trim() !== "") {
+      const suggestions = generateSearchSuggestions(searchQuery);
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0);
+    } else if (recentSearches.length > 0) {
+      setSearchSuggestions(recentSearches);
+      setShowSuggestions(true);
+    }
   };
 
-  const handleViewDetails = (itemId) => {
-    navigate(`/product/${itemId}`);
+  // Handle search suggestion click
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    // Save to recent searches
+    const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+    const filtered = recent.filter(item => item.toLowerCase() !== suggestion.toLowerCase());
+    filtered.unshift(suggestion);
+    localStorage.setItem('recentSearches', JSON.stringify(filtered.slice(0, 10)));
+    
+    setShowSuggestions(false);
+    navigate(`/search-results?q=${encodeURIComponent(suggestion)}`);
+  };
+
+  // Handle clear recent searches
+  const handleClearRecentSearches = () => {
+    localStorage.removeItem('recentSearches');
+    setRecentSearches([]);
+    setSearchSuggestions([]);
+  };
+
+  const getItemImage = (item) => {
+    if (item.images && item.images.length > 0) {
+      const firstImage = item.images[0];
+      if (typeof firstImage === 'string' && firstImage.startsWith('data:image')) {
+        return firstImage;
+      } else if (typeof firstImage === 'string') {
+        return firstImage;
+      }
+    }
+    return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
+  };
+
+  const renderStars = (rating) => {
+    const numRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 4.0);
+    return Array.from({ length: 5 }, (_, index) => (
+      <i
+        key={index}
+        className={`fas fa-star ${index < Math.floor(numRating) ? 'text-warning' : 'text-muted'}`}
+        style={{ fontSize: '0.7rem' }}
+      ></i>
+    ));
   };
 
   const formatPrice = (item) => {
@@ -490,267 +537,135 @@ function SearchResultsPage() {
     return `${item.currencySymbol || '$'} ${item.price?.toLocaleString() || '0'}`;
   };
 
-  const getCategoryBadge = (category) => {
-    switch(category) {
-      case 'Electronics & Devices':
-        return 'bg-primary';
-      case 'General Goods':
-        return 'bg-warning';
-      case 'Building & Hotels':
-        return 'bg-success';
-      case 'Vehicles':
-        return 'bg-danger';
-      default:
-        return 'bg-secondary';
-    }
-  };
-
-  // CRITICAL FIX: Improved image handling for uploaded images
-  const getItemImage = (item) => {
-    if (item.images && item.images.length > 0) {
-      // Check if it's a base64 uploaded image or URL
-      const firstImage = item.images[0];
-      
-      if (typeof firstImage === 'string' && firstImage.startsWith('data:image')) {
-        // It's a base64 uploaded image
-        return firstImage;
-      } else if (typeof firstImage === 'string') {
-        // It's a URL
-        return firstImage;
-      }
-    }
-    
-    // Default fallback image
-    return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
-  };
-
-  const renderStars = (rating) => {
-    const numRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 4.0);
-    return Array.from({ length: 5 }, (_, index) => (
-      <i
-        key={index}
-        className={`fas fa-star ${index < Math.floor(numRating) ? 'text-warning' : 'text-light'}`}
-        style={{ fontSize: '0.7rem' }}
-      ></i>
-    ));
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    navigate('/search-results');
-  };
-
-  // Search Page Component (same as before)
-  const SearchPage = () => {
-    return (
-      <div className="min-vh-100 bg-white" style={{ zIndex: 1040, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-        <div className="bg-white border-bottom shadow-sm">
-          <div className="container-fluid p-3">
-            <div className="row align-items-center">
-              <div className="col-auto">
-                <button
-                  className="btn btn-light rounded-circle"
-                  onClick={() => setShowSearchPage(false)}
-                  style={{ 
-                    width: '45px', 
-                    height: '45px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <i className="fas fa-arrow-left"></i>
-                </button>
-              </div>
-              
-              <div className="col">
-                <form onSubmit={handleSearchSubmit}>
-                  <div className="input-group input-group-lg position-relative">
-                    <input
-                      type="text"
-                      className="form-control border-0 bg-light rounded-pill ps-4"
-                      placeholder="Search products, services..."
-                      value={searchQuery}
-                      onChange={handleSearchInputChange}
-                      style={{ fontSize: '1rem' }}
-                      autoFocus
-                    />
-                    
-                    <button
-                      type="submit"
-                      className="btn btn-primary rounded-pill position-absolute end-0 top-50 translate-middle-y me-2"
-                      style={{ 
-                        width: '40px', 
-                        height: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <i className="fas fa-search text-white"></i>
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {showSuggestions && searchSuggestions.length > 0 && (
-          <div className="container-fluid mt-2">
-            <div className="row">
-              <div className="col-12">
-                <div className="bg-white border rounded-3 shadow-sm">
-                  {searchSuggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      className="btn btn-light w-100 text-start p-3 border-bottom"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      style={{ 
-                        border: 'none',
-                        borderRadius: '0',
-                        fontSize: '1rem'
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-search me-3 text-muted"></i>
-                        <div>
-                          <div className="fw-semibold text-dark">{suggestion}</div>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!showSuggestions && recentSearches.length > 0 && (
-          <div className="container-fluid mt-3">
-            <div className="row">
-              <div className="col-12">
-                <h6 className="text-muted mb-3 px-3">Recent Searches</h6>
-                <div className="bg-white border rounded-3 shadow-sm">
-                  {recentSearches.map((search, index) => (
-                    <button
-                      key={index}
-                      className="btn btn-light w-100 text-start p-3 border-bottom"
-                      onClick={() => handleSuggestionClick(search)}
-                      style={{ 
-                        border: 'none',
-                        borderRadius: '0',
-                        fontSize: '1rem'
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-clock me-3 text-muted"></i>
-                        <div>
-                          <div className="fw-semibold text-dark">{search}</div>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="container-fluid" style={{ paddingTop: '20px', paddingBottom: '80px' }}>
-          {searchQuery.trim() === "" && (
-            <div className="text-center py-5">
-              <i className="fas fa-search fa-4x text-muted mb-4"></i>
-              <h4 className="text-muted fw-bold mb-3">Search for Products & Services</h4>
-              <p className="text-muted">Enter your search terms above to find items</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  if (showSearchPage) {
-    return <SearchPage />;
-  }
-
   if (isLoading) {
     return (
-      <div className="min-vh-100 bg-light d-flex justify-content-center align-items-center">
+      <div className="min-vh-100 bg-white d-flex justify-content-center align-items-center">
         <div className="text-center">
           <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }}></div>
-          <p className="text-muted">Loading search results...</p>
+          <p className="text-dark">Loading search results...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-vh-100" style={{ background: "linear-gradient(white,white, #fdfbfdea 100%)" }}>
+    <div className="min-vh-100 bg-white">
       {/* Header with Search Bar */}
-      <div className="bg-white shadow-sm sticky-top">
+      <div className="bg-white border-bottom sticky-top shadow-sm">
         <div className="container-fluid py-3">
           <div className="row align-items-center">
             <div className="col-auto">
               <button
-                className="btn btn-light rounded-circle"
-                onClick={handleBackToSearch}
+                className="btn btn-light rounded-circle border"
+                onClick={() => navigate('/')}
                 style={{ 
-                  width: '45px', 
-                  height: '45px',
+                  width: '40px', 
+                  height: '40px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
               >
-                <i className="fas fa-arrow-left"></i>
+                <i className="fas fa-arrow-left text-dark"></i>
               </button>
             </div>
             
             <div className="col position-relative">
-              <div className="input-group input-group-lg position-relative">
-                <input
-                  type="text"
-                  className="form-control border-0 bg-light rounded-pill ps-5"
-                  placeholder="Search products, services..."
-                  value={searchQuery}
-                  onChange={handleSearchInputChange}
-                  onFocus={() => setShowSearchPage(true)}
-                  style={{ fontSize: '1rem' }}
-                />
-                <div className="position-absolute top-50 start-0 translate-middle-y ps-3">
-                  <i className="fas fa-search text-muted"></i>
-                </div>
-              </div>
-
-              {showSuggestions && searchSuggestions.length > 0 && (
-                <div className="position-absolute top-100 start-0 end-0 mt-1 z-3">
-                  <div className="bg-white border rounded-3 shadow-sm">
-                    {searchSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        className="btn btn-light w-100 text-start p-3 border-bottom"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        style={{ 
-                          border: 'none',
-                          borderRadius: '0',
-                          fontSize: '0.9rem'
-                        }}
-                      >
-                        <div className="d-flex align-items-center">
-                          <i className="fas fa-search me-3 text-muted"></i>
-                          <div>
-                            <div className="fw-semibold text-dark">{suggestion}</div>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+              <form onSubmit={handleSearch}>
+                <div className="input-group position-relative">
+                  <input
+                    type="text"
+                    className="form-control border bg-light rounded-pill ps-4"
+                    placeholder="Search products, services..."
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    onFocus={handleSearchInputFocus}
+                    style={{ fontSize: '0.9rem' }}
+                  />
+                  <div className="position-absolute top-50 start-0 translate-middle-y ps-3">
+                    <i className="fas fa-search text-muted"></i>
                   </div>
+                  <button 
+                    className="btn btn-primary rounded-pill ms-2"
+                    type="submit"
+                  >
+                    <i className="fas fa-search"></i>
+                  </button>
                 </div>
-              )}
+
+                {/* Search Suggestions */}
+                {showSuggestions && (
+                  <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
+                    <div className="bg-white border rounded-3 shadow-lg overflow-hidden">
+                      {/* Recent Searches Section */}
+                      {searchQuery === "" && recentSearches.length > 0 && (
+                        <>
+                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                            <div className="d-flex justify-content-between align-items-center">
+                              <small className="text-muted fw-bold">RECENT SEARCHES</small>
+                              <button 
+                                className="btn btn-link p-0 text-danger text-decoration-none"
+                                onClick={handleClearRecentSearches}
+                                style={{ fontSize: '11px' }}
+                              >
+                                Clear all
+                              </button>
+                            </div>
+                          </div>
+                          {recentSearches.map((search, index) => (
+                            <button
+                              key={`recent-${index}`}
+                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                              onClick={() => handleSuggestionClick(search)}
+                              style={{ 
+                                border: 'none', 
+                                borderRadius: '0',
+                                fontSize: '14px'
+                              }}
+                            >
+                              <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
+                              {search}
+                            </button>
+                          ))}
+                        </>
+                      )}
+                      
+                      {/* Search Suggestions Section */}
+                      {searchQuery !== "" && searchSuggestions.length > 0 && (
+                        <>
+                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                            <small className="text-muted fw-bold">SUGGESTIONS</small>
+                          </div>
+                          {searchSuggestions.map((suggestion, index) => (
+                            <button
+                              key={`suggestion-${index}`}
+                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                              onClick={() => handleSuggestionClick(suggestion)}
+                              style={{ 
+                                border: 'none', 
+                                borderRadius: '0',
+                                fontSize: '14px'
+                              }}
+                            >
+                              <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
+                              {suggestion}
+                            </button>
+                          ))}
+                        </>
+                      )}
+
+                      {/* No Results Message */}
+                      {searchQuery !== "" && searchSuggestions.length === 0 && (
+                        <div className="p-3 text-center text-muted">
+                          <i className="fas fa-search me-2"></i>
+                          No suggestions found for "{searchQuery}"
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </form>
             </div>
-            
-            {/* REMOVED ITEM COUNT BADGE */}
           </div>
         </div>
       </div>
@@ -760,210 +675,319 @@ function SearchResultsPage() {
         {searchResults.length === 0 ? (
           <div className="text-center py-5">
             <div className="mb-4">
-              <i className="fas fa-search fa-4x text-muted mb-3"></i>
+              <i className="fas fa-search fa-3x text-muted mb-3"></i>
             </div>
-            <h3 className="text-dark mb-3">No Results Found</h3>
+            <h4 className="text-dark mb-3">No Results Found</h4>
             <p className="text-muted mb-4">
               {searchQuery ? `No items found for "${searchQuery}". Try different keywords.` : 'Please enter a search term to find items.'}
             </p>
-            <div className="d-flex gap-3 justify-content-center">
-              <button
-                className="btn btn-primary btn-lg rounded-pill px-4"
-                onClick={handleClearSearch}
-              >
-                <i className="fas fa-backspace me-2"></i>
-                Clear Search
-              </button>
-              <button
-                className="btn btn-outline-primary btn-lg rounded-pill px-4"
-                onClick={handleBackToSearch}
-              >
-                <i className="fas fa-arrow-left me-2"></i>
-                Back to Search
-              </button>
-            </div>
+            <button 
+              className="btn btn-primary"
+              onClick={() => navigate('/')}
+            >
+              <i className="fas fa-home me-2"></i>
+              Back to Home
+            </button>
           </div>
         ) : (
           <>
-            {/* Search Summary and Controls - REMOVED SEARCH QUERY TEXT */}
+            {/* Search Summary */}
             <div className="row mb-4">
               <div className="col-12">
-                <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                  <div>
-                    {/* EMPTY - NO SEARCH QUERY DISPLAY */}
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="text-muted small">
+                    {searchResults.length} results for "<span className="text-primary">"{searchQuery}"</span>"
                   </div>
-                  
-                  <div className="d-flex align-items-center gap-2 flex-wrap">
-                    {/* Sort Dropdown */}
-                    <div className="dropdown">
-                      <button className="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i className="fas fa-sort me-2"></i>
-                        Sort: {sortBy === 'relevance' ? 'Relevance' : 
+                  <div className="dropdown">
+                    <button className="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                      Sort by: {sortBy === 'relevance' ? 'Relevance' : 
                               sortBy === 'price-low' ? 'Price: Low to High' :
                               sortBy === 'price-high' ? 'Price: High to Low' : 'Rating'}
-                      </button>
-                      <ul className="dropdown-menu">
-                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'relevance'}})}>Relevance</button></li>
-                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'price-low'}})}>Price: Low to High</button></li>
-                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'price-high'}})}>Price: High to Low</button></li>
-                        <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'rating'}})}>Highest Rating</button></li>
-                      </ul>
-                    </div>
+                    </button>
+                    <ul className="dropdown-menu">
+                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'relevance'}})}>Relevance</button></li>
+                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'price-low'}})}>Price: Low to High</button></li>
+                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'price-high'}})}>Price: High to Low</button></li>
+                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'rating'}})}>Highest Rating</button></li>
+                    </ul>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Results Grid */}
-            <div className="row g-3">
+            {/* RESPONSIVE CARDS GRID WITH TALLER DESKTOP CARDS */}
+            <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
-                <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
+                <div key={item.id} className="col-6 col-md-4 col-lg-3">
                   <div 
-                    className="card h-100 border-0 shadow-sm product-card"
-                    onClick={() => handleViewDetails(item.id)}
-                    style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                    className="position-relative card-responsive"
+                    onClick={() => navigate(`/product/${item.id}`)}
+                    style={{ 
+                      width: '100%',
+                      // Mobile height (default)
+                      height: '320px',
+                      background: 'rgb(240, 241, 245)',
+                      borderRadius: '20px',
+                      boxShadow: 'rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset, rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset, rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset, rgba(0, 0, 0, 0.06) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-5px) scale(1.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    }}
                   >
-                    <div className="position-relative overflow-hidden">
-                      {/* CRITICAL FIX: Improved image display with border */}
+                    {/* PRODUCT IMAGE - Responsive height */}
+                    <div 
+                      className="position-relative w-100 card-image-responsive"
+                      style={{
+                        // Mobile image height
+                        height: '130px',
+                        overflow: 'hidden',
+                        borderTopLeftRadius: '20px',
+                        borderTopRightRadius: '20px'
+                      }}
+                    >
                       <img
                         src={getItemImage(item)}
-                        className="card-img-top"
                         alt={item.name}
+                        className="w-100 h-100"
                         style={{ 
-                          height: '120px', 
-                          objectFit: 'cover',
-                          width: '100%',
-                          border: '2px solid #f8f9fa',
-                          borderRadius: '8px 8px 0 0'
+                          objectFit: 'cover'
                         }}
                         onError={(e) => {
-                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
+                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
                         }}
                       />
-                      
-                      <div className="position-absolute top-0 end-0 m-2">
-                        <span className={`badge ${getCategoryBadge(item.category)} text-white`}>
-                          {item.category}
-                        </span>
-                      </div>
-                      
+                    </div>
+
+                    {/* BADGES */}
+                    <div className="position-absolute top-0 start-0 w-100 p-2 d-flex justify-content-between">
                       {item.isFuzzyMatch && (
-                        <div className="position-absolute top-0 start-0 m-2">
-                          <span className="badge bg-warning text-dark">
-                            <i className="fas fa-lightbulb me-1"></i>
-                            Similar
-                          </span>
+                        <div 
+                          className="badge"
+                          style={{
+                            background: 'linear-gradient(45deg, #f59e0b, #fbbf24)',
+                            color: '#1f2937',
+                            fontWeight: 'bold',
+                            padding: '4px 8px',
+                            fontSize: '0.6rem',
+                            borderRadius: '12px'
+                          }}
+                        >
+                          <i className="fas fa-bolt me-1"></i>
+                          Similar
+                        </div>
+                      )}
+                      
+                      {item.featured && (
+                        <div 
+                          className="badge"
+                          style={{
+                            background: 'linear-gradient(45deg, #8b5cf6, #a78bfa)',
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            padding: '4px 8px',
+                            fontSize: '0.6rem',
+                            borderRadius: '12px'
+                          }}
+                        >
+                          <i className="fas fa-star me-1"></i>
+                          Featured
+                        </div>
+                      )}
+                      
+                      {item.type === 'product' && (
+                        <div 
+                          className="badge"
+                          style={{
+                            background: item.stock > 0 ? 
+                              'linear-gradient(45deg, #10b981, #34d399)' : 
+                              'linear-gradient(45deg, #ef4444, #f87171)',
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            padding: '4px 8px',
+                            fontSize: '0.6rem',
+                            borderRadius: '12px'
+                          }}
+                        >
+                          {item.stock > 0 ? 'In Stock' : 'Out of Stock'}
                         </div>
                       )}
                     </div>
-                    
-                    <div className="card-body d-flex flex-column p-2">
-                      <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.8rem' }}>
-                        {item.name}
+
+                    {/* PRODUCT INFO */}
+                    <div className="p-2 flex-grow-1 d-flex flex-column card-content-responsive">
+                      {/* TITLE - More space on desktop */}
+                      <h6 
+                        className="mb-1 card-title-responsive"
+                        style={{
+                          // Mobile font size
+                          fontSize: '0.8rem',
+                          color: '#1f2937',
+                          fontWeight: '700',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        {item.name.length > 35 ? `${item.name.substring(0, 35)}...` : item.name}
                       </h6>
                       
-                      <p className="card-text text-muted small mb-1" style={{ fontSize: '0.7rem' }}>
-                        {item.businessName || item.business}
+                      {/* DESCRIPTION - More content on desktop */}
+                      <p 
+                        className="mb-1 flex-grow-1 card-description-responsive"
+                        style={{
+                          // Mobile font size
+                          fontSize: '0.65rem',
+                          color: '#6b7280',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        {item.description && item.description.length > 50 
+                          ? `${item.description.substring(0, 50)}...` 
+                          : item.description || 'No description available.'}
                       </p>
-                      
-                      <div className="d-flex align-items-center mb-1">
-                        <div className="me-1">
-                          {renderStars(item.rating)}
-                        </div>
-                        <small className="text-muted ms-1" style={{ fontSize: '0.65rem' }}>
-                          ({item.reviews || 0})
-                        </small>
-                      </div>
-                      
+
+                      {/* RATING AND PRICE SECTION */}
                       <div className="mt-auto">
-                        <div className="d-flex justify-content-between align-items-center">
-                          <span className="fw-bold text-primary" style={{ fontSize: '0.85rem' }}>
-                            {formatPrice(item)}
-                          </span>
-                          
-                          {item.type === 'product' && item.stock && (
-                            <small className={`text-${item.stock > 0 ? 'success' : 'danger'}`} style={{ fontSize: '0.65rem' }}>
-                              {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <div className="d-flex align-items-center">
+                            <div className="me-1">
+                              {renderStars(item.rating)}
+                            </div>
+                            <small className="text-primary fw-bold" style={{ fontSize: '0.55rem' }}>
+                              ({item.reviews || 0})
                             </small>
-                          )}
+                          </div>
+                          
+                          {/* PROMINENT PRICE */}
+                          <div style={{ minWidth: '70px' }}>
+                            <div 
+                              className="fw-bold text-end card-price-responsive"
+                              style={{ 
+                                color: '#059669',
+                                // Mobile font size
+                                fontSize: '0.9rem',
+                                fontWeight: '800'
+                              }}
+                            >
+                              {formatPrice(item)}
+                            </div>
+                          </div>
                         </div>
+
+                        {/* BUSINESS AND LOCATION */}
+                        <div className="d-flex justify-content-between align-items-center card-details-responsive">
+                          <small className="text-muted" style={{ fontSize: '0.55rem' }}>
+                            <i className="fas fa-store me-1"></i>
+                            {item.businessName ? (item.businessName.length > 12 ? `${item.businessName.substring(0, 12)}...` : item.businessName) : (item.business ? (item.business.length > 12 ? `${item.business.substring(0, 12)}...` : item.business) : 'Shop')}
+                          </small>
+                          <small className="text-muted" style={{ fontSize: '0.55rem' }}>
+                            <i className="fas fa-map-marker-alt me-1"></i>
+                            {item.city || 'TZ'}
+                          </small>
+                        </div>
+
+                        {/* VIEW BUTTON */}
+                        <button 
+                          className="w-100 mt-1 card-button-responsive"
+                          style={{
+                            cursor: 'pointer',
+                            padding: '0.4rem',
+                            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                            // Mobile font size
+                            fontSize: '0.65rem',
+                            color: '#ffffff',
+                            border: '0',
+                            borderRadius: '12px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <i className="fas fa-eye me-1"></i>
+                          View Details
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Load More Button */}
+            {searchResults.length >= 15 && (
+              <div className="text-center mt-4">
+                <button 
+                  className="btn px-4 py-2"
+                  style={{
+                    cursor: 'pointer',
+                    background: 'rgb(240, 241, 245)',
+                    color: '#1f2937',
+                    border: '2px solid #d1d5db',
+                    borderRadius: '25px',
+                    fontWeight: '600',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  <i className="fas fa-sync-alt me-2"></i>
+                  Load More Results
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {/* Custom Styles */}
+      {/* Responsive CSS for Desktop */}
       <style jsx>{`
-        .product-card {
-          transition: all 0.3s ease;
-        }
-        .product-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
-        }
-        
-        .card {
-          border-radius: 10px !important;
-          overflow: hidden;
-        }
-        
-        .btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border: none;
-        }
-        
-        .btn-primary:hover {
-          background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-          transform: translateY(-1px);
-        }
-
-        @media (max-width: 576px) {
-          .container-fluid {
-            padding-left: 8px;
-            padding-right: 8px;
+        @media (min-width: 768px) {
+          .card-responsive {
+            height: 380px !important; /* Taller cards on desktop */
           }
           
-          .card-body {
+          .card-image-responsive {
+            height: 160px !important; /* Larger image area on desktop */
+          }
+          
+          .card-title-responsive {
+            font-size: 0.9rem !important; /* Larger title on desktop */
+            min-height: 2.2rem;
+          }
+          
+          .card-description-responsive {
+            font-size: 0.7rem !important; /* Slightly larger description */
+            min-height: 2.4rem;
+          }
+          
+          .card-price-responsive {
+            font-size: 1rem !important; /* Larger price on desktop */
+          }
+          
+          .card-button-responsive {
+            font-size: 0.75rem !important; /* Larger button text */
             padding: 0.5rem !important;
           }
           
-          .btn {
-            font-size: 0.75rem;
-          }
-          
-          .badge {
-            font-size: 0.6rem;
-          }
-          
-          .small {
-            font-size: 0.75rem;
-          }
-
-          .dropdown .btn {
-            font-size: 0.75rem;
-            padding: 0.375rem 0.75rem;
+          .card-content-responsive {
+            padding: 0.75rem !important; /* More padding on desktop */
           }
         }
-
-        @media (min-width: 768px) {
-          .row.g-3 {
-            margin-left: -0.5rem;
-            margin-right: -0.5rem;
+        
+        @media (min-width: 1024px) {
+          .card-responsive {
+            height: 400px !important; /* Even taller on larger screens */
           }
           
-          .row.g-3 > [class*="col-"] {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
+          .card-image-responsive {
+            height: 180px !important;
           }
         }
       `}</style>
     </div>
   );
-}
+};
 
 export default SearchResultsPage;
