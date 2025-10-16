@@ -1,4 +1,4 @@
-// src/ProductDetailPage.jsx - RESPONSIVE DESIGN FOR MOBILE & LAPTOP
+// src/ProductDetailPage.jsx - UPDATED WITH MESSAGES LINK
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
@@ -12,6 +12,7 @@ function ProductDetailPage() {
   const [error, setError] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [dataLastUpdated, setDataLastUpdated] = useState(null);
 
   // Countries and Currencies
   const countries = [
@@ -26,13 +27,11 @@ function ProductDetailPage() {
     { code: "ZA", name: "South Africa", currency: "ZAR", currencySymbol: "R", flag: "🇿🇦" }
   ];
 
-  // Load item data
-  const loadItemData = useCallback(async () => {
+  // CRITICAL FIX: Improved data loading with real-time updates
+  const loadAllItemsFromStorage = () => {
     try {
-      setLoading(true);
-      setError(null);
+      console.log("Loading all items for ProductDetailPage...");
       
-      // Load all items from localStorage
       const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
       let allItems = [];
 
@@ -62,16 +61,38 @@ function ProductDetailPage() {
         allItems = [...allItems, ...productsWithBusiness, ...servicesWithBusiness];
       });
 
+      console.log(`Total items loaded: ${allItems.length}`);
+      return allItems;
+    } catch (error) {
+      console.error("Error loading items from storage:", error);
+      return [];
+    }
+  };
+
+  // Load item data
+  const loadItemData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log(`Loading item data for ID: ${productId}`);
+      
+      // Load ALL items from localStorage (CRITICAL FIX)
+      const storedItems = loadAllItemsFromStorage();
+
       // Add comprehensive sample items
       const sampleItems = createSampleItems();
       
       // Combine all items
-      const combinedItems = [...sampleItems, ...allItems];
+      const combinedItems = [...sampleItems, ...storedItems];
+      
+      console.log(`Total combined items: ${combinedItems.length}`);
       
       // Find the requested item
       const foundItem = combinedItems.find(item => item.id === productId);
       
       if (foundItem) {
+        console.log(`Item found: ${foundItem.name}`);
         setItem(foundItem);
         
         // Find related items (same category)
@@ -81,10 +102,17 @@ function ProductDetailPage() {
             p.category === foundItem.category
           )
           .slice(0, 6);
+        
+        console.log(`Found ${related.length} related items`);
         setRelatedItems(related);
       } else {
+        console.log(`Item not found: ${productId}`);
         setError("Item not found");
       }
+
+      // Update data timestamp
+      setDataLastUpdated(localStorage.getItem('dataLastUpdated'));
+      
     } catch (error) {
       console.error("Error loading item:", error);
       setError("Failed to load item details");
@@ -300,13 +328,28 @@ function ProductDetailPage() {
     ];
   };
 
+  // CRITICAL FIX: Listen for data updates
+  useEffect(() => {
+    const checkForDataUpdates = () => {
+      const lastUpdate = localStorage.getItem('dataLastUpdated');
+      if (lastUpdate !== dataLastUpdated) {
+        console.log('Data update detected in ProductDetailPage, reloading...');
+        loadItemData();
+      }
+    };
+
+    // Check every 2 seconds for updates
+    const interval = setInterval(checkForDataUpdates, 2000);
+    return () => clearInterval(interval);
+  }, [dataLastUpdated, loadItemData]);
+
   useEffect(() => {
     loadItemData();
   }, [loadItemData]);
 
   const getItemImages = (item) => {
     if (item && item.images && item.images.length > 0) {
-      return item.images;
+      return item.images.filter(img => img && img.trim() !== "");
     }
     
     // Default images based on category
@@ -371,6 +414,30 @@ function ProductDetailPage() {
     } else {
       alert('Samahani, hakuna taarifa ya eneo inayopatikana kwa huduma hii. Tafadhali wasiliana na biashara moja kwa moja.');
     }
+  };
+
+  // NEW: Handle Messages Click
+  const handleMessagesClick = () => {
+    if (!item) return;
+    
+    // Save product info for chat
+    const chatData = {
+      productId: item.id,
+      productName: item.name,
+      productImage: getItemImages(item)[0],
+      businessName: item.businessName || item.business,
+      businessPhone: item.businessPhone,
+      price: item.type === 'service' ? item.priceRange : item.price,
+      currency: item.currencySymbol || '$',
+      category: item.category,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Save to localStorage for chat page
+    localStorage.setItem('currentChatProduct', JSON.stringify(chatData));
+    
+    // Navigate to chat page
+    navigate('/chat');
   };
 
   const renderStars = (rating) => {
@@ -526,7 +593,7 @@ function ProductDetailPage() {
         <div className="container">
           <Link className="navbar-brand fw-bold text-primary" to="/">
             <i className="fas fa-globe-americas me-2"></i>
-            ProductFinder
+            BisRun
           </Link>
           <div className="navbar-nav ms-auto">
             <button className="btn btn-outline-primary btn-sm" onClick={() => navigate('/search')}>
@@ -558,7 +625,7 @@ function ProductDetailPage() {
         <div className="row g-4">
           {/* Image Gallery - RESPONSIVE DESIGN */}
           <div className="col-lg-7 col-xl-8">
-            <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div className="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
               <div className="card-body p-0">
                 {/* Main Large Image - RESPONSIVE HEIGHT */}
                 <div 
@@ -644,6 +711,237 @@ function ProductDetailPage() {
                     </div>
                   </div>
                 )}
+
+                {/* NEW: Messages Section - Below Images */}
+                <div className="p-4 border-top">
+                  <div className="row align-items-center">
+                    <div className="col-md-8">
+                      <h5 className="fw-bold text-dark mb-2">
+                        <i className="fas fa-comments me-2 text-primary"></i>
+                        Interested in this item?
+                      </h5>
+                      <p className="text-muted mb-0">
+                        Chat directly with the business owner. Ask questions, negotiate prices, or request more details.
+                      </p>
+                    </div>
+                    <div className="col-md-4 text-md-end">
+                      <button 
+                        className="btn btn-success btn-lg px-4 py-3 rounded-pill fw-bold"
+                        onClick={handleMessagesClick}
+                        style={{
+                          background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                          border: 'none',
+                          boxShadow: '0 4px 15px rgba(40, 167, 69, 0.3)'
+                        }}
+                      >
+                        <i className="fas fa-paper-plane me-2"></i>
+                        Send Message
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Message Options */}
+                  <div className="row mt-3 g-2">
+                    <div className="col-6 col-md-3">
+                      <button 
+                        className="btn btn-outline-primary w-100 py-2 rounded-pill"
+                        onClick={handleMessagesClick}
+                      >
+                        <i className="fas fa-question-circle me-1"></i>
+                        Ask Question
+                      </button>
+                    </div>
+                    <div className="col-6 col-md-3">
+                      <button 
+                        className="btn btn-outline-warning w-100 py-2 rounded-pill"
+                        onClick={handleMessagesClick}
+                      >
+                        <i className="fas fa-tag me-1"></i>
+                        Negotiate Price
+                      </button>
+                    </div>
+                    <div className="col-6 col-md-3">
+                      <button 
+                        className="btn btn-outline-info w-100 py-2 rounded-pill"
+                        onClick={handleMessagesClick}
+                      >
+                        <i className="fas fa-images me-1"></i>
+                        More Photos
+                      </button>
+                    </div>
+                    <div className="col-6 col-md-3">
+                      <button 
+                        className="btn btn-outline-success w-100 py-2 rounded-pill"
+                        onClick={handleMessagesClick}
+                      >
+                        <i className="fas fa-shipping-fast me-1"></i>
+                        Delivery Info
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact & Location Section */}
+            <div className="card border-0 shadow-lg rounded-4">
+              <div className="card-header bg-white border-0 py-4">
+                <h5 className="fw-bold mb-0 d-flex align-items-center">
+                  <i className="fas fa-map-marker-alt me-3 text-primary"></i>
+                  Contact & Location Information
+                </h5>
+              </div>
+              <div className="card-body p-4">
+                <div className="row g-4">
+                  {/* Contact Information */}
+                  <div className="col-lg-6 col-12">
+                    <div className="card bg-light border-0 h-100">
+                      <div className="card-body">
+                        <h6 className="fw-bold mb-4 text-dark d-flex align-items-center">
+                          <i className="fas fa-address-card me-2 text-primary"></i>
+                          Contact Details
+                        </h6>
+                        
+                        <div className="mb-4">
+                          <div className="d-flex align-items-center mb-3">
+                            <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                              <i className="fas fa-store text-primary fa-lg"></i>
+                            </div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">Business Name</h6>
+                              <p className="text-muted mb-0">{item.businessName || item.business}</p>
+                            </div>
+                          </div>
+
+                          <div className="d-flex align-items-center mb-3">
+                            <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                              <i className="fas fa-phone text-success fa-lg"></i>
+                            </div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">Phone Number</h6>
+                              <p className="text-muted mb-0">{item.businessPhone || "+255 754 000 000"}</p>
+                            </div>
+                          </div>
+
+                          <div className="d-flex align-items-center mb-3">
+                            <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                              <i className="fas fa-envelope text-info fa-lg"></i>
+                            </div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">Email Address</h6>
+                              <p className="text-muted mb-0">{item.businessEmail || "info@business.com"}</p>
+                            </div>
+                          </div>
+
+                          <div className="d-flex align-items-center">
+                            <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                              <i className="fas fa-map-marker-alt text-warning fa-lg"></i>
+                            </div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">Physical Address</h6>
+                              <p className="text-muted mb-0">
+                                {item.businessAddress || item.address}, {item.city}, {item.region}, {item.country}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="d-grid gap-2">
+                          <button 
+                            className="btn btn-primary btn-lg py-3 fw-bold rounded-pill"
+                            onClick={handleContactBusiness}
+                          >
+                            <i className="fas fa-phone-alt me-2"></i>
+                            Call Now
+                          </button>
+                          <button 
+                            className="btn btn-outline-primary btn-lg py-3 fw-bold rounded-pill"
+                            onClick={() => {
+                              const phoneNumber = item.businessPhone || "+255754000000";
+                              window.open(`https://wa.me/${phoneNumber.replace(/\D/g, '')}`, '_blank');
+                            }}
+                          >
+                            <i className="fab fa-whatsapp me-2"></i>
+                            WhatsApp Business
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Map & Location */}
+                  <div className="col-lg-6 col-12">
+                    <div className="card border-0 h-100">
+                      <div className="card-body p-0 rounded-3 overflow-hidden">
+                        <h6 className="fw-bold mb-3 text-dark d-flex align-items-center px-3 pt-3">
+                          <i className="fas fa-map me-2 text-danger"></i>
+                          Location Map
+                        </h6>
+                        
+                        {/* Map Placeholder */}
+                        <div 
+                          className="bg-light d-flex align-items-center justify-content-center position-relative"
+                          style={{ height: '300px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                        >
+                          <div className="text-center text-white">
+                            <i className="fas fa-map-marked-alt fa-3x mb-3"></i>
+                            <h5 className="fw-bold mb-2">{item.city || item.region}, {item.country}</h5>
+                            <p className="mb-3 opacity-75">
+                              {item.businessAddress || item.address}
+                            </p>
+                            <button 
+                              className="btn btn-light btn-lg rounded-pill px-4"
+                              onClick={handleGetDirections}
+                            >
+                              <i className="fas fa-directions me-2"></i>
+                              Get Directions
+                            </button>
+                          </div>
+                          
+                          {/* Map Pin */}
+                          <div 
+                            className="position-absolute"
+                            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                          >
+                            <div className="bg-danger rounded-circle p-3 shadow-lg">
+                              <i className="fas fa-map-pin text-white fa-lg"></i>
+                            </div>
+                            <div className="position-absolute top-100 start-50 translate-middle-x mt-1">
+                              <div className="bg-danger" style={{ width: '2px', height: '30px' }}></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Location Details */}
+                        <div className="p-3 bg-light">
+                          <div className="row text-center g-3">
+                            <div className="col-4">
+                              <div className="bg-white rounded-3 p-3">
+                                <i className="fas fa-flag text-primary mb-2"></i>
+                                <h6 className="fw-bold mb-1 text-dark">Country</h6>
+                                <small className="text-muted">{item.country}</small>
+                              </div>
+                            </div>
+                            <div className="col-4">
+                              <div className="bg-white rounded-3 p-3">
+                                <i className="fas fa-city text-success mb-2"></i>
+                                <h6 className="fw-bold mb-1 text-dark">City</h6>
+                                <small className="text-muted">{item.city || "N/A"}</small>
+                              </div>
+                            </div>
+                            <div className="col-4">
+                              <div className="bg-white rounded-3 p-3">
+                                <i className="fas fa-compass text-warning mb-2"></i>
+                                <h6 className="fw-bold mb-1 text-dark">Region</h6>
+                                <small className="text-muted">{item.region || "N/A"}</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -756,6 +1054,19 @@ function ProductDetailPage() {
                   >
                     <i className="fas fa-map-marker-alt me-2"></i>
                     Get Directions
+                  </button>
+                  
+                  {/* NEW: Messages Button */}
+                  <button 
+                    className="btn btn-success btn-lg py-3 fw-bold rounded-pill"
+                    onClick={handleMessagesClick}
+                    style={{
+                      background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                      border: 'none'
+                    }}
+                  >
+                    <i className="fas fa-comments me-2"></i>
+                    Send Message
                   </button>
                 </div>
 

@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#007bff" />
     <title>BisRun - Find Products & Services Near You</title>
     
     <!-- Bootstrap CSS -->
@@ -14,6 +15,25 @@
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+      /* Reset zoom to 100% */
+      body {
+        zoom: 1 !important;
+        -moz-zoom: 1 !important;
+        -webkit-zoom: 1 !important;
+      }
+      
+      /* Prevent flash of unstyled content */
+      #root {
+        opacity: 0;
+        transition: opacity 0.3s ease-in;
+      }
+      
+      #root.loaded {
+        opacity: 1;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
@@ -23,5 +43,94 @@
     
     <!-- Main App Script -->
     <script type="module" src="/src/main.jsx"></script>
+    
+    <script>
+      // DETECT AND RESET BROWSER ZOOM LEVEL
+      let zoomCheckCount = 0;
+      const maxZoomChecks = 10;
+      
+      function checkAndResetZoom() {
+        if (zoomCheckCount >= maxZoomChecks) return;
+        zoomCheckCount++;
+        
+        // Detect current zoom level
+        const detectedZoom = Math.round((window.outerWidth / window.innerWidth) * 100);
+        
+        // If zoom is not 100%, reset it
+        if (detectedZoom !== 100) {
+          console.log(`BisRun: Detected zoom ${detectedZoom}%, resetting to 100%`);
+          
+          // Method 1: CSS zoom property
+          document.body.style.zoom = "1";
+          document.documentElement.style.zoom = "1";
+          
+          // Method 2: Transform scale
+          document.body.style.transform = "scale(1)";
+          document.body.style.transformOrigin = "0 0";
+          
+          // Method 3: Viewport scale
+          const viewport = document.querySelector('meta[name="viewport"]');
+          if (viewport) {
+            viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+          }
+          
+          // Force reflow
+          document.body.offsetHeight;
+        }
+        
+        // Continue checking if not yet at 100%
+        if (detectedZoom !== 100 && zoomCheckCount < maxZoomChecks) {
+          setTimeout(checkAndResetZoom, 300);
+        }
+      }
+      
+      // Start zoom monitoring after page load
+      window.addEventListener('load', function() {
+        setTimeout(checkAndResetZoom, 500);
+        // Mark app as loaded for fade-in effect
+        setTimeout(() => {
+          const root = document.getElementById('root');
+          if (root) root.classList.add('loaded');
+        }, 100);
+      });
+      
+      // Also check on resize
+      window.addEventListener('resize', function() {
+        setTimeout(checkAndResetZoom, 100);
+      });
+      
+      // Prevent zoom gestures
+      document.addEventListener('wheel', function(e) {
+        if (e.ctrlKey) {
+          e.preventDefault();
+          setTimeout(checkAndResetZoom, 50);
+          return false;
+        }
+      }, { passive: false });
+      
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '0')) {
+          e.preventDefault();
+          setTimeout(checkAndResetZoom, 50);
+          return false;
+        }
+      });
+      
+      // Touch event prevention for zoom
+      document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+      });
+      
+      document.addEventListener('gesturechange', function(e) {
+        e.preventDefault();
+      });
+      
+    </script>
   </body>
 </html>

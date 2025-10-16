@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - COMPLETE & WORKING VERSION WITH PROPER ROUTING
+// src/SearchResultsPage.jsx - FIXED VERSION WITH UPLOADED IMAGES SUPPORT
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
@@ -8,15 +8,15 @@ function SearchResultsPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [allItems, setAllItems] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
   const [sortBy, setSortBy] = useState("relevance");
   const [showSearchPage, setShowSearchPage] = useState(false);
+  const [dataLastUpdated, setDataLastUpdated] = useState(null);
 
-  // FUZZY SEARCH FUNCTIONS
+  // FUZZY SEARCH FUNCTIONS (same as before)
   const levenshteinDistance = (str1, str2) => {
     const track = Array(str2.length + 1).fill(null).map(() =>
       Array(str1.length + 1).fill(null));
@@ -114,16 +114,21 @@ function SearchResultsPage() {
     return { match: false, score: 0 };
   };
 
-  // Load all items from localStorage and sample data
+  // CRITICAL FIX: Improved data loading with uploaded images support
   const loadAllItems = useCallback(() => {
     try {
+      console.log("Loading all items from storage...");
+      
       const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
       let storedProducts = [];
       let storedServices = [];
       
+      // Load items from all businesses
       allBusinesses.forEach(business => {
         const businessProducts = JSON.parse(localStorage.getItem(`products_${business.id}`)) || [];
         const businessServices = JSON.parse(localStorage.getItem(`services_${business.id}`)) || [];
+        
+        console.log(`Business: ${business.businessName}, Products: ${businessProducts.length}, Services: ${businessServices.length}`);
         
         const productsWithBusiness = businessProducts.map(product => ({
           ...product,
@@ -146,6 +151,9 @@ function SearchResultsPage() {
         storedProducts = [...storedProducts, ...productsWithBusiness];
         storedServices = [...storedServices, ...servicesWithBusiness];
       });
+
+      console.log(`Total stored products: ${storedProducts.length}`);
+      console.log(`Total stored services: ${storedServices.length}`);
 
       // Comprehensive sample data
       const sampleElectronics = [
@@ -173,32 +181,6 @@ function SearchResultsPage() {
           requiresSpecifications: true,
           rating: 4.5,
           reviews: 23,
-          type: "product"
-        },
-        {
-          id: "elec-2",
-          name: "iPhone 15 Pro Max",
-          category: "Electronics & Devices",
-          price: 2500000,
-          currency: "TZS",
-          currencySymbol: "TSh",
-          stock: 3,
-          business: "MobileWorld Tanzania",
-          location: { lat: -6.8184, lng: 39.2883 },
-          address: "Mlimani City Mall, Dar es Salaam",
-          country: "Tanzania",
-          region: "Dar es Salaam",
-          city: "Dar es Salaam",
-          images: ["https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=300"],
-          lastUpdated: "2024-01-14",
-          description: "Latest iPhone with titanium design and advanced camera system",
-          specifications: ["Display: 6.7-inch Super Retina XDR", "Chip: A17 Pro", "Storage: 256GB"],
-          features: ["Titanium Design", "48MP Camera", "5G Connectivity"],
-          brand: "Apple",
-          condition: "new",
-          requiresSpecifications: true,
-          rating: 4.8,
-          reviews: 15,
           type: "product"
         }
       ];
@@ -301,6 +283,7 @@ function SearchResultsPage() {
         ...storedServices
       ];
 
+      console.log(`Total combined items: ${allItems.length}`);
       setAllItems(allItems);
       return allItems;
     } catch (error) {
@@ -357,6 +340,8 @@ function SearchResultsPage() {
   const performSearch = useCallback((query, items) => {
     if (!query.trim()) return items;
 
+    console.log(`Performing search for: "${query}" on ${items.length} items`);
+    
     const filtered = items.map(item => {
       const searchableText = `
         ${item.name || ''}
@@ -378,6 +363,7 @@ function SearchResultsPage() {
       };
     }).filter(item => item.searchScore > 0);
 
+    console.log(`Found ${filtered.length} results for "${query}"`);
     return filtered.sort((a, b) => b.searchScore - a.searchScore);
   }, []);
 
@@ -403,33 +389,54 @@ function SearchResultsPage() {
     }
   }, []);
 
-  // Initialize search
+  // CRITICAL FIX: Listen for data updates
   useEffect(() => {
-    const initializeSearch = async () => {
-      setIsLoading(true);
-      
-      try {
-        const items = await loadAllItems();
-        loadRecentSearches();
-        
-        const searchParams = new URLSearchParams(location.search);
-        const query = searchParams.get('q') || '';
-        setSearchQuery(query);
-        
-        let results = performSearch(query, items);
-        results = sortResults(results, sortBy);
-        
-        setSearchResults(results);
-      } catch (error) {
-        console.error("Search initialization error:", error);
-        setSearchResults([]);
-      } finally {
-        setIsLoading(false);
+    const checkForDataUpdates = () => {
+      const lastUpdate = localStorage.getItem('dataLastUpdated');
+      if (lastUpdate !== dataLastUpdated) {
+        console.log('Data update detected in SearchResults, reloading...');
+        initializeSearch();
       }
     };
 
-    initializeSearch();
+    // Check every 2 seconds for updates
+    const interval = setInterval(checkForDataUpdates, 2000);
+    return () => clearInterval(interval);
+  }, [dataLastUpdated]);
+
+  // Initialize search
+  const initializeSearch = useCallback(async () => {
+    setIsLoading(true);
+    
+    try {
+      console.log("Initializing search...");
+      const items = await loadAllItems();
+      loadRecentSearches();
+      
+      const searchParams = new URLSearchParams(location.search);
+      const query = searchParams.get('q') || '';
+      setSearchQuery(query);
+      
+      let results = performSearch(query, items);
+      results = sortResults(results, sortBy);
+      
+      // LIMIT TO 7 RESULTS ONLY
+      setSearchResults(results.slice(0, 7));
+      
+      // Update data timestamp
+      setDataLastUpdated(localStorage.getItem('dataLastUpdated'));
+      
+    } catch (error) {
+      console.error("Search initialization error:", error);
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [location.search, loadAllItems, performSearch, sortResults, sortBy, loadRecentSearches]);
+
+  useEffect(() => {
+    initializeSearch();
+  }, [initializeSearch]);
 
   // Handle search input change
   const handleSearchInputChange = (e) => {
@@ -498,10 +505,22 @@ function SearchResultsPage() {
     }
   };
 
+  // CRITICAL FIX: Improved image handling for uploaded images
   const getItemImage = (item) => {
     if (item.images && item.images.length > 0) {
-      return item.images[0];
+      // Check if it's a base64 uploaded image or URL
+      const firstImage = item.images[0];
+      
+      if (typeof firstImage === 'string' && firstImage.startsWith('data:image')) {
+        // It's a base64 uploaded image
+        return firstImage;
+      } else if (typeof firstImage === 'string') {
+        // It's a URL
+        return firstImage;
+      }
     }
+    
+    // Default fallback image
     return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
   };
 
@@ -516,16 +535,12 @@ function SearchResultsPage() {
     ));
   };
 
-  const toggleViewMode = () => {
-    setViewMode(prevMode => prevMode === 'grid' ? 'list' : 'grid');
-  };
-
   const handleClearSearch = () => {
     setSearchQuery("");
     navigate('/search-results');
   };
 
-  // Search Page Component
+  // Search Page Component (same as before)
   const SearchPage = () => {
     return (
       <div className="min-vh-100 bg-white" style={{ zIndex: 1040, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
@@ -735,11 +750,7 @@ function SearchResultsPage() {
               )}
             </div>
             
-            <div className="col-auto">
-              <span className="badge bg-primary fs-6">
-                {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'}
-              </span>
-            </div>
+            {/* REMOVED ITEM COUNT BADGE */}
           </div>
         </div>
       </div>
@@ -774,18 +785,12 @@ function SearchResultsPage() {
           </div>
         ) : (
           <>
-            {/* Search Summary and Controls */}
+            {/* Search Summary and Controls - REMOVED SEARCH QUERY TEXT */}
             <div className="row mb-4">
               <div className="col-12">
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                   <div>
-                    <h5 className="text-dark fw-bold mb-1">
-                      Showing {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'}
-                      {searchResults.some(item => item.isFuzzyMatch) && " (showing similar matches)"}
-                    </h5>
-                    {searchQuery && (
-                      <p className="text-muted mb-0">for "<strong>{searchQuery}</strong>"</p>
-                    )}
+                    {/* EMPTY - NO SEARCH QUERY DISPLAY */}
                   </div>
                   
                   <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -804,48 +809,89 @@ function SearchResultsPage() {
                         <li><button className="dropdown-item" onClick={() => handleSortChange({target: {value: 'rating'}})}>Highest Rating</button></li>
                       </ul>
                     </div>
-
-                    {/* View Mode Toggle */}
-                    <div className="btn-group view-mode-toggle" role="group">
-                      <button
-                        type="button"
-                        className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'} d-flex align-items-center gap-2`}
-                        onClick={() => setViewMode('grid')}
-                        title="Grid View"
-                        style={{ 
-                          padding: '0.5rem 1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '500'
-                        }}
-                      >
-                        <i className="fas fa-th"></i>
-                        <span>Grid</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'} d-flex align-items-center gap-2`}
-                        onClick={() => setViewMode('list')}
-                        title="List View"
-                        style={{ 
-                          padding: '0.5rem 1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '500'
-                        }}
-                      >
-                        <i className="fas fa-list"></i>
-                        <span>List</span>
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Results Grid/List */}
-            <div className={`row ${viewMode === 'grid' ? 'g-3' : 'g-3'}`}>
-              {searchResults.map((item, index) => 
-                viewMode === 'grid' ? renderGridView(item) : renderListView(item, index)
-              )}
+            {/* Results Grid */}
+            <div className="row g-3">
+              {searchResults.map((item) => (
+                <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
+                  <div 
+                    className="card h-100 border-0 shadow-sm product-card"
+                    onClick={() => handleViewDetails(item.id)}
+                    style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                  >
+                    <div className="position-relative overflow-hidden">
+                      {/* CRITICAL FIX: Improved image display with border */}
+                      <img
+                        src={getItemImage(item)}
+                        className="card-img-top"
+                        alt={item.name}
+                        style={{ 
+                          height: '120px', 
+                          objectFit: 'cover',
+                          width: '100%',
+                          border: '2px solid #f8f9fa',
+                          borderRadius: '8px 8px 0 0'
+                        }}
+                        onError={(e) => {
+                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
+                        }}
+                      />
+                      
+                      <div className="position-absolute top-0 end-0 m-2">
+                        <span className={`badge ${getCategoryBadge(item.category)} text-white`}>
+                          {item.category}
+                        </span>
+                      </div>
+                      
+                      {item.isFuzzyMatch && (
+                        <div className="position-absolute top-0 start-0 m-2">
+                          <span className="badge bg-warning text-dark">
+                            <i className="fas fa-lightbulb me-1"></i>
+                            Similar
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="card-body d-flex flex-column p-2">
+                      <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.8rem' }}>
+                        {item.name}
+                      </h6>
+                      
+                      <p className="card-text text-muted small mb-1" style={{ fontSize: '0.7rem' }}>
+                        {item.businessName || item.business}
+                      </p>
+                      
+                      <div className="d-flex align-items-center mb-1">
+                        <div className="me-1">
+                          {renderStars(item.rating)}
+                        </div>
+                        <small className="text-muted ms-1" style={{ fontSize: '0.65rem' }}>
+                          ({item.reviews || 0})
+                        </small>
+                      </div>
+                      
+                      <div className="mt-auto">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="fw-bold text-primary" style={{ fontSize: '0.85rem' }}>
+                            {formatPrice(item)}
+                          </span>
+                          
+                          {item.type === 'product' && item.stock && (
+                            <small className={`text-${item.stock > 0 ? 'success' : 'danger'}`} style={{ fontSize: '0.65rem' }}>
+                              {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
+                            </small>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </>
         )}
@@ -876,29 +922,6 @@ function SearchResultsPage() {
           transform: translateY(-1px);
         }
 
-        .view-mode-toggle .btn {
-          transition: all 0.3s ease;
-          border-radius: 8px !important;
-        }
-        
-        .view-mode-toggle .btn:first-child {
-          border-top-right-radius: 0 !important;
-          border-bottom-right-radius: 0 !important;
-        }
-        
-        .view-mode-toggle .btn:last-child {
-          border-top-left-radius: 0 !important;
-          border-bottom-left-radius: 0 !important;
-        }
-        
-        .view-mode-toggle .btn:hover {
-          transform: translateY(-1px);
-        }
-        
-        .view-mode-toggle .btn-primary {
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-
         @media (max-width: 576px) {
           .container-fluid {
             padding-left: 8px;
@@ -920,19 +943,6 @@ function SearchResultsPage() {
           .small {
             font-size: 0.75rem;
           }
-          
-          .view-mode-toggle .btn {
-            padding: 0.375rem 0.75rem !important;
-            font-size: 0.75rem !important;
-          }
-          
-          .view-mode-toggle .btn span {
-            display: none;
-          }
-          
-          .view-mode-toggle .btn i {
-            margin-right: 0 !important;
-          }
 
           .dropdown .btn {
             font-size: 0.75rem;
@@ -950,195 +960,10 @@ function SearchResultsPage() {
             padding-left: 0.5rem;
             padding-right: 0.5rem;
           }
-          
-          .view-mode-toggle .btn span {
-            display: inline;
-          }
         }
       `}</style>
     </div>
   );
-
-  // Helper functions for rendering items
-  function renderGridView(item) {
-    return (
-      <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
-        <div 
-          className="card h-100 border-0 shadow-sm product-card"
-          onClick={() => handleViewDetails(item.id)}
-          style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-        >
-          <div className="position-relative overflow-hidden">
-            <img
-              src={getItemImage(item)}
-              className="card-img-top"
-              alt={item.name}
-              style={{ 
-                height: '120px', 
-                objectFit: 'cover',
-                width: '100%'
-              }}
-              onError={(e) => {
-                e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
-              }}
-            />
-            
-            <div className="position-absolute top-0 end-0 m-2">
-              <span className={`badge ${getCategoryBadge(item.category)} text-white`}>
-                {item.category}
-              </span>
-            </div>
-            
-            {item.isFuzzyMatch && (
-              <div className="position-absolute top-0 start-0 m-2">
-                <span className="badge bg-warning text-dark">
-                  <i className="fas fa-lightbulb me-1"></i>
-                  Similar
-                </span>
-              </div>
-            )}
-          </div>
-          
-          <div className="card-body d-flex flex-column p-2">
-            <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.8rem' }}>
-              {item.name}
-            </h6>
-            
-            <p className="card-text text-muted small mb-1" style={{ fontSize: '0.7rem' }}>
-              {item.businessName || item.business}
-            </p>
-            
-            <div className="d-flex align-items-center mb-1">
-              <div className="me-1">
-                {renderStars(item.rating)}
-              </div>
-              <small className="text-muted ms-1" style={{ fontSize: '0.65rem' }}>
-                ({item.reviews || 0})
-              </small>
-            </div>
-            
-            <div className="mt-auto">
-              <div className="d-flex justify-content-between align-items-center">
-                <span className="fw-bold text-primary" style={{ fontSize: '0.85rem' }}>
-                  {formatPrice(item)}
-                </span>
-                
-                {item.type === 'product' && item.stock && (
-                  <small className={`text-${item.stock > 0 ? 'success' : 'danger'}`} style={{ fontSize: '0.65rem' }}>
-                    {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
-                  </small>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  function renderListView(item, index) {
-    return (
-      <div key={item.id} className="col-12">
-        <div 
-          className="card border-0 shadow-sm mb-2 product-card"
-          onClick={() => handleViewDetails(item.id)}
-          style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-        >
-          <div className="row g-0">
-            <div className="col-4 col-md-3 col-lg-2">
-              <img
-                src={getItemImage(item)}
-                className="img-fluid rounded-start"
-                alt={item.name}
-                style={{ 
-                  height: '120px', 
-                  objectFit: 'cover',
-                  width: '100%'
-                }}
-                onError={(e) => {
-                  e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=300';
-                }}
-              />
-            </div>
-            
-            <div className="col-8 col-md-9 col-lg-10">
-              <div className="card-body d-flex flex-column h-100 p-3">
-                <div className="d-flex justify-content-between align-items-start mb-1">
-                  <div className="flex-grow-1">
-                    <h6 className="card-title text-dark fw-bold mb-1">
-                      {item.name}
-                    </h6>
-                    
-                    <div className="d-flex align-items-center flex-wrap gap-2 mb-1">
-                      <span className={`badge ${getCategoryBadge(item.category)} text-white`}>
-                        {item.category}
-                      </span>
-                      
-                      {item.isFuzzyMatch && (
-                        <span className="badge bg-warning text-dark">
-                          <i className="fas fa-lightbulb me-1"></i>
-                          Similar Match
-                        </span>
-                      )}
-                      
-                      <span className="text-muted small">
-                        {item.businessName || item.business}
-                      </span>
-                    </div>
-                    
-                    <p className="card-text text-muted small mb-2 d-none d-md-block">
-                      {item.description?.substring(0, 100)}...
-                    </p>
-                  </div>
-                  
-                  <div className="text-end ms-2">
-                    <div className="fw-bold text-primary h6 mb-1">
-                      {formatPrice(item)}
-                    </div>
-                    
-                    <div className="d-flex align-items-center justify-content-end mb-1">
-                      <div className="me-1">
-                        {renderStars(item.rating)}
-                      </div>
-                      <small className="text-muted ms-1">
-                        ({item.reviews || 0})
-                      </small>
-                    </div>
-                    
-                    {item.type === 'product' && item.stock && (
-                      <small className={`text-${item.stock > 0 ? 'success' : 'danger'}`}>
-                        {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
-                      </small>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="mt-auto d-flex justify-content-between align-items-center">
-                  <div className="d-flex gap-2 flex-wrap">
-                    {item.features && item.features.slice(0, 3).map((feature, idx) => (
-                      <span key={idx} className="badge bg-light text-dark border small">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <button 
-                    className="btn btn-primary btn-sm rounded-pill px-3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewDetails(item.id);
-                    }}
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 }
 
 export default SearchResultsPage;

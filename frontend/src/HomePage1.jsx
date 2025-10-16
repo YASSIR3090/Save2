@@ -1,11 +1,8 @@
-// src/HomePage1.jsx - VERSION WITH LANGUAGE SELECTOR
+// src/HomePage1.jsx - FIXED VERSION WITH PROPER DATA CONNECTION
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
 import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-
-// IMPORT BISRUN LOGO
-import BisRunLogo from './BisRun.png';
 
 function HomePage1() {
   const [featuredItems, setFeaturedItems] = useState([]);
@@ -28,11 +25,8 @@ function HomePage1() {
   const [recentSearches, setRecentSearches] = useState([]);
   const [currentLanguage, setCurrentLanguage] = useState("ENG");
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [dataLastUpdated, setDataLastUpdated] = useState(null);
 
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Languages data
   const languages = [
     { code: "ENG", name: "English", flag: "🇺🇸" },
     { code: "SWA", name: "Kiswahili", flag: "🇹🇿" },
@@ -102,7 +96,6 @@ function HomePage1() {
   const handleLanguageChange = (languageCode) => {
     setCurrentLanguage(languageCode);
     setShowLanguageDropdown(false);
-    // Here you would typically update the entire app's language
     console.log("Language changed to:", languageCode);
   };
 
@@ -236,15 +229,9 @@ function HomePage1() {
     }
   };
 
-  // Load featured items and categories
-  const loadHomeData = useCallback(async () => {
+  // CRITICAL FIX: Improved data loading with real-time updates
+  const loadAllItemsFromStorage = () => {
     try {
-      setIsLoading(true);
-      
-      // Set categories
-      setCategories(categoryData);
-
-      // Load featured items from localStorage and sample data
       const allBusinesses = JSON.parse(localStorage.getItem('verifiedBusinesses')) || [];
       let allItems = [];
 
@@ -256,19 +243,39 @@ function HomePage1() {
         const productsWithBusiness = businessProducts.map(product => ({
           ...product,
           businessName: business.businessName,
-          type: "product"
+          type: "product",
+          featured: product.featured || false
         }));
         
         const servicesWithBusiness = businessServices.map(service => ({
           ...service,
           businessName: business.businessName,
-          type: "service"
+          type: "service",
+          featured: service.featured || false
         }));
         
         allItems = [...allItems, ...productsWithBusiness, ...servicesWithBusiness];
       });
 
-      // Comprehensive sample data
+      return allItems;
+    } catch (error) {
+      console.error("Error loading items from storage:", error);
+      return [];
+    }
+  };
+
+  // Load featured items and categories
+  const loadHomeData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Set categories
+      setCategories(categoryData);
+
+      // Load ALL items from localStorage (CRITICAL FIX)
+      const storedItems = loadAllItemsFromStorage();
+
+      // Comprehensive sample data (fallback)
       const sampleItems = [
         {
           id: "elec-1",
@@ -391,11 +398,25 @@ function HomePage1() {
         }
       ];
 
-      // Combine and select featured items
-      const combinedItems = [...sampleItems, ...allItems];
-      const featured = combinedItems.filter(item => item.featured).slice(0, 12);
+      // Combine stored items with sample items
+      const combinedItems = [...storedItems, ...sampleItems];
+      
+      // Select featured items (prioritize stored items)
+      const featured = combinedItems
+        .filter(item => item.featured)
+        .sort((a, b) => {
+          // Prioritize stored items over sample items
+          if (a.id.includes('elec-') || a.id.includes('gen-') || a.id.includes('hotel-') || a.id.includes('veh-')) {
+            return 1; // Sample items go to end
+          }
+          return -1; // Stored items come first
+        })
+        .slice(0, 12);
 
       setFeaturedItems(featured);
+      
+      // Update data timestamp
+      setDataLastUpdated(localStorage.getItem('dataLastUpdated'));
 
     } catch (error) {
       console.error("Error loading home data:", error);
@@ -433,12 +454,7 @@ function HomePage1() {
     }
   };
 
-  useEffect(() => {
-    loadHomeData();
-    getUserLocation();
-    loadRecentSearches();
-  }, [loadHomeData]);
-
+  // Load recent searches from localStorage
   const loadRecentSearches = () => {
     try {
       const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
@@ -448,11 +464,99 @@ function HomePage1() {
     }
   };
 
+  // Save search to recent searches
+  const saveToRecentSearches = (query) => {
+    try {
+      const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+      // Remove if already exists
+      const filtered = recent.filter(item => item.toLowerCase() !== query.toLowerCase());
+      // Add to beginning
+      filtered.unshift(query);
+      // Keep only last 10 searches
+      const updated = filtered.slice(0, 10);
+      localStorage.setItem('recentSearches', JSON.stringify(updated));
+      setRecentSearches(updated.slice(0, 5));
+    } catch (error) {
+      console.error("Error saving recent search:", error);
+    }
+  };
+
+  // Generate search suggestions based on products and categories
+  const generateSearchSuggestions = (query) => {
+    if (!query.trim()) return [];
+
+    const queryLower = query.toLowerCase();
+    const suggestions = new Set();
+
+    // Add recent searches that match
+    recentSearches.forEach(search => {
+      if (search.toLowerCase().includes(queryLower)) {
+        suggestions.add(search);
+      }
+    });
+
+    // Add categories that match
+    categories.forEach(category => {
+      if (category.name.toLowerCase().includes(queryLower)) {
+        suggestions.add(category.name);
+      }
+    });
+
+    // Add product names from featured items that match
+    featuredItems.forEach(item => {
+      if (item.name.toLowerCase().includes(queryLower)) {
+        suggestions.add(item.name);
+      }
+      if (item.business?.toLowerCase().includes(queryLower)) {
+        suggestions.add(item.business);
+      }
+    });
+
+    // Add common search terms
+    const commonTerms = [
+      "laptop", "phone", "hotel", "car", "shoes", "clothing",
+      "electronics", "restaurant", "apartment", "house", "land",
+      "motorcycle", "bicycle", "furniture", "jewelry", "watch",
+      "camera", "television", "refrigerator", "air conditioner"
+    ];
+
+    commonTerms.forEach(term => {
+      if (term.includes(queryLower) && queryLower.length >= 2) {
+        suggestions.add(term.charAt(0).toUpperCase() + term.slice(1));
+      }
+    });
+
+    return Array.from(suggestions).slice(0, 8);
+  };
+
+  // CRITICAL FIX: Listen for data updates
+  useEffect(() => {
+    const checkForDataUpdates = () => {
+      const lastUpdate = localStorage.getItem('dataLastUpdated');
+      if (lastUpdate !== dataLastUpdated) {
+        console.log('Data updated detected, reloading...');
+        loadHomeData();
+      }
+    };
+
+    // Check every 2 seconds for updates
+    const interval = setInterval(checkForDataUpdates, 2000);
+    return () => clearInterval(interval);
+  }, [dataLastUpdated, loadHomeData]);
+
+  useEffect(() => {
+    loadHomeData();
+    getUserLocation();
+    loadRecentSearches();
+  }, [loadHomeData]);
+
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      saveToRecentSearches(searchQuery.trim());
       navigate(`/search-results?q=${encodeURIComponent(searchQuery)}`);
+      setShowSuggestions(false);
     }
   };
 
@@ -462,22 +566,40 @@ function HomePage1() {
     setSearchQuery(value);
     
     if (value.trim() !== "") {
-      // Simple search suggestions
-      const suggestions = recentSearches.filter(search => 
-        search.toLowerCase().includes(value.toLowerCase())
-      ).slice(0, 5);
+      const suggestions = generateSearchSuggestions(value);
       setSearchSuggestions(suggestions);
-      setShowSuggestions(true);
+      setShowSuggestions(suggestions.length > 0);
     } else {
       setShowSuggestions(false);
+      setSearchSuggestions([]);
+    }
+  };
+
+  // Handle search input focus
+  const handleSearchInputFocus = () => {
+    if (searchQuery.trim() !== "") {
+      const suggestions = generateSearchSuggestions(searchQuery);
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0);
+    } else if (recentSearches.length > 0) {
+      setSearchSuggestions(recentSearches);
+      setShowSuggestions(true);
     }
   };
 
   // Handle search suggestion click
   const handleSuggestionClick = (suggestion) => {
     setSearchQuery(suggestion);
+    saveToRecentSearches(suggestion);
     setShowSuggestions(false);
     navigate(`/search-results?q=${encodeURIComponent(suggestion)}`);
+  };
+
+  // Handle clear recent searches
+  const handleClearRecentSearches = () => {
+    localStorage.removeItem('recentSearches');
+    setRecentSearches([]);
+    setSearchSuggestions([]);
   };
 
   // Handle category click
@@ -714,7 +836,7 @@ function HomePage1() {
                           <>
                             <div className="spinner-border spinner-border-sm me-2" role="status"></div>
                             {authMode === "signin" ? "Signing In..." : "Creating Account..."}
-                          </>
+                        </>
                         ) : (
                           authMode === "signin" ? "Sign In" : "Create Account"
                         )}
@@ -787,6 +909,9 @@ function HomePage1() {
     );
   };
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <div className="min-vh-100 bg-white">
       <AuthModal />
@@ -795,18 +920,25 @@ function HomePage1() {
       <div className="bg-white border-bottom py-2 py-md-3">
         <div className="container">
           <div className="d-flex justify-content-between align-items-center flex-nowrap">
-            {/* Logo - Left */}
+            {/* Logo - Simple Text Only */}
             <div className="d-flex align-items-center flex-shrink-0">
-              <Link className="navbar-brand fw-bold text-primary" to="/">
-                <img 
-                  src={BisRunLogo} 
-                  alt="BisRun Logo" 
+              <div className="d-flex align-items-center">
+                <span 
+                  className="fw-bold text-primary"
                   style={{ 
-                    height: '35px',
-                    width: 'auto'
+                    fontSize: '2rem',
+                    letterSpacing: '-1px',
+                    fontFamily: 'Arial, sans-serif',
+                    fontWeight: '800',
+                    cursor: 'default',
+                    background: 'none',
+                    border: 'none',
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
                   }}
-                />
-              </Link>
+                >
+                  BisRun
+                </span>
+              </div>
             </div>
             
             {/* Search Bar - Center - Takes available space */}
@@ -819,6 +951,7 @@ function HomePage1() {
                     placeholder="Search products, services..."
                     value={searchQuery}
                     onChange={handleSearchInputChange}
+                    onFocus={handleSearchInputFocus}
                     style={{ 
                       borderRadius: '20px 0 0 20px',
                       border: '2px solid #e9ecef',
@@ -841,20 +974,73 @@ function HomePage1() {
                 </div>
 
                 {/* Search Suggestions */}
-                {showSuggestions && searchSuggestions.length > 0 && (
+                {showSuggestions && (
                   <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
-                    <div className="bg-white border rounded-3 shadow-lg">
-                      {searchSuggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          className="btn btn-light w-100 text-start p-2 border-bottom"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          style={{ border: 'none', borderRadius: '0' }}
-                        >
-                          <i className="fas fa-search me-2 text-muted"></i>
-                          {suggestion}
-                        </button>
-                      ))}
+                    <div className="bg-white border rounded-3 shadow-lg overflow-hidden">
+                      {/* Recent Searches Section */}
+                      {searchQuery === "" && recentSearches.length > 0 && (
+                        <>
+                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                            <div className="d-flex justify-content-between align-items-center">
+                              <small className="text-muted fw-bold">RECENT SEARCHES</small>
+                              <button 
+                                className="btn btn-link p-0 text-danger text-decoration-none"
+                                onClick={handleClearRecentSearches}
+                                style={{ fontSize: '11px' }}
+                              >
+                                Clear all
+                              </button>
+                            </div>
+                          </div>
+                          {recentSearches.map((search, index) => (
+                            <button
+                              key={`recent-${index}`}
+                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                              onClick={() => handleSuggestionClick(search)}
+                              style={{ 
+                                border: 'none', 
+                                borderRadius: '0',
+                                fontSize: '14px'
+                              }}
+                            >
+                              <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
+                              {search}
+                            </button>
+                          ))}
+                        </>
+                      )}
+                      
+                      {/* Search Suggestions Section */}
+                      {searchQuery !== "" && searchSuggestions.length > 0 && (
+                        <>
+                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                            <small className="text-muted fw-bold">SUGGESTIONS</small>
+                          </div>
+                          {searchSuggestions.map((suggestion, index) => (
+                            <button
+                              key={`suggestion-${index}`}
+                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                              onClick={() => handleSuggestionClick(suggestion)}
+                              style={{ 
+                                border: 'none', 
+                                borderRadius: '0',
+                                fontSize: '14px'
+                              }}
+                            >
+                              <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
+                              {suggestion}
+                            </button>
+                          ))}
+                        </>
+                      )}
+
+                      {/* No Results Message */}
+                      {searchQuery !== "" && searchSuggestions.length === 0 && (
+                        <div className="p-3 text-center text-muted">
+                          <i className="fas fa-search me-2"></i>
+                          No suggestions found for "{searchQuery}"
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1044,204 +1230,204 @@ function HomePage1() {
           </div>
         </section>
 
-       {/* Featured Products Section - No Borders */}
-<section className="py-4 py-md-5 bg-light">
-  <div className="container">
-    <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-      <div>
-        <h3 className="fw-bold mb-1 mb-md-2">Featured Products</h3>
-        <p className="text-muted d-none d-md-block">Handpicked items you'll love</p>
-      </div>
-      <Link to="/search-results" className="btn btn-outline-primary btn-sm">
-        View All <i className="fas fa-arrow-right ms-1"></i>
-      </Link>
-    </div>
-
-    {isLoading ? (
-      <div className="text-center py-4">
-        <div className="spinner-border text-primary mb-3"></div>
-        <p>Loading featured items...</p>
-      </div>
-    ) : (
-      <div className="position-relative">
-        <div className="d-flex overflow-auto pb-3" style={{ scrollbarWidth: 'thin', msOverflowStyle: 'none' }}>
-          <div className="d-flex flex-nowrap gap-3">
-            {featuredItems.map((item) => (
-              <div 
-                key={item.id} 
-                className="bg-white rounded-4 overflow-hidden"
-                style={{ 
-                  width: '280px', 
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-                }}
-                onClick={() => handleFeaturedItemClick(item.id)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = '0 12px 35px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-                }}
-              >
-                <div className="position-relative">
-                  <img
-                    src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                    className="w-100"
-                    alt={item.name}
-                    style={{ 
-                      height: '200px', 
-                      objectFit: 'cover',
-                      objectPosition: 'center'
-                    }}
-                    onError={(e) => {
-                      e.target.src = 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600';
-                    }}
-                  />
-                  <div className="position-absolute top-0 end-0 m-2">
-                    <span className="badge bg-warning text-dark px-3 py-2 rounded-pill">
-                      <i className="fas fa-star me-1"></i>
-                      Featured
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="p-3">
-                  <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem', lineHeight: '1.3' }}>
-                    {item.name}
-                  </h6>
-                  
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <span className="fw-bold text-primary fs-5">
-                      {formatPrice(item)}
-                    </span>
-                    <div className="d-flex align-items-center">
-                      {renderStars(item.rating)}
-                      <small className="text-muted ms-1">({item.reviews || 0})</small>
-                    </div>
-                  </div>
-                  
-                  <div className="d-flex justify-content-between align-items-center">
-                    <small className="text-muted">
-                      <i className="fas fa-store me-1 text-primary"></i>
-                      {item.businessName || item.business}
-                    </small>
-                    <small className="text-muted">
-                      {getCountryFlag(item.country)}
-                    </small>
-                  </div>
-                </div>
+        {/* Featured Products Section */}
+        <section className="py-4 py-md-5 bg-light">
+          <div className="container">
+            <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
+              <div>
+                <h3 className="fw-bold mb-1 mb-md-2">Featured Products</h3>
+                <p className="text-muted d-none d-md-block">Handpicked items you'll love</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-</section>
+              <Link to="/search-results" className="btn btn-outline-primary btn-sm">
+                View All <i className="fas fa-arrow-right ms-1"></i>
+              </Link>
+            </div>
 
-{/* All Products Grid Section - No Borders */}
-<section className="py-4 py-md-5">
-  <div className="container">
-    <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-      <div>
-        <h3 className="fw-bold mb-1 mb-md-2">All Products</h3>
-        <p className="text-muted d-none d-md-block">Browse our complete collection</p>
-      </div>
-      <div className="d-flex gap-2">
-        <button className="btn btn-outline-primary btn-sm">
-          <i className="fas fa-filter me-1"></i>
-          Filter
-        </button>
-        <button className="btn btn-outline-primary btn-sm">
-          <i className="fas fa-sort me-1"></i>
-          Sort
-        </button>
-      </div>
-    </div>
-
-    {isLoading ? (
-      <div className="text-center py-4">
-        <div className="spinner-border text-primary mb-3"></div>
-        <p>Loading products...</p>
-      </div>
-    ) : (
-      <div className="row g-3">
-        {featuredItems.map((item) => (
-          <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div 
-              className="bg-white rounded-3 overflow-hidden h-100"
-              onClick={() => handleFeaturedItemClick(item.id)}
-              style={{ 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
-              }}
-            >
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary mb-3"></div>
+                <p>Loading featured items...</p>
+              </div>
+            ) : (
               <div className="position-relative">
-                <img
-                  src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                  className="w-100"
-                  alt={item.name}
-                  style={{ 
-                    height: '140px', 
-                    objectFit: 'cover',
-                    objectPosition: 'center'
-                  }}
-                  onError={(e) => {
-                    e.target.src = 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600';
-                  }}
-                />
-                <div className="position-absolute top-0 start-0 m-1">
-                  <span className="badge bg-primary text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.65rem' }}>
-                    {item.category?.split(' ')[0]}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="p-2 d-flex flex-column h-100">
-                <h6 className="text-dark fw-bold mb-1 flex-grow-1" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
-                  {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
-                </h6>
-
-                <p className="text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
-                  <i className="fas fa-store me-1 text-primary"></i>
-                  {item.businessName || item.business}
-                </p>
-
-                <div className="mb-2">
-                  <h6 className="text-success fw-bold mb-0" style={{ fontSize: '0.9rem' }}>
-                    {formatPrice(item)}
-                  </h6>
-                </div>
-
-                <div className="d-flex justify-content-between align-items-center mt-auto">
-                  <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                    <i className="fas fa-map-marker-alt text-primary me-1"></i>
-                    {item.city}
-                  </small>
-                  <div className="d-flex align-items-center">
-                    {renderStars(item.rating)}
+                <div className="d-flex overflow-auto pb-3" style={{ scrollbarWidth: 'thin', msOverflowStyle: 'none' }}>
+                  <div className="d-flex flex-nowrap gap-3">
+                    {featuredItems.map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="bg-white rounded-4 overflow-hidden"
+                        style={{ 
+                          width: '280px', 
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                        }}
+                        onClick={() => handleFeaturedItemClick(item.id)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-5px)';
+                          e.currentTarget.style.boxShadow = '0 12px 35px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
+                        }}
+                      >
+                        <div className="position-relative">
+                          <img
+                            src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600'}
+                            className="w-100"
+                            alt={item.name}
+                            style={{ 
+                              height: '200px', 
+                              objectFit: 'cover',
+                              objectPosition: 'center'
+                            }}
+                            onError={(e) => {
+                              e.target.src = 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600';
+                            }}
+                          />
+                          <div className="position-absolute top-0 end-0 m-2">
+                            <span className="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                              <i className="fas fa-star me-1"></i>
+                              Featured
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-3">
+                          <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem', lineHeight: '1.3' }}>
+                            {item.name}
+                          </h6>
+                          
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <span className="fw-bold text-primary fs-5">
+                              {formatPrice(item)}
+                            </span>
+                            <div className="d-flex align-items-center">
+                              {renderStars(item.rating)}
+                              <small className="text-muted ms-1">({item.reviews || 0})</small>
+                            </div>
+                          </div>
+                          
+                          <div className="d-flex justify-content-between align-items-center">
+                            <small className="text-muted">
+                              <i className="fas fa-store me-1 text-primary"></i>
+                              {item.businessName || item.business}
+                            </small>
+                            <small className="text-muted">
+                              {getCountryFlag(item.country)}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* All Products Grid Section */}
+        <section className="py-4 py-md-5">
+          <div className="container">
+            <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
+              <div>
+                <h3 className="fw-bold mb-1 mb-md-2">All Products</h3>
+                <p className="text-muted d-none d-md-block">Browse our complete collection</p>
+              </div>
+              <div className="d-flex gap-2">
+                <button className="btn btn-outline-primary btn-sm">
+                  <i className="fas fa-filter me-1"></i>
+                  Filter
+                </button>
+                <button className="btn btn-outline-primary btn-sm">
+                  <i className="fas fa-sort me-1"></i>
+                  Sort
+                </button>
               </div>
             </div>
+
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary mb-3"></div>
+                <p>Loading products...</p>
+              </div>
+            ) : (
+              <div className="row g-3">
+                {featuredItems.map((item) => (
+                  <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div 
+                      className="bg-white rounded-3 overflow-hidden h-100"
+                      onClick={() => handleFeaturedItemClick(item.id)}
+                      style={{ 
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-3px)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.12)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
+                      }}
+                    >
+                      <div className="position-relative">
+                        <img
+                          src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600'}
+                          className="w-100"
+                          alt={item.name}
+                          style={{ 
+                            height: '140px', 
+                            objectFit: 'cover',
+                            objectPosition: 'center'
+                          }}
+                          onError={(e) => {
+                            e.target.src = 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=600';
+                          }}
+                        />
+                        <div className="position-absolute top-0 start-0 m-1">
+                          <span className="badge bg-primary text-white px-2 py-1 rounded-pill" style={{ fontSize: '0.65rem' }}>
+                            {item.category?.split(' ')[0]}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="p-2 d-flex flex-column h-100">
+                        <h6 className="text-dark fw-bold mb-1 flex-grow-1" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                          {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
+                        </h6>
+
+                        <p className="text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
+                          <i className="fas fa-store me-1 text-primary"></i>
+                          {item.businessName || item.business}
+                        </p>
+
+                        <div className="mb-2">
+                          <h6 className="text-success fw-bold mb-0" style={{ fontSize: '0.9rem' }}>
+                            {formatPrice(item)}
+                          </h6>
+                        </div>
+
+                        <div className="d-flex justify-content-between align-items-center mt-auto">
+                          <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                            <i className="fas fa-map-marker-alt text-primary me-1"></i>
+                            {item.city}
+                          </small>
+                          <div className="d-flex align-items-center">
+                            {renderStars(item.rating)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-</section>
+        </section>
 
         {/* Categories Section */}
         <section className="py-4 py-md-5">
@@ -1278,94 +1464,6 @@ function HomePage1() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* All Products Grid Section */}
-        <section className="py-4 py-md-5 bg-light">
-          <div className="container">
-            <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-              <div>
-                <h3 className="fw-bold mb-1 mb-md-2">All Products</h3>
-                <p className="text-muted d-none d-md-block">Browse our complete collection</p>
-              </div>
-              <div className="d-flex gap-2">
-                <button className="btn btn-outline-primary btn-sm">
-                  <i className="fas fa-filter me-1"></i>
-                  Filter
-                </button>
-                <button className="btn btn-outline-primary btn-sm">
-                  <i className="fas fa-sort me-1"></i>
-                  Sort
-                </button>
-              </div>
-            </div>
-
-            {isLoading ? (
-              <div className="text-center py-4">
-                <div className="spinner-border text-primary mb-3"></div>
-                <p>Loading products...</p>
-              </div>
-            ) : (
-              <div className="row g-2 g-md-3">
-                {featuredItems.map((item) => (
-                  <div key={item.id} className="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div 
-                      className="card h-100 border-0 shadow-sm product-card"
-                      onClick={() => handleFeaturedItemClick(item.id)}
-                      style={{ 
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      <div className="position-relative">
-                        <img
-                          src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                          className="card-img-top"
-                          alt={item.name}
-                          style={{ height: '120px', objectFit: 'cover' }}
-                          onError={(e) => {
-                            e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
-                          }}
-                        />
-                        <div className="position-absolute top-0 start-0 m-1">
-                          <span className="badge bg-primary text-white px-2 py-1" style={{ fontSize: '0.6rem' }}>
-                            {item.category?.split(' ')[0]}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="card-body p-2 d-flex flex-column">
-                        <h6 className="card-title text-dark fw-bold mb-1" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
-                          {item.name.length > 40 ? `${item.name.substring(0, 40)}...` : item.name}
-                        </h6>
-
-                        <p className="card-text text-muted mb-1 small" style={{ fontSize: '0.65rem' }}>
-                          <i className="fas fa-store me-1 text-primary"></i>
-                          {item.businessName || item.business}
-                        </p>
-
-                        <div className="mb-2 mt-auto">
-                          <h6 className="text-success fw-bold mb-0" style={{ fontSize: '0.9rem' }}>
-                            {formatPrice(item)}
-                          </h6>
-                        </div>
-
-                        <div className="d-flex justify-content-between align-items-center">
-                          <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                            <i className="fas fa-map-marker-alt text-primary me-1"></i>
-                            {item.city}
-                          </small>
-                          <div className="d-flex align-items-center">
-                            {renderStars(item.rating)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </section>
 
@@ -1408,17 +1506,8 @@ function HomePage1() {
           <div className="container">
             <div className="row">
               <div className="col-lg-4 mb-4">
-                <h5 className="fw-bold mb-3 d-flex align-items-center">
-                  <img 
-                    src={BisRunLogo} 
-                    alt="BisRun Logo" 
-                    style={{ 
-                      height: '35px',
-                      width: 'auto',
-                      marginRight: '10px'
-                    }}
-                  />
-                  <span style={{ fontSize: '1.3rem' }}>BisRun</span>
+                <h5 className="fw-bold mb-3">
+                  <span style={{ fontSize: '1.8rem', color: '#007bff' }}>BisRun</span>
                 </h5>
                 <p className="text-light small">
                   Connecting customers with businesses worldwide. Find products and services you need, when you need them.
@@ -1538,6 +1627,30 @@ function HomePage1() {
             background: #a8a8a8;
           }
 
+          /* Search suggestions styling */
+          .search-suggestions {
+            max-height: 300px;
+            overflow-y: auto;
+          }
+
+          .search-suggestions::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .search-suggestions::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+          }
+
+          .search-suggestions::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+          }
+
+          .search-suggestions::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+          }
+
           /* Mobile Responsive */
           @media (max-width: 768px) {
             .hero-section h1 {
@@ -1564,8 +1677,9 @@ function HomePage1() {
               min-width: 0 !important;
             }
             
-            .navbar-brand img {
-              height: 30px !important;
+            /* Logo mobile styles */
+            .navbar-brand {
+              font-size: 1.6rem !important;
             }
             
             .form-control {
@@ -1590,6 +1704,13 @@ function HomePage1() {
               padding: 4px 8px !important;
               font-size: 12px !important;
             }
+
+            /* Search suggestions mobile */
+            .position-absolute.top-100 {
+              width: 100% !important;
+              left: 0 !important;
+              right: 0 !important;
+            }
           }
 
           @media (max-width: 576px) {
@@ -1598,8 +1719,9 @@ function HomePage1() {
               padding-right: 10px;
             }
             
-            .navbar-brand img {
-              height: 28px !important;
+            /* Logo small mobile styles */
+            .navbar-brand {
+              font-size: 1.4rem !important;
             }
             
             .form-control {
@@ -1627,8 +1749,9 @@ function HomePage1() {
               font-size: 11px;
             }
             
-            .navbar-brand img {
-              height: 25px !important;
+            /* Logo extra small mobile styles */
+            .navbar-brand {
+              font-size: 1.2rem !important;
             }
             
             .fas.fa-user-circle {

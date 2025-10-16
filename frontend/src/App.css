@@ -1,15 +1,65 @@
-/* src/App.css */
+/* src/App.css - FIXED VERSION */
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
-/* Custom Global Styles */
+/* ===== ZOOM CONTROL & CONSISTENT SCALING ===== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  zoom: 1;
+  -webkit-zoom: 1;
+  -moz-zoom: 1;
+  -ms-zoom: 1;
+  transform: scale(1);
+  transform-origin: top left;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
   background: #f8f9fa;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  zoom: 1;
+  transform: scale(1);
+  width: 100%;
 }
 
+/* Allow text selection in input fields */
+input, textarea, select {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  font-size: 16px !important; /* Prevent zoom on iOS */
+}
+
+/* Prevent zoom on double-tap for mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+/* Ensure all elements maintain consistent scaling */
+img, svg, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Force consistent scaling for all containers */
+.container, .container-fluid, .row, .col {
+  transform: scale(1);
+  zoom: 1;
+}
+
+/* ===== CUSTOM GLOBAL STYLES ===== */
 .hover-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -129,7 +179,7 @@ body {
   background-color: rgba(0, 0, 0, 0.075);
 }
 
-/* Responsive adjustments */
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
 @media (max-width: 768px) {
   .container-fluid {
     padding-left: 15px;
@@ -143,9 +193,32 @@ body {
   .display-4 {
     font-size: 1.8rem;
   }
+  
+  /* Ensure consistent font sizes on mobile */
+  body {
+    font-size: 14px;
+  }
+  
+  h1 { font-size: 1.8rem; }
+  h2 { font-size: 1.6rem; }
+  h3 { font-size: 1.4rem; }
+  h4 { font-size: 1.2rem; }
+  h5 { font-size: 1.1rem; }
+  h6 { font-size: 1rem; }
 }
 
-/* Animation classes */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  
+  /* Prevent any zoom issues on very small screens */
+  html {
+    font-size: 14px;
+  }
+}
+
+/* ===== ANIMATION CLASSES ===== */
 .fade-in {
   animation: fadeIn 0.5s ease-in;
 }
@@ -164,7 +237,7 @@ body {
   to { transform: translateX(0); }
 }
 
-/* Product card enhancements */
+/* ===== PRODUCT CARD ENHANCEMENTS ===== */
 .product-card {
   transition: all 0.3s ease;
 }
@@ -174,7 +247,7 @@ body {
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
-/* Search results styles */
+/* ===== SEARCH RESULTS STYLES ===== */
 .search-result-item {
   transition: background-color 0.2s ease;
 }
@@ -183,13 +256,13 @@ body {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* Map placeholder styles */
+/* ===== MAP PLACEHOLDER STYLES ===== */
 .map-placeholder {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-/* Business dashboard styles */
+/* ===== BUSINESS DASHBOARD STYLES ===== */
 .stats-card {
   transition: transform 0.3s ease;
 }
@@ -198,7 +271,7 @@ body {
   transform: scale(1.05);
 }
 
-/* Product detail page styles */
+/* ===== PRODUCT DETAIL PAGE STYLES ===== */
 .product-gallery img {
   transition: transform 0.3s ease;
 }
@@ -207,7 +280,7 @@ body {
   transform: scale(1.05);
 }
 
-/* Utility classes */
+/* ===== UTILITY CLASSES ===== */
 .text-gradient {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
@@ -229,4 +302,81 @@ body {
 
 .bg-gradient-danger {
   background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+}
+
+/* ===== ZOOM PREVENTION FOR SPECIFIC ELEMENTS ===== */
+.no-zoom {
+  transform: scale(1);
+  zoom: 1;
+  max-width: 100%;
+}
+
+.consistent-scale {
+  transform: scale(1);
+  transform-origin: top left;
+}
+
+/* ===== FIX FOR MODAL AND OVERLAY ELEMENTS ===== */
+.modal, .modal-backdrop {
+  transform: scale(1) !important;
+  zoom: 1 !important;
+}
+
+.modal-content {
+  transform: scale(1) !important;
+}
+
+/* ===== ENSURING CONSISTENT LAYOUT ACROSS DEVICES ===== */
+.layout-fixed {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.scale-normal {
+  transform: scale(1);
+  zoom: 1;
+}
+
+/* ===== PREVENT TEXT SIZE ADJUSTMENT ON ORIENTATION CHANGE ===== */
+@media (orientation: landscape) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
+
+@media (orientation: portrait) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
+
+/* ===== FIX FOR TOUCH DEVICES ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Additional fixes for touch devices */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+  
+  .btn, .card {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  html, body {
+    zoom: 1 !important;
+    transform: scale(1) !important;
+  }
+}
+
+/* Force 100% zoom globally */
+html, body, #root {
+  zoom: 1 !important;
+  -moz-zoom: 1 !important;
+  -webkit-zoom: 1 !important;
+  transform: scale(1) !important;
+  transform-origin: 0 0 !important;
 }
