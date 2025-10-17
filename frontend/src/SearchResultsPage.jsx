@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED VERSION WITH FLIP CARD EFFECT
+// src/SearchResultsPage.jsx - UPDATED VERSION WITH SEPARATE IMAGE AND DETAILS SECTIONS
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -817,285 +817,218 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* RESPONSIVE FLIP CARDS GRID */}
+            {/* SEPARATE IMAGE AND DETAILS CARDS */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
-                <div key={item.id} className="col-6 col-md-4 col-lg-3">
-                  {/* FLIP CARD CONTAINER */}
+                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+                  {/* CARD WITH SEPARATE IMAGE AND DETAILS */}
                   <div 
-                    className="flip-card"
+                    className="separate-card"
                     style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      position: 'relative',
                       width: '100%',
-                      height: '320px',
-                      perspective: '1000px',
-                      cursor: 'pointer'
+                      height: '300px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      backgroundColor: 'white',
+                      border: '1px solid #e0e0e0',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
                     }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                    onClick={() => navigate(`/product/${item.id}`)}
                   >
+                    {/* IMAGE SECTION - TAKES FULL WIDTH AND 70% HEIGHT */}
                     <div 
-                      className="flip-card-inner"
+                      className="image-section-separate"
                       style={{
-                        position: 'relative',
                         width: '100%',
-                        height: '100%',
-                        textAlign: 'center',
-                        transition: 'transform 0.6s',
-                        transformStyle: 'preserve-3d'
+                        height: '70%',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#f8f9fa',
+                        position: 'relative'
                       }}
                     >
-                      {/* FRONT SIDE - PRODUCT IMAGE */}
-                      <div 
-                        className="flip-card-front"
+                      <img
+                        src={getItemImage(item)}
+                        alt={item.name}
                         style={{
-                          position: 'absolute',
                           width: '100%',
                           height: '100%',
-                          backfaceVisibility: 'hidden',
-                          WebkitBackfaceVisibility: 'hidden',
-                          background: 'rgb(240, 241, 245)',
-                          borderRadius: '20px',
-                          boxShadow: 'rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset, rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset, rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset, rgba(0, 0, 0, 0.06) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          overflow: 'hidden'
+                          objectFit: 'cover'
                         }}
-                      >
-                        {/* Product Image */}
-                        <div 
-                          style={{
-                            flex: '1',
-                            backgroundImage: `url(${getItemImage(item)})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            position: 'relative'
-                          }}
-                        >
-                          {/* Badge for Featured Items */}
-                          {item.featured && (
-                            <div 
-                              style={{
-                                position: 'absolute',
-                                top: '8px',
-                                left: '8px',
-                                background: 'linear-gradient(45deg, #FF6B6B, #FF8E53)',
-                                color: 'white',
-                                padding: '4px 8px',
-                                borderRadius: '12px',
-                                fontSize: '10px',
-                                fontWeight: 'bold',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                              }}
-                            >
-                              FEATURED
-                            </div>
-                          )}
-                          
-                          {/* Stock Status */}
-                          {item.type === 'product' && item.stock !== undefined && (
-                            <div 
-                              style={{
-                                position: 'absolute',
-                                top: '8px',
-                                right: '8px',
-                                background: item.stock > 0 ? 'linear-gradient(45deg, #4ECDC4, #44A08D)' : 'linear-gradient(45deg, #FF6B6B, #C6426E)',
-                                color: 'white',
-                                padding: '4px 8px',
-                                borderRadius: '12px',
-                                fontSize: '10px',
-                                fontWeight: 'bold'
-                              }}
-                            >
-                              {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Product Info */}
-                        <div 
-                          style={{
-                            padding: '12px',
-                            background: 'rgba(255, 255, 255, 0.95)',
-                            backdropFilter: 'blur(10px)',
-                            borderTop: '1px solid rgba(0,0,0,0.1)'
-                          }}
-                        >
-                          <h6 
-                            className="text-dark mb-1"
+                        onError={(e) => {
+                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
+                        }}
+                      />
+                      
+                      {/* Badges on Image */}
+                      <div className="position-absolute top-0 start-0 w-100 p-2 d-flex justify-content-between">
+                        {item.isFuzzyMatch && (
+                          <div 
+                            className="badge"
                             style={{
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              lineHeight: '1.3',
-                              display: '-webkit-box',
-                              WebkitLineClamp: '2',
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
+                              background: 'linear-gradient(45deg, #f59e0b, #fbbf24)',
+                              color: '#1f2937',
+                              fontWeight: 'bold',
+                              padding: '2px 6px',
+                              fontSize: '0.5rem',
+                              borderRadius: '8px'
                             }}
                           >
-                            {item.name}
-                          </h6>
-                          <div className="d-flex justify-content-between align-items-center mt-2">
-                            <span 
-                              className="text-primary fw-bold"
-                              style={{ fontSize: '16px' }}
-                            >
-                              {formatPrice(item)}
-                            </span>
-                            <div className="d-flex align-items-center">
-                              {renderStars(item.rating)}
-                              {item.reviews && (
-                                <small className="text-muted ms-1">({item.reviews})</small>
-                              )}
-                            </div>
+                            <i className="fas fa-bolt me-1"></i>
+                            Similar
                           </div>
-                        </div>
+                        )}
                         
-                        {/* Flip Indicator */}
-                        <div 
+                        {item.featured && (
+                          <div 
+                            className="badge"
+                            style={{
+                              background: 'linear-gradient(45deg, #8b5cf6, #a78bfa)',
+                              color: '#ffffff',
+                              fontWeight: 'bold',
+                              padding: '2px 6px',
+                              fontSize: '0.5rem',
+                              borderRadius: '8px'
+                            }}
+                          >
+                            <i className="fas fa-star me-1"></i>
+                            Featured
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Favorite Button */}
+                      <div 
+                        className="position-absolute top-0 end-0 p-2"
+                        style={{ zIndex: 10 }}
+                      >
+                        <button 
+                          className="btn btn-light btn-sm rounded-circle"
                           style={{
-                            position: 'absolute',
-                            bottom: '8px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: 'rgba(0,0,0,0.7)',
-                            color: 'white',
-                            padding: '4px 12px',
-                            borderRadius: '20px',
-                            fontSize: '10px',
+                            width: '28px',
+                            height: '28px',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px'
+                            justifyContent: 'center',
+                            background: 'rgba(255,255,255,0.9)',
+                            border: 'none'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Favorite logic
                           }}
                         >
-                          <i className="fas fa-sync-alt" style={{ fontSize: '8px' }}></i>
-                          Click to flip
+                          <i className="fas fa-heart text-danger" style={{ fontSize: '0.7rem' }}></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* DETAILS SECTION - SEPARATE FROM IMAGE */}
+                    <div 
+                      className="details-section-separate"
+                      style={{
+                        width: '100%',
+                        height: '30%',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        backgroundColor: 'white'
+                      }}
+                    >
+                      {/* Product Name */}
+                      <div 
+                        className="product-name"
+                        style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: '#2d3748',
+                          lineHeight: '1.2',
+                          display: '-webkit-box',
+                          WebkitLineClamp: '2',
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          marginBottom: '4px'
+                        }}
+                      >
+                        {item.name}
+                      </div>
+
+                      {/* Rating and Price Row */}
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <div className="d-flex align-items-center">
+                          <div className="me-1">
+                            {renderStars(item.rating)}
+                          </div>
+                          <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                            ({item.reviews || 0})
+                          </small>
+                        </div>
+                        <div 
+                          className="price"
+                          style={{
+                            fontSize: '0.9rem',
+                            fontWeight: '700',
+                            color: '#059669'
+                          }}
+                        >
+                          {formatPrice(item)}
                         </div>
                       </div>
 
-                      {/* BACK SIDE - PRODUCT DETAILS */}
-                      <div 
-                        className="flip-card-back"
-                        style={{
-                          position: 'absolute',
-                          width: '100%',
-                          height: '100%',
-                          backfaceVisibility: 'hidden',
-                          WebkitBackfaceVisibility: 'hidden',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          borderRadius: '20px',
-                          transform: 'rotateY(180deg)',
-                          padding: '16px',
-                          color: 'white',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          boxShadow: 'rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset, rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset, rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset, rgba(0, 0, 0, 0.06) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px'
-                        }}
-                      >
-                        {/* Back Content */}
-                        <div>
-                          {/* Business Name */}
-                          <div className="mb-2">
-                            <small className="text-white-50">Sold by</small>
-                            <div className="fw-bold" style={{ fontSize: '14px' }}>
-                              {item.businessName || item.business}
-                            </div>
-                          </div>
-
-                          {/* Description */}
-                          <div className="mb-3">
-                            <small className="text-white-50">Description</small>
-                            <div 
-                              style={{
-                                fontSize: '12px',
-                                lineHeight: '1.4',
-                                display: '-webkit-box',
-                                WebkitLineClamp: '3',
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden'
-                              }}
-                            >
-                              {item.description}
-                            </div>
-                          </div>
-
-                          {/* Additional Details */}
-                          <div className="row g-2">
-                            <div className="col-6">
-                              <small className="text-white-50">Category</small>
-                              <div style={{ fontSize: '11px', fontWeight: '500' }}>
-                                {item.category}
-                              </div>
-                            </div>
-                            <div className="col-6">
-                              <small className="text-white-50">Type</small>
-                              <div style={{ fontSize: '11px', fontWeight: '500' }}>
-                                {item.type === 'service' ? 'Service' : 'Product'}
-                              </div>
-                            </div>
-                            {item.serviceType && (
-                              <div className="col-12">
-                                <small className="text-white-50">Service Type</small>
-                                <div style={{ fontSize: '11px', fontWeight: '500' }}>
-                                  {item.serviceType}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="d-flex gap-2">
-                          <button 
-                            className="btn btn-light btn-sm flex-fw-100"
-                            style={{
-                              fontSize: '12px',
-                              borderRadius: '20px',
-                              border: 'none'
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Add to cart logic here
+                      {/* Business & Stock Info */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>
+                          <i className="fas fa-store me-1"></i>
+                          {item.businessName ? (item.businessName.length > 12 ? `${item.businessName.substring(0, 12)}...` : item.businessName) : (item.business ? (item.business.length > 12 ? `${item.business.substring(0, 12)}...` : item.business) : 'Unknown')}
+                        </small>
+                        {item.type === 'product' && (
+                          <small 
+                            style={{ 
+                              fontSize: '0.65rem',
+                              background: item.stock > 0 ? '#10b981' : '#ef4444',
+                              color: 'white',
+                              padding: '2px 6px',
+                              borderRadius: '8px',
+                              fontWeight: '500'
                             }}
                           >
-                            <i className="fas fa-shopping-cart me-1"></i>
-                            Add to Cart
-                          </button>
-                          <button 
-                            className="btn btn-outline-light btn-sm"
-                            style={{
-                              fontSize: '12px',
-                              borderRadius: '20px',
-                              width: '40px'
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Favorite logic here
-                            }}
-                          >
-                            <i className="fas fa-heart"></i>
-                          </button>
-                        </div>
+                            {item.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                          </small>
+                        )}
+                      </div>
 
-                        {/* Flip Back Indicator */}
-                        <div 
+                      {/* Quick Action Button */}
+                      <div className="d-flex justify-content-center mt-2">
+                        <button 
+                          className="btn btn-primary btn-sm w-100"
                           style={{
-                            position: 'absolute',
-                            bottom: '8px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: 'rgba(255,255,255,0.2)',
-                            color: 'white',
-                            padding: '4px 12px',
-                            borderRadius: '20px',
-                            fontSize: '10px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            backdropFilter: 'blur(10px)'
+                            fontSize: '0.7rem',
+                            padding: '4px 8px'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add to cart logic
                           }}
                         >
-                          <i className="fas fa-sync-alt" style={{ fontSize: '8px' }}></i>
-                          Click to flip back
-                        </div>
+                          <i className="fas fa-cart-plus me-1"></i>
+                          Add to Cart
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1106,25 +1039,72 @@ const SearchResultsPage = () => {
         )}
       </div>
 
-      {/* JavaScript for Flip Effect */}
-      <script dangerouslySetInnerHTML={{
-        __html: `
-          document.addEventListener('DOMContentLoaded', function() {
-            const flipCards = document.querySelectorAll('.flip-card');
+      {/* Custom CSS for Separate Image and Details Cards */}
+      <style>
+        {`
+          .separate-card:hover {
+            border-color: #c45500 !important;
+          }
+
+          /* Responsive adjustments */
+          @media (max-width: 576px) {
+            .col-6 {
+              padding: 4px;
+            }
             
-            flipCards.forEach(card => {
-              card.addEventListener('click', function() {
-                const inner = this.querySelector('.flip-card-inner');
-                if (inner.style.transform === 'rotateY(180deg)') {
-                  inner.style.transform = 'rotateY(0deg)';
-                } else {
-                  inner.style.transform = 'rotateY(180deg)';
-                }
-              });
-            });
-          });
-        `
-      }} />
+            .separate-card {
+              height: 250px !important;
+            }
+            
+            .image-section-separate {
+              height: 60% !important;
+            }
+            
+            .details-section-separate {
+              height: 40% !important;
+              padding: 8px !important;
+            }
+            
+            .product-name {
+              font-size: 0.7rem !important;
+            }
+            
+            .price {
+              font-size: 0.8rem !important;
+            }
+          }
+
+          @media (min-width: 576px) {
+            .col-sm-4 {
+              padding: 6px;
+            }
+            
+            .separate-card {
+              height: 270px !important;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .col-md-3 {
+              padding: 8px;
+            }
+            
+            .separate-card {
+              height: 290px !important;
+            }
+          }
+
+          @media (min-width: 992px) {
+            .col-lg-2 {
+              padding: 10px;
+            }
+            
+            .separate-card {
+              height: 300px !important;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
