@@ -1,4 +1,5 @@
-// src/ProductDetailPage.jsx - UPDATED WITH MESSAGES LINK
+
+// src/ProductDetailPage.jsx - WITH ONLY SEND MESSAGE BUTTON
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
@@ -13,6 +14,48 @@ function ProductDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
+  const [currentWelcomeText, setCurrentWelcomeText] = useState("");
+  const [welcomeTextIndex, setWelcomeTextIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [typingSpeed, setTypingSpeed] = useState(100);
+
+  // Welcome messages for typewriter animation
+  const welcomeMessages = [
+    "Welcome to see our products",
+    "Welcome to see our stores"
+  ];
+
+  // Typewriter effect for welcome messages
+  useEffect(() => {
+    const currentMessage = welcomeMessages[welcomeTextIndex];
+    
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing forward
+        if (currentWelcomeText.length < currentMessage.length) {
+          setCurrentWelcomeText(currentMessage.substring(0, currentWelcomeText.length + 1));
+          setTypingSpeed(100);
+        } else {
+          // Finished typing, wait then start deleting
+          setTimeout(() => setIsDeleting(true), 2000);
+          setTypingSpeed(100);
+        }
+      } else {
+        // Deleting
+        if (currentWelcomeText.length > 0) {
+          setCurrentWelcomeText(currentWelcomeText.substring(0, currentWelcomeText.length - 1));
+          setTypingSpeed(50);
+        } else {
+          // Finished deleting, move to next message
+          setIsDeleting(false);
+          setWelcomeTextIndex((prevIndex) => (prevIndex + 1) % welcomeMessages.length);
+          setTypingSpeed(100);
+        }
+      }
+    }, typingSpeed);
+
+    return () => clearTimeout(timer);
+  }, [currentWelcomeText, isDeleting, welcomeTextIndex, typingSpeed]);
 
   // Countries and Currencies
   const countries = [
@@ -712,7 +755,21 @@ function ProductDetailPage() {
                   </div>
                 )}
 
-                {/* NEW: Messages Section - Below Images */}
+                {/* NEW: Welcome Message with Typewriter Animation */}
+                <div className="p-4 border-top bg-primary bg-opacity-10">
+                  <div className="text-center">
+                    <h4 className="fw-bold text-primary mb-2">
+                      <i className="fas fa-hand-wave me-2"></i>
+                      {currentWelcomeText}
+                      <span className="typewriter-cursor">|</span>
+                    </h4>
+                    <p className="text-muted mb-0">
+                      Discover amazing {item.type === 'service' ? 'services' : 'products'} from trusted businesses
+                    </p>
+                  </div>
+                </div>
+
+                {/* NEW: Send Message Button Only - Below Welcome Message */}
                 <div className="p-4 border-top">
                   <div className="row align-items-center">
                     <div className="col-md-8">
@@ -736,46 +793,6 @@ function ProductDetailPage() {
                       >
                         <i className="fas fa-paper-plane me-2"></i>
                         Send Message
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Quick Message Options */}
-                  <div className="row mt-3 g-2">
-                    <div className="col-6 col-md-3">
-                      <button 
-                        className="btn btn-outline-primary w-100 py-2 rounded-pill"
-                        onClick={handleMessagesClick}
-                      >
-                        <i className="fas fa-question-circle me-1"></i>
-                        Ask Question
-                      </button>
-                    </div>
-                    <div className="col-6 col-md-3">
-                      <button 
-                        className="btn btn-outline-warning w-100 py-2 rounded-pill"
-                        onClick={handleMessagesClick}
-                      >
-                        <i className="fas fa-tag me-1"></i>
-                        Negotiate Price
-                      </button>
-                    </div>
-                    <div className="col-6 col-md-3">
-                      <button 
-                        className="btn btn-outline-info w-100 py-2 rounded-pill"
-                        onClick={handleMessagesClick}
-                      >
-                        <i className="fas fa-images me-1"></i>
-                        More Photos
-                      </button>
-                    </div>
-                    <div className="col-6 col-md-3">
-                      <button 
-                        className="btn btn-outline-success w-100 py-2 rounded-pill"
-                        onClick={handleMessagesClick}
-                      >
-                        <i className="fas fa-shipping-fast me-1"></i>
-                        Delivery Info
                       </button>
                     </div>
                   </div>
@@ -819,7 +836,7 @@ function ProductDetailPage() {
                             </div>
                             <div>
                               <h6 className="fw-bold mb-1 text-dark">Phone Number</h6>
-                              <p className="text-muted mb-0">{item.businessPhone || "+255 754 000 000"}</p>
+                              <p className="text-muted mb-0">{item.businessPhone || "+255754000000"}</p>
                             </div>
                           </div>
 
@@ -829,7 +846,7 @@ function ProductDetailPage() {
                             </div>
                             <div>
                               <h6 className="fw-bold mb-1 text-dark">Email Address</h6>
-                              <p className="text-muted mb-0">{item.businessEmail || "info@business.com"}</p>
+                              <p className="text-muted mb-0">{item.businessEmail || `${item.businessName?.toLowerCase().replace(/\s+/g, '')}@email.com`}</p>
                             </div>
                           </div>
 
@@ -838,9 +855,9 @@ function ProductDetailPage() {
                               <i className="fas fa-map-marker-alt text-warning fa-lg"></i>
                             </div>
                             <div>
-                              <h6 className="fw-bold mb-1 text-dark">Physical Address</h6>
+                              <h6 className="fw-bold mb-1 text-dark">Location</h6>
                               <p className="text-muted mb-0">
-                                {item.businessAddress || item.address}, {item.city}, {item.region}, {item.country}
+                                {item.businessAddress || item.address}, {item.city}, {item.country}
                               </p>
                             </div>
                           </div>
@@ -848,95 +865,83 @@ function ProductDetailPage() {
 
                         <div className="d-grid gap-2">
                           <button 
-                            className="btn btn-primary btn-lg py-3 fw-bold rounded-pill"
+                            className="btn btn-primary btn-lg rounded-pill fw-bold"
                             onClick={handleContactBusiness}
                           >
                             <i className="fas fa-phone-alt me-2"></i>
-                            Call Now
-                          </button>
-                          <button 
-                            className="btn btn-outline-primary btn-lg py-3 fw-bold rounded-pill"
-                            onClick={() => {
-                              const phoneNumber = item.businessPhone || "+255754000000";
-                              window.open(`https://wa.me/${phoneNumber.replace(/\D/g, '')}`, '_blank');
-                            }}
-                          >
-                            <i className="fab fa-whatsapp me-2"></i>
-                            WhatsApp Business
+                            Contact Business
                           </button>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Map & Location */}
+                  {/* Location Information */}
                   <div className="col-lg-6 col-12">
-                    <div className="card border-0 h-100">
-                      <div className="card-body p-0 rounded-3 overflow-hidden">
-                        <h6 className="fw-bold mb-3 text-dark d-flex align-items-center px-3 pt-3">
-                          <i className="fas fa-map me-2 text-danger"></i>
-                          Location Map
+                    <div className="card bg-light border-0 h-100">
+                      <div className="card-body">
+                        <h6 className="fw-bold mb-4 text-dark d-flex align-items-center">
+                          <i className="fas fa-map-marked-alt me-2 text-primary"></i>
+                          Location Details
                         </h6>
                         
-                        {/* Map Placeholder */}
-                        <div 
-                          className="bg-light d-flex align-items-center justify-content-center position-relative"
-                          style={{ height: '300px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-                        >
-                          <div className="text-center text-white">
-                            <i className="fas fa-map-marked-alt fa-3x mb-3"></i>
-                            <h5 className="fw-bold mb-2">{item.city || item.region}, {item.country}</h5>
-                            <p className="mb-3 opacity-75">
-                              {item.businessAddress || item.address}
-                            </p>
-                            <button 
-                              className="btn btn-light btn-lg rounded-pill px-4"
-                              onClick={handleGetDirections}
-                            >
-                              <i className="fas fa-directions me-2"></i>
-                              Get Directions
-                            </button>
-                          </div>
-                          
-                          {/* Map Pin */}
-                          <div 
-                            className="position-absolute"
-                            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
-                          >
-                            <div className="bg-danger rounded-circle p-3 shadow-lg">
-                              <i className="fas fa-map-pin text-white fa-lg"></i>
+                        <div className="mb-4">
+                          <div className="d-flex align-items-center mb-3">
+                            <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                              <span className="text-primary fw-bold">{getCountryFlag(item.country)}</span>
                             </div>
-                            <div className="position-absolute top-100 start-50 translate-middle-x mt-1">
-                              <div className="bg-danger" style={{ width: '2px', height: '30px' }}></div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">Country</h6>
+                              <p className="text-muted mb-0">{item.country || 'Tanzania'}</p>
+                            </div>
+                          </div>
+
+                          <div className="d-flex align-items-center mb-3">
+                            <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                              <i className="fas fa-city text-success fa-lg"></i>
+                            </div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">City/Region</h6>
+                              <p className="text-muted mb-0">
+                                {item.city || item.region || 'Dar es Salaam'}
+                                {item.region && item.city !== item.region ? `, ${item.region}` : ''}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="d-flex align-items-center mb-3">
+                            <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                              <i className="fas fa-road text-info fa-lg"></i>
+                            </div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">Address</h6>
+                              <p className="text-muted mb-0">{item.businessAddress || item.address || 'Address not specified'}</p>
+                            </div>
+                          </div>
+
+                          <div className="d-flex align-items-center">
+                            <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                              <i className="fas fa-globe-africa text-warning fa-lg"></i>
+                            </div>
+                            <div>
+                              <h6 className="fw-bold mb-1 text-dark">Coordinates</h6>
+                              <p className="text-muted mb-0">
+                                {item.location ? 
+                                  `${item.location.lat?.toFixed(4)}, ${item.location.lng?.toFixed(4)}` : 
+                                  'Coordinates not available'}
+                              </p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Location Details */}
-                        <div className="p-3 bg-light">
-                          <div className="row text-center g-3">
-                            <div className="col-4">
-                              <div className="bg-white rounded-3 p-3">
-                                <i className="fas fa-flag text-primary mb-2"></i>
-                                <h6 className="fw-bold mb-1 text-dark">Country</h6>
-                                <small className="text-muted">{item.country}</small>
-                              </div>
-                            </div>
-                            <div className="col-4">
-                              <div className="bg-white rounded-3 p-3">
-                                <i className="fas fa-city text-success mb-2"></i>
-                                <h6 className="fw-bold mb-1 text-dark">City</h6>
-                                <small className="text-muted">{item.city || "N/A"}</small>
-                              </div>
-                            </div>
-                            <div className="col-4">
-                              <div className="bg-white rounded-3 p-3">
-                                <i className="fas fa-compass text-warning mb-2"></i>
-                                <h6 className="fw-bold mb-1 text-dark">Region</h6>
-                                <small className="text-muted">{item.region || "N/A"}</small>
-                              </div>
-                            </div>
-                          </div>
+                        <div className="d-grid gap-2">
+                          <button 
+                            className="btn btn-outline-primary btn-lg rounded-pill fw-bold"
+                            onClick={handleGetDirections}
+                          >
+                            <i className="fas fa-directions me-2"></i>
+                            Get Directions
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -946,304 +951,529 @@ function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Product Information - RESPONSIVE DESIGN */}
+          {/* Product Information - RESPONSIVE */}
           <div className="col-lg-5 col-xl-4">
-            <div className="card border-0 shadow-lg rounded-4 h-100">
-              <div className="card-body p-3 p-lg-4 d-flex flex-column">
-                {/* Category and Status */}
-                <div className="d-flex justify-content-between align-items-start mb-3">
-                  <span className={`badge bg-${categoryBadgeColor} px-3 py-2 rounded-pill`}>
-                    <i className={`fas ${categoryIcon} me-2`}></i>
-                    <span className="d-none d-sm-inline">{item.category}</span>
-                    <span className="d-sm-none">{item.category.split(' ')[0]}</span>
-                  </span>
-                  {item.type === 'product' ? (
-                    <span className={`badge ${item.stock > 0 ? 'bg-success' : 'bg-danger'} px-3 py-2`}>
-                      {item.stock > 0 ? '🟢 In Stock' : '🔴 Out of Stock'}
-                    </span>
-                  ) : (
-                    <span className="badge bg-info px-3 py-2">
-                      <i className="fas fa-concierge-bell me-1"></i>
-                      <span className="d-none d-sm-inline">Service Available</span>
-                      <span className="d-sm-none">Available</span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Product Title */}
-                <h1 className="h2 fw-bold text-dark mb-3" style={{ lineHeight: '1.3', fontSize: 'clamp(1.5rem, 2.5vw, 2rem)' }}>
-                  {item.name}
-                </h1>
-
-                {/* Rating and Reviews */}
-                <div className="d-flex align-items-center mb-3 flex-wrap">
-                  <div className="d-flex align-items-center me-3 mb-1">
-                    <div className="me-2">
-                      {renderStars(item.rating || 4.0)}
+            <div className="sticky-top" style={{ top: '100px' }}>
+              {/* Main Info Card */}
+              <div className="card border-0 shadow-lg rounded-4 mb-4 overflow-hidden">
+                {/* Category Header */}
+                <div 
+                  className="card-header text-white border-0 py-4"
+                  style={{ background: categoryColor }}
+                >
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <i className={`fas ${categoryIcon} fa-2x me-3`}></i>
+                      <div>
+                        <h5 className="fw-bold mb-1">{item.category}</h5>
+                        <span className="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
+                          {item.type === 'service' ? 'Service' : 'Product'}
+                        </span>
+                      </div>
                     </div>
-                    <span className="fw-bold text-dark">{item.rating || 4.0}</span>
+                    <span className="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
+                      {getCountryFlag(item.country)} {item.country || 'Tanzania'}
+                    </span>
                   </div>
-                  <span className="text-muted me-3 mb-1">({item.reviews || 0} reviews)</span>
-                  <span className="badge bg-light text-dark mb-1">
-                    {getCountryFlag(item.country)} {item.country}
-                  </span>
                 </div>
 
-                {/* Price Section */}
-                <div className="mb-4">
-                  <h2 className="text-success fw-bold mb-2" style={{ fontSize: 'clamp(1.8rem, 3vw, 2.5rem)' }}>
-                    {formatPrice(item)}
-                  </h2>
-                  {item.type === 'product' && (
-                    <small className="text-muted">
-                      <i className="fas fa-receipt me-1"></i>
-                      Inclusive of all taxes
-                    </small>
-                  )}
-                </div>
+                <div className="card-body p-4">
+                  {/* Title and Rating */}
+                  <div className="mb-4">
+                    <h2 className="fw-bold text-dark mb-3">{item.name}</h2>
+                    <div className="d-flex align-items-center flex-wrap gap-3">
+                      <div className="d-flex align-items-center">
+                        <div className="me-2">
+                          {renderStars(item.rating)}
+                        </div>
+                        <span className="text-warning fw-bold me-1">{item.rating || 4.0}</span>
+                        <span className="text-muted">({item.reviews || 0} reviews)</span>
+                      </div>
+                      <span className={`badge bg-${categoryBadgeColor} bg-opacity-10 text-${categoryBadgeColor} px-3 py-2 rounded-pill`}>
+                        <i className={`fas ${categoryIcon} me-2`}></i>
+                        {item.category}
+                      </span>
+                    </div>
+                  </div>
 
-                {/* Quick Info */}
-                <div className="row g-3 mb-4">
-                  {item.brand && (
-                    <div className="col-sm-6 col-12">
-                      <div className="d-flex align-items-center text-muted">
-                        <i className="fas fa-tag me-2 text-primary"></i>
-                        <small>Brand: {item.brand}</small>
+                  {/* Price Section */}
+                  <div className="mb-4 p-4 bg-light rounded-4">
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div>
+                        <h6 className="text-muted mb-2">Price</h6>
+                        <h3 className="fw-bold text-primary mb-0">
+                          {formatPrice(item)}
+                        </h3>
+                        {item.type === 'product' && item.stock !== undefined && (
+                          <p className="text-muted mb-0 mt-2">
+                            <i className="fas fa-box me-2"></i>
+                            {item.stock > 0 ? (
+                              <span className="text-success">
+                                {item.stock} in stock
+                              </span>
+                            ) : (
+                              <span className="text-danger">
+                                Out of stock
+                              </span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-end">
+                        {item.condition && (
+                          <span className={`badge ${item.condition === 'new' ? 'bg-success' : 'bg-warning'} px-3 py-2 rounded-pill`}>
+                            {item.condition === 'new' ? 'New' : 'Used'}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  )}
-                  {item.condition && (
-                    <div className="col-sm-6 col-12">
-                      <div className="d-flex align-items-center text-muted">
-                        <i className="fas fa-certificate me-2 text-warning"></i>
-                        <small>Condition: {item.condition}</small>
-                      </div>
-                    </div>
-                  )}
-                  {item.vehicleType && (
-                    <div className="col-sm-6 col-12">
-                      <div className="d-flex align-items-center text-muted">
-                        <i className="fas fa-car me-2 text-danger"></i>
-                        <small>Type: {item.vehicleType}</small>
-                      </div>
-                    </div>
-                  )}
-                  {item.serviceType && (
-                    <div className="col-sm-6 col-12">
-                      <div className="d-flex align-items-center text-muted">
-                        <i className="fas fa-building me-2 text-success"></i>
-                        <small>Service: {item.serviceType}</small>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="d-grid gap-2 mb-4">
-                  <button 
-                    className="btn btn-primary btn-lg py-3 fw-bold rounded-pill"
-                    onClick={handleContactBusiness}
-                    style={{ fontSize: 'clamp(1rem, 1.5vw, 1.1rem)' }}
-                  >
-                    <i className="fas fa-phone-alt me-2"></i>
-                    Contact Business
-                  </button>
-                  <button 
-                    className="btn btn-outline-primary btn-lg py-3 fw-bold rounded-pill"
-                    onClick={handleGetDirections}
-                  >
-                    <i className="fas fa-map-marker-alt me-2"></i>
-                    Get Directions
-                  </button>
-                  
-                  {/* NEW: Messages Button */}
-                  <button 
-                    className="btn btn-success btn-lg py-3 fw-bold rounded-pill"
-                    onClick={handleMessagesClick}
-                    style={{
-                      background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                      border: 'none'
-                    }}
-                  >
-                    <i className="fas fa-comments me-2"></i>
-                    Send Message
-                  </button>
-                </div>
+                  {/* Quick Actions */}
+                  <div className="d-grid gap-3 mb-4">
+                    <button 
+                      className="btn btn-primary btn-lg rounded-pill fw-bold py-3"
+                      onClick={handleContactBusiness}
+                    >
+                      <i className="fas fa-phone-alt me-2"></i>
+                      Contact Business
+                    </button>
+                    
+                    <button 
+                      className="btn btn-outline-primary btn-lg rounded-pill fw-bold py-3"
+                      onClick={handleGetDirections}
+                    >
+                      <i className="fas fa-directions me-2"></i>
+                      Get Directions
+                    </button>
 
-                {/* Business Info Card */}
-                <div className="card bg-light border-0 rounded-3 mt-auto">
-                  <div className="card-body">
-                    <h6 className="fw-bold mb-3 d-flex align-items-center">
+                    {/* NEW: Send Message Button */}
+                    <button 
+                      className="btn btn-success btn-lg rounded-pill fw-bold py-3"
+                      onClick={handleMessagesClick}
+                      style={{
+                        background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                        border: 'none',
+                        boxShadow: '0 4px 15px rgba(40, 167, 69, 0.3)'
+                      }}
+                    >
+                      <i className="fas fa-paper-plane me-2"></i>
+                      Send Message
+                    </button>
+                  </div>
+
+                  {/* Business Info */}
+                  <div className="border-top pt-4">
+                    <h6 className="fw-bold text-dark mb-3 d-flex align-items-center">
                       <i className="fas fa-store me-2 text-primary"></i>
-                      {item.businessName || item.business}
+                      Business Information
                     </h6>
-                    <div className="row small text-muted">
-                      <div className="col-12 mb-2">
-                        <i className="fas fa-map-marker-alt me-1"></i>
-                        {item.businessAddress || item.address}, {item.city}, {item.country}
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                        <i className="fas fa-building text-primary"></i>
                       </div>
-                      <div className="col-6">
-                        <i className="fas fa-star me-1 text-warning"></i>
-                        {item.rating || 4.0}/5 Rating
+                      <div>
+                        <h6 className="fw-bold mb-1 text-dark">Business Name</h6>
+                        <p className="text-muted mb-0">{item.businessName || item.business}</p>
                       </div>
-                      <div className="col-6">
-                        <i className="fas fa-check-circle me-1 text-success"></i>
-                        Verified Business
+                    </div>
+                    <div className="d-flex align-items-center">
+                      <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                        <i className="fas fa-map-marker-alt text-success"></i>
+                      </div>
+                      <div>
+                        <h6 className="fw-bold mb-1 text-dark">Location</h6>
+                        <p className="text-muted mb-0">
+                          {item.city}, {item.country}
+                        </p>
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Description Card */}
+              <div className="card border-0 shadow-lg rounded-4">
+                <div className="card-header bg-white border-0 py-4">
+                  <h5 className="fw-bold mb-0 d-flex align-items-center">
+                    <i className="fas fa-file-alt me-3 text-primary"></i>
+                    Description
+                  </h5>
+                </div>
+                <div className="card-body p-4">
+                  <p className="text-dark mb-0" style={{ lineHeight: '1.6' }}>
+                    {item.description || 'No description available for this item.'}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Details Tabs - RESPONSIVE DESIGN */}
+        {/* Tabs Section */}
         <div className="row mt-4">
           <div className="col-12">
             <div className="card border-0 shadow-lg rounded-4">
-              <div className="card-header bg-white border-0 py-3">
-                <div className="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-3 flex-nowrap overflow-auto">
-                  <button 
-                    className={`nav-link rounded-2 text-nowrap ${activeTab === 'details' ? 'active bg-primary text-white' : 'text-dark'}`}
-                    onClick={() => setActiveTab('details')}
-                  >
-                    <i className="fas fa-info-circle me-2"></i>
-                    Details
-                  </button>
-                  {item.requiresSpecifications && item.specifications && (
+              <div className="card-header bg-white border-0 py-4">
+                <ul className="nav nav-pills nav-fill" role="tablist">
+                  <li className="nav-item">
                     <button 
-                      className={`nav-link rounded-2 text-nowrap ${activeTab === 'specs' ? 'active bg-primary text-white' : 'text-dark'}`}
-                      onClick={() => setActiveTab('specs')}
+                      className={`nav-link ${activeTab === 'details' ? 'active' : ''} rounded-pill fw-bold`}
+                      onClick={() => setActiveTab('details')}
                     >
-                      <i className="fas fa-list-alt me-2"></i>
-                      Specifications
+                      <i className="fas fa-info-circle me-2"></i>
+                      Details & Specifications
                     </button>
-                  )}
-                  <button 
-                    className={`nav-link rounded-2 text-nowrap ${activeTab === 'features' ? 'active bg-primary text-white' : 'text-dark'}`}
-                    onClick={() => setActiveTab('features')}
-                  >
-                    <i className="fas fa-star me-2"></i>
-                    Features
-                  </button>
-                  {item.type === 'service' && (
+                  </li>
+                  <li className="nav-item">
                     <button 
-                      className={`nav-link rounded-2 text-nowrap ${activeTab === 'amenities' ? 'active bg-primary text-white' : 'text-dark'}`}
-                      onClick={() => setActiveTab('amenities')}
+                      className={`nav-link ${activeTab === 'features' ? 'active' : ''} rounded-pill fw-bold`}
+                      onClick={() => setActiveTab('features')}
                     >
-                      <i className="fas fa-concierge-bell me-2"></i>
-                      Amenities
+                      <i className="fas fa-star me-2"></i>
+                      Features & Amenities
                     </button>
-                  )}
-                </div>
+                  </li>
+                  <li className="nav-item">
+                    <button 
+                      className={`nav-link ${activeTab === 'reviews' ? 'active' : ''} rounded-pill fw-bold`}
+                      onClick={() => setActiveTab('reviews')}
+                    >
+                      <i className="fas fa-comment me-2"></i>
+                      Reviews & Ratings
+                    </button>
+                  </li>
+                </ul>
               </div>
-              <div className="card-body p-3 p-lg-4">
+
+              <div className="card-body p-4">
+                {/* Details & Specifications Tab */}
                 {activeTab === 'details' && (
-                  <div>
-                    <h5 className="fw-bold mb-4 text-dark">Product Description</h5>
-                    <p className="text-muted lead" style={{ lineHeight: '1.8', fontSize: 'clamp(1rem, 1.2vw, 1.1rem)' }}>
-                      {item.description || 'No description available.'}
-                    </p>
-                    {item.type === 'service' && item.policies && (
-                      <div className="mt-5">
-                        <h6 className="fw-bold mb-3 text-dark">Policies & Information</h6>
-                        <div className="bg-light p-4 rounded-3">
-                          <pre className="text-muted small mb-0" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', lineHeight: '1.6' }}>
-                            {item.policies}
-                          </pre>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'specs' && item.specifications && (
-                  <div>
-                    <h5 className="fw-bold mb-4 text-dark">Technical Specifications</h5>
-                    <div className="row g-3">
-                      {item.specifications.map((spec, index) => {
-                        const { key, value } = formatSpecification(spec);
-                        return (
-                          <div key={index} className="col-md-6 col-12">
-                            <div className="card bg-light border-0 h-100">
-                              <div className="card-body">
-                                <div className="d-flex justify-content-between align-items-start">
-                                  <span className="fw-medium text-muted">{key}</span>
-                                  <span className="fw-bold text-dark text-end">{value}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'features' && (
-                  <div>
-                    <h5 className="fw-bold mb-4 text-dark">
-                      {item.type === 'service' ? 'Services & Features' : 'Product Features'}
-                    </h5>
-                    <div className="row g-3">
-                      {(item.features || []).map((feature, index) => (
-                        <div key={index} className="col-lg-4 col-md-6 col-12">
-                          <div className="card border-0 bg-primary bg-opacity-10 h-100">
-                            <div className="card-body text-center">
-                              <div className="d-flex align-items-center justify-content-center">
-                                <i className="fas fa-check-circle text-success me-2"></i>
-                                <span className="fw-medium">{feature}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'amenities' && item.type === 'service' && (
-                  <div>
+                  <div className="tab-content">
                     <div className="row g-4">
-                      <div className="col-lg-6 col-12">
-                        <h6 className="fw-bold mb-3 text-dark">
-                          <i className="fas fa-spa me-2 text-success"></i>
-                          Amenities
-                        </h6>
-                        <div className="row g-2">
-                          {(item.amenities || []).map((amenity, index) => (
-                            <div key={index} className="col-12">
-                              <div className="card bg-light border-0">
-                                <div className="card-body py-2">
-                                  <div className="d-flex align-items-center">
-                                    <i className="fas fa-check text-success me-3"></i>
-                                    <span>{amenity}</span>
-                                  </div>
+                      {/* Specifications */}
+                      {item.specifications && item.specifications.length > 0 && (
+                        <div className="col-md-6">
+                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                            <i className="fas fa-list-alt me-2 text-primary"></i>
+                            Specifications
+                          </h5>
+                          <div className="bg-light rounded-4 p-4">
+                            {item.specifications.map((spec, index) => {
+                              const formattedSpec = formatSpecification(spec);
+                              return (
+                                <div key={index} className="mb-3 pb-3 border-bottom">
+                                  <h6 className="fw-bold text-primary mb-1">{formattedSpec.key}</h6>
+                                  <p className="text-dark mb-0">{formattedSpec.value}</p>
                                 </div>
-                              </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Additional Details */}
+                      <div className="col-md-6">
+                        <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                          <i className="fas fa-clipboard-list me-2 text-primary"></i>
+                          Additional Details
+                        </h5>
+                        <div className="bg-light rounded-4 p-4">
+                          {item.brand && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Brand</h6>
+                              <p className="text-dark mb-0">{item.brand}</p>
                             </div>
-                          ))}
+                          )}
+                          
+                          {item.condition && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Condition</h6>
+                              <p className="text-dark mb-0 text-capitalize">{item.condition}</p>
+                            </div>
+                          )}
+
+                          {item.size && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Size</h6>
+                              <p className="text-dark mb-0">{item.size}</p>
+                            </div>
+                          )}
+
+                          {item.color && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Color</h6>
+                              <p className="text-dark mb-0">{item.color}</p>
+                            </div>
+                          )}
+
+                          {item.material && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Material</h6>
+                              <p className="text-dark mb-0">{item.material}</p>
+                            </div>
+                          )}
+
+                          {/* Vehicle Specific Details */}
+                          {item.vehicleType && (
+                            <>
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Vehicle Type</h6>
+                                <p className="text-dark mb-0 text-capitalize">{item.vehicleType}</p>
+                              </div>
+                              {item.year && (
+                                <div className="mb-3 pb-3 border-bottom">
+                                  <h6 className="fw-bold text-primary mb-1">Year</h6>
+                                  <p className="text-dark mb-0">{item.year}</p>
+                                </div>
+                              )}
+                              {item.mileage && (
+                                <div className="mb-3 pb-3 border-bottom">
+                                  <h6 className="fw-bold text-primary mb-1">Mileage</h6>
+                                  <p className="text-dark mb-0">{item.mileage}</p>
+                                </div>
+                              )}
+                              {item.fuelType && (
+                                <div className="mb-3 pb-3 border-bottom">
+                                  <h6 className="fw-bold text-primary mb-1">Fuel Type</h6>
+                                  <p className="text-dark mb-0 text-capitalize">{item.fuelType}</p>
+                                </div>
+                              )}
+                              {item.transmission && (
+                                <div className="mb-3 pb-3 border-bottom">
+                                  <h6 className="fw-bold text-primary mb-1">Transmission</h6>
+                                  <p className="text-dark mb-0 text-capitalize">{item.transmission}</p>
+                                </div>
+                              )}
+                            </>
+                          )}
+
+                          {/* Service Specific Details */}
+                          {item.serviceType && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Service Type</h6>
+                              <p className="text-dark mb-0">{item.serviceType}</p>
+                            </div>
+                          )}
+
+                          {item.capacity && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Capacity</h6>
+                              <p className="text-dark mb-0">{item.capacity}</p>
+                            </div>
+                          )}
+
+                          {item.checkInTime && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Check-in Time</h6>
+                              <p className="text-dark mb-0">{item.checkInTime}</p>
+                            </div>
+                          )}
+
+                          {item.checkOutTime && (
+                            <div className="mb-3 pb-3 border-bottom">
+                              <h6 className="fw-bold text-primary mb-1">Check-out Time</h6>
+                              <p className="text-dark mb-0">{item.checkOutTime}</p>
+                            </div>
+                          )}
+
+                          <div className="mb-3">
+                            <h6 className="fw-bold text-primary mb-1">Last Updated</h6>
+                            <p className="text-dark mb-0">{item.lastUpdated || '2024-01-15'}</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="col-lg-6 col-12">
-                        <h6 className="fw-bold mb-3 text-dark">
-                          <i className="fas fa-concierge-bell me-2 text-primary"></i>
-                          Services
-                        </h6>
-                        <div className="row g-2">
-                          {(item.services || []).map((service, index) => (
-                            <div key={index} className="col-12">
-                              <div className="card bg-light border-0">
-                                <div className="card-body py-2">
+                    </div>
+                  </div>
+                )}
+
+                {/* Features & Amenities Tab */}
+                {activeTab === 'features' && (
+                  <div className="tab-content">
+                    <div className="row g-4">
+                      {/* Features */}
+                      {item.features && item.features.length > 0 && (
+                        <div className="col-md-6">
+                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                            <i className="fas fa-star me-2 text-warning"></i>
+                            Key Features
+                          </h5>
+                          <div className="row g-3">
+                            {item.features.map((feature, index) => (
+                              <div key={index} className="col-sm-6">
+                                <div className="card border-0 bg-light h-100">
+                                  <div className="card-body text-center p-4">
+                                    <i className="fas fa-check-circle text-success fa-2x mb-3"></i>
+                                    <h6 className="fw-bold text-dark mb-0">{feature}</h6>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Amenities */}
+                      {item.amenities && item.amenities.length > 0 && (
+                        <div className="col-md-6">
+                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                            <i className="fas fa-concierge-bell me-2 text-primary"></i>
+                            Amenities
+                          </h5>
+                          <div className="row g-3">
+                            {item.amenities.map((amenity, index) => (
+                              <div key={index} className="col-sm-6">
+                                <div className="card border-0 bg-light h-100">
+                                  <div className="card-body text-center p-4">
+                                    <i className="fas fa-check text-success fa-2x mb-3"></i>
+                                    <h6 className="fw-bold text-dark mb-0">{amenity}</h6>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Services */}
+                      {item.services && item.services.length > 0 && (
+                        <div className="col-12 mt-4">
+                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                            <i className="fas fa-hands-helping me-2 text-success"></i>
+                            Services Offered
+                          </h5>
+                          <div className="row g-3">
+                            {item.services.map((service, index) => (
+                              <div key={index} className="col-md-4 col-sm-6">
+                                <div className="card border-0 bg-success bg-opacity-10 h-100">
+                                  <div className="card-body text-center p-4">
+                                    <i className="fas fa-hand-holding-heart text-success fa-2x mb-3"></i>
+                                    <h6 className="fw-bold text-dark mb-0">{service}</h6>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Policies */}
+                      {item.policies && (
+                        <div className="col-12 mt-4">
+                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                            <i className="fas fa-file-contract me-2 text-info"></i>
+                            Policies & Information
+                          </h5>
+                          <div className="card border-0 bg-info bg-opacity-10">
+                            <div className="card-body p-4">
+                              <pre className="text-dark mb-0" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+                                {item.policies}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Reviews & Ratings Tab */}
+                {activeTab === 'reviews' && (
+                  <div className="tab-content">
+                    <div className="row g-4">
+                      {/* Rating Summary */}
+                      <div className="col-md-4">
+                        <div className="card border-0 bg-light rounded-4 p-4 text-center">
+                          <div className="display-4 fw-bold text-warning mb-2">
+                            {item.rating || 4.0}
+                          </div>
+                          <div className="mb-3">
+                            {renderStars(item.rating)}
+                          </div>
+                          <p className="text-muted mb-0">
+                            {item.reviews || 0} reviews
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Review Stats */}
+                      <div className="col-md-8">
+                        <h5 className="fw-bold text-dark mb-4">Customer Reviews</h5>
+                        
+                        {/* Sample Reviews */}
+                        <div className="space-y-4">
+                          {/* Review 1 */}
+                          <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                              <div className="d-flex align-items-center">
+                                <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                  <i className="fas fa-user text-primary"></i>
+                                </div>
+                                <div>
+                                  <h6 className="fw-bold text-dark mb-1">John M.</h6>
                                   <div className="d-flex align-items-center">
-                                    <i className="fas fa-bell text-primary me-3"></i>
-                                    <span>{service}</span>
+                                    {renderStars(5)}
+                                    <span className="text-muted ms-2">2 days ago</span>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          ))}
+                            <p className="text-dark mb-0">
+                              Excellent {item.type === 'service' ? 'service' : 'product'}! The quality exceeded my expectations. 
+                              {item.businessName || item.business} provided outstanding customer service and the {item.type === 'service' ? 'service was delivered' : 'item was delivered'} on time.
+                            </p>
+                          </div>
+
+                          {/* Review 2 */}
+                          <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                              <div className="d-flex align-items-center">
+                                <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                  <i className="fas fa-user text-success"></i>
+                                </div>
+                                <div>
+                                  <h6 className="fw-bold text-dark mb-1">Sarah K.</h6>
+                                  <div className="d-flex align-items-center">
+                                    {renderStars(4)}
+                                    <span className="text-muted ms-2">1 week ago</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-dark mb-0">
+                              Very satisfied with my purchase. The {item.type === 'service' ? 'service was professional' : 'product works perfectly'} and the price was reasonable. 
+                              Would recommend {item.businessName || item.business} to others.
+                            </p>
+                          </div>
+
+                          {/* Review 3 */}
+                          <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                              <div className="d-flex align-items-center">
+                                <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                  <i className="fas fa-user text-warning"></i>
+                                </div>
+                                <div>
+                                  <h6 className="fw-bold text-dark mb-1">David L.</h6>
+                                  <div className="d-flex align-items-center">
+                                    {renderStars(4.5)}
+                                    <span className="text-muted ms-2">2 weeks ago</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-dark mb-0">
+                              Good {item.type === 'service' ? 'service experience' : 'quality product'}. The {item.type === 'service' ? 'service met my requirements' : 'item arrived as described'} and the communication was clear throughout the process.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Load More Reviews Button */}
+                        <div className="text-center mt-4">
+                          <button className="btn btn-outline-primary rounded-pill px-4">
+                            <i className="fas fa-arrow-down me-2"></i>
+                            Load More Reviews
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1256,26 +1486,25 @@ function ProductDetailPage() {
 
         {/* Related Items Section */}
         {relatedItems.length > 0 && (
-          <div className="row mt-5">
+          <div className="row mt-4">
             <div className="col-12">
               <div className="card border-0 shadow-lg rounded-4">
                 <div className="card-header bg-white border-0 py-4">
                   <h5 className="fw-bold mb-0 d-flex align-items-center">
                     <i className="fas fa-th-large me-3 text-primary"></i>
-                    Related Products
+                    Related {item.type === 'service' ? 'Services' : 'Products'}
                   </h5>
                 </div>
-                <div className="card-body">
+                <div className="card-body p-4">
                   <div className="row g-4">
-                    {relatedItems.map(relatedItem => (
-                      <div key={relatedItem.id} className="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6">
+                    {relatedItems.slice(0, 4).map((relatedItem, index) => (
+                      <div key={index} className="col-lg-3 col-md-6">
                         <div 
-                          className="card h-100 border-0 shadow-sm rounded-3 cursor-pointer product-card"
+                          className="card border-0 shadow-sm h-100 cursor-pointer"
                           onClick={() => navigate(`/product/${relatedItem.id}`)}
                           style={{ 
-                            cursor: 'pointer', 
                             transition: 'all 0.3s ease',
-                            border: '1px solid #f0f0f0'
+                            cursor: 'pointer'
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'translateY(-5px)';
@@ -1286,39 +1515,37 @@ function ProductDetailPage() {
                             e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
                           }}
                         >
-                          <div className="position-relative">
+                          <div className="position-relative overflow-hidden rounded-top-4">
                             <img 
                               src={getItemImages(relatedItem)[0]} 
-                              className="card-img-top rounded-top-3"
+                              className="card-img-top"
                               alt={relatedItem.name}
-                              style={{ height: '150px', objectFit: 'cover' }}
-                              onError={(e) => {
-                                e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800';
+                              style={{ 
+                                height: '200px', 
+                                objectFit: 'cover',
+                                transition: 'transform 0.3s ease'
                               }}
                             />
-                            <div className="position-absolute top-0 start-0 m-2">
-                              <span className={`badge bg-${getCategoryBadgeColor(relatedItem.category)} text-white`}>
+                            <div className="position-absolute top-0 end-0 m-3">
+                              <span className={`badge bg-${getCategoryBadgeColor(relatedItem.category)} bg-opacity-90 text-white px-3 py-2 rounded-pill`}>
                                 <i className={`fas ${getCategoryIcon(relatedItem.category)} me-1`}></i>
-                                {relatedItem.category.split(' ')[0]}
+                                {relatedItem.category}
                               </span>
                             </div>
                           </div>
-                          <div className="card-body d-flex flex-column">
-                            <h6 className="card-title fw-bold text-dark mb-2" style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
-                              {relatedItem.name.length > 50 ? `${relatedItem.name.substring(0, 50)}...` : relatedItem.name}
-                            </h6>
-                            <p className="card-text text-success fw-bold mb-2">
+                          <div className="card-body">
+                            <h6 className="card-title fw-bold text-dark mb-2">{relatedItem.name}</h6>
+                            <p className="card-text text-primary fw-bold mb-2">
                               {formatPrice(relatedItem)}
                             </p>
-                            <div className="mt-auto">
-                              <div className="d-flex justify-content-between align-items-center small text-muted">
-                                <span>
-                                  <i className="fas fa-map-marker-alt me-1"></i>
-                                  {relatedItem.city || relatedItem.region}
-                                </span>
-                                <span>
-                                  {renderStars(relatedItem.rating || 4.0)}
-                                </span>
+                            <div className="d-flex align-items-center justify-content-between">
+                              <small className="text-muted">
+                                <i className="fas fa-store me-1"></i>
+                                {relatedItem.businessName || relatedItem.business}
+                              </small>
+                              <div className="d-flex align-items-center">
+                                {renderStars(relatedItem.rating)}
+                                <small className="text-muted ms-1">({relatedItem.reviews || 0})</small>
                               </div>
                             </div>
                           </div>
@@ -1333,43 +1560,52 @@ function ProductDetailPage() {
         )}
       </div>
 
-      {/* Image Modal for Full Screen View */}
+      {/* Image Modal */}
       {showImageModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.9)' }} tabIndex="-1">
-          <div className="modal-dialog modal-dialog-centered modal-xl m-0">
+        <div 
+          className="modal fade show d-block"
+          style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}
+          tabIndex="-1"
+          onClick={closeImageModal}
+        >
+          <div className="modal-dialog modal-xl modal-dialog-centered">
             <div className="modal-content bg-transparent border-0">
-              <div className="modal-header border-0 position-absolute top-0 end-0 z-3">
+              <div className="modal-header border-0">
                 <button 
                   type="button" 
-                  className="btn-close btn-close-white" 
+                  className="btn-close btn-close-white"
                   onClick={closeImageModal}
                 ></button>
               </div>
-              <div className="modal-body p-0 d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
+              <div className="modal-body text-center">
                 <img 
                   src={itemImages[selectedImageIndex]} 
-                  alt="Full size product view"
-                  className="img-fluid"
-                  style={{ maxWidth: '90%', maxHeight: '80vh', objectFit: 'contain' }}
+                  alt={`Product view ${selectedImageIndex + 1}`}
+                  className="img-fluid rounded-4"
+                  style={{ maxHeight: '70vh', objectFit: 'contain' }}
+                  onClick={(e) => e.stopPropagation()}
                 />
                 {itemImages.length > 1 && (
-                  <div className="position-absolute bottom-0 start-50 translate-middle-x mb-4">
+                  <div className="mt-4">
                     <button 
-                      className="btn btn-light rounded-circle me-2"
-                      onClick={() => navigateImage('prev')}
-                      style={{ width: '50px', height: '50px' }}
+                      className="btn btn-light rounded-circle me-3"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigateImage('prev');
+                      }}
+                      style={{ width: '60px', height: '60px' }}
                     >
-                      <i className="fas fa-chevron-left"></i>
+                      <i className="fas fa-chevron-left fa-lg"></i>
                     </button>
-                    <span className="text-white mx-2">
-                      {selectedImageIndex + 1} / {itemImages.length}
-                    </span>
                     <button 
-                      className="btn btn-light rounded-circle ms-2"
-                      onClick={() => navigateImage('next')}
-                      style={{ width: '50px', height: '50px' }}
+                      className="btn btn-light rounded-circle"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigateImage('next');
+                      }}
+                      style={{ width: '60px', height: '60px' }}
                     >
-                      <i className="fas fa-chevron-right"></i>
+                      <i className="fas fa-chevron-right fa-lg"></i>
                     </button>
                   </div>
                 )}
@@ -1379,58 +1615,138 @@ function ProductDetailPage() {
         </div>
       )}
 
-      {/* Custom CSS */}
-      <style jsx>{`
-        .main-image-container:hover .hover-opacity-100 {
-          opacity: 1 !important;
-        }
-        
-        .thumbnail-item:hover {
-          border-color: #007bff !important;
-          transform: scale(1.05);
-        }
-        
-        .thumbnail-item.active {
-          border-color: #007bff !important;
-          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-        
-        .product-card {
-          transition: all 0.3s ease;
-        }
-        
-        .product-card:active {
-          transform: scale(0.98);
-        }
-        
-        .cursor-pointer {
-          cursor: pointer;
-        }
-        
-        .object-fit-cover {
-          object-fit: cover;
-        }
+      {/* Footer */}
+      <footer className="bg-dark text-white py-5 mt-5">
+        <div className="container">
+          <div className="row g-4">
+            <div className="col-lg-4">
+              <h5 className="fw-bold mb-3">
+                <i className="fas fa-globe-americas me-2 text-primary"></i>
+                BisRun
+              </h5>
+              <p className="text-light mb-4">
+                Connecting businesses with customers across Tanzania and beyond. 
+                Discover amazing products and services in your local area.
+              </p>
+              <div className="d-flex gap-3">
+                <a href="#" className="text-white text-decoration-none">
+                  <i className="fab fa-facebook fa-lg"></i>
+                </a>
+                <a href="#" className="text-white text-decoration-none">
+                  <i className="fab fa-twitter fa-lg"></i>
+                </a>
+                <a href="#" className="text-white text-decoration-none">
+                  <i className="fab fa-instagram fa-lg"></i>
+                </a>
+                <a href="#" className="text-white text-decoration-none">
+                  <i className="fab fa-linkedin fa-lg"></i>
+                </a>
+              </div>
+            </div>
+            <div className="col-lg-2 col-md-4">
+              <h6 className="fw-bold mb-3">Quick Links</h6>
+              <ul className="list-unstyled">
+                <li className="mb-2">
+                  <Link to="/" className="text-light text-decoration-none">Home</Link>
+                </li>
+                <li className="mb-2">
+                  <Link to="/search" className="text-light text-decoration-none">Search</Link>
+                </li>
+                <li className="mb-2">
+                  <a href="#" className="text-light text-decoration-none">About Us</a>
+                </li>
+                <li className="mb-2">
+                  <a href="#" className="text-light text-decoration-none">Contact</a>
+                </li>
+              </ul>
+            </div>
+            <div className="col-lg-3 col-md-4">
+              <h6 className="fw-bold mb-3">Categories</h6>
+              <ul className="list-unstyled">
+                <li className="mb-2">
+                  <a href="#" className="text-light text-decoration-none">Electronics & Devices</a>
+                </li>
+                <li className="mb-2">
+                  <a href="#" className="text-light text-decoration-none">Vehicles</a>
+                </li>
+                <li className="mb-2">
+                  <a href="#" className="text-light text-decoration-none">General Goods</a>
+                </li>
+                <li className="mb-2">
+                  <a href="#" className="text-light text-decoration-none">Building & Hotels</a>
+                </li>
+              </ul>
+            </div>
+            <div className="col-lg-3 col-md-4">
+              <h6 className="fw-bold mb-3">Contact Info</h6>
+              <ul className="list-unstyled text-light">
+                <li className="mb-2 d-flex align-items-center">
+                  <i className="fas fa-map-marker-alt me-2 text-primary"></i>
+                  Dar es Salaam, Tanzania
+                </li>
+                <li className="mb-2 d-flex align-items-center">
+                  <i className="fas fa-phone me-2 text-primary"></i>
+                  +255 754 000 000
+                </li>
+                <li className="mb-2 d-flex align-items-center">
+                  <i className="fas fa-envelope me-2 text-primary"></i>
+                  info@bisrun.com
+                </li>
+              </ul>
+            </div>
+          </div>
+          <hr className="my-4 bg-light" />
+          <div className="text-center text-light">
+            <p className="mb-0">&copy; 2024 BisRun. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
 
-        /* Responsive optimizations */
-        @media (max-width: 576px) {
-          .container {
-            padding-left: 12px;
-            padding-right: 12px;
+      {/* Add Bootstrap Icons */}
+      <link 
+        rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
+      />
+      <style>
+        {`
+          .cursor-pointer { cursor: pointer; }
+          .thumbnail-item.active { border-color: #007bff !important; }
+          .typewriter-cursor { animation: blink 1s infinite; }
+          @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+          
+          /* Responsive Design Improvements */
+          @media (max-width: 768px) {
+            .main-image-container {
+              height: 250px !important;
+            }
+            .thumbnail-item {
+              width: 50px !important;
+              height: 50px !important;
+            }
+            .btn-lg {
+              padding: 0.75rem 1.5rem !important;
+              font-size: 1rem !important;
+            }
+            .display-4 {
+              font-size: 2rem !important;
+            }
           }
-        }
-        
-        @media (min-width: 1200px) {
-          .container {
-            max-width: 1140px;
+          
+          @media (max-width: 576px) {
+            .container {
+              padding-left: 15px;
+              padding-right: 15px;
+            }
+            .card-body {
+              padding: 1rem !important;
+            }
+            .btn {
+              width: 100% !important;
+              margin-bottom: 0.5rem;
+            }
           }
-        }
-        
-        @media (min-width: 1400px) {
-          .container {
-            max-width: 1320px;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }

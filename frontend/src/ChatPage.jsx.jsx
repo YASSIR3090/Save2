@@ -1,4 +1,4 @@
-// src/ChatPage.jsx - FIXED TIMESTAMP ALIGNMENT
+// src/ChatPage.jsx - STICKER ICON REMOVED
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +13,7 @@ function ChatPage() {
   const [isVideoCall, setIsVideoCall] = useState(false);
   const [callStatus, setCallStatus] = useState("idle");
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Sample product data
   const sampleProductInfo = {
@@ -445,76 +446,92 @@ function ChatPage() {
         </div>
       </div>
 
-      {/* Message Input Area - WhatsApp Style */}
+      {/* Message Input Area - ONLY EMOJI ICON INSIDE INPUT */}
       <div className="bg-light border-top p-3">
         <div className="container-fluid px-0">
-          <form onSubmit={sendMessage} className="d-flex align-items-center gap-2">
-            {/* Emoji Button */}
-            <button
-              type="button"
-              className="btn btn-link text-muted p-2"
-              style={{ width: '40px', height: '40px' }}
-            >
-              <i className="fas fa-smile fa-lg"></i>
-            </button>
-
-            {/* Attachment Button */}
+          <form onSubmit={sendMessage}>
             <div className="position-relative">
-              <input
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleFileUpload}
-                className="position-absolute top-0 start-0 w-100 h-100 opacity-0"
-                style={{ cursor: 'pointer', zIndex: 1 }}
-                id="file-upload"
-              />
-              <label 
-                htmlFor="file-upload"
-                className="btn btn-link text-muted p-2 d-flex align-items-center justify-content-center"
-                style={{ width: '40px', height: '40px', cursor: 'pointer' }}
-              >
-                <i className="fas fa-paperclip fa-lg"></i>
-              </label>
-            </div>
+              {/* Single Emoji Icon inside input - LEFT SIDE */}
+              <div className="position-absolute start-0 top-50 translate-middle-y ms-3"
+                   style={{ zIndex: 2 }}>
+                <button
+                  type="button"
+                  className="btn btn-link text-muted p-1"
+                  style={{ width: '35px', height: '35px' }}
+                >
+                  <i className="fas fa-smile"></i>
+                </button>
+              </div>
 
-            {/* Message Input */}
-            <div className="flex-grow-1">
+              {/* Message Input - WITH PADDING FOR ICON */}
               <input
                 type="text"
                 className="form-control rounded-pill border-0"
-                placeholder="Type a message"
+                placeholder="Type a message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 style={{ 
-                  padding: '12px 20px',
+                  padding: '14px 100px 14px 50px', // Less padding since only one icon
                   backgroundColor: 'white',
-                  fontSize: '14px',
-                  border: '1px solid #e0e0e0 !important'
+                  fontSize: '16px',
+                  border: '1px solid #e0e0e0 !important',
+                  minHeight: '50px',
+                  lineHeight: '1.5'
                 }}
               />
-            </div>
 
-            {/* Send/Record Button */}
-            {newMessage.trim() ? (
-              <button
-                type="submit"
-                className="btn btn-success rounded-circle d-flex align-items-center justify-content-center"
-                style={{ width: '45px', height: '45px' }}
-              >
-                <i className="fas fa-paper-plane"></i>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={`btn rounded-circle d-flex align-items-center justify-content-center ${
-                  isRecording ? 'btn-danger' : 'btn-success'
-                }`}
-                style={{ width: '45px', height: '45px' }}
-                onClick={startRecording}
-              >
-                <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
-              </button>
-            )}
+              {/* Icons inside input - RIGHT SIDE */}
+              <div className="position-absolute end-0 top-50 translate-middle-y d-flex align-items-center gap-1 me-2"
+                   style={{ zIndex: 2 }}>
+                {/* Attachment Button */}
+                <div className="position-relative">
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileUpload}
+                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                    style={{ cursor: 'pointer', zIndex: 1 }}
+                    id="file-upload"
+                    ref={fileInputRef}
+                  />
+                  <label 
+                    htmlFor="file-upload"
+                    className="btn btn-link text-muted p-1 d-flex align-items-center justify-content-center"
+                    style={{ width: '35px', height: '35px', cursor: 'pointer' }}
+                  >
+                    <i className="fas fa-paperclip"></i>
+                  </label>
+                </div>
+
+                {/* Send/Record Button */}
+                {newMessage.trim() ? (
+                  <button
+                    type="submit"
+                    className="btn btn-success rounded-circle d-flex align-items-center justify-content-center"
+                    style={{ 
+                      width: '40px', 
+                      height: '40px'
+                    }}
+                  >
+                    <i className="fas fa-paper-plane"></i>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={`btn rounded-circle d-flex align-items-center justify-content-center ${
+                      isRecording ? 'btn-danger' : 'btn-success'
+                    }`}
+                    style={{ 
+                      width: '40px', 
+                      height: '40px'
+                    }}
+                    onClick={startRecording}
+                  >
+                    <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
+                  </button>
+                )}
+              </div>
+            </div>
           </form>
         </div>
       </div>
@@ -582,6 +599,23 @@ function ChatPage() {
           
           .gap-3 > * {
             margin-bottom: 12px;
+          }
+          
+          /* Larger input for mobile */
+          .form-control {
+            font-size: 16px !important;
+            padding: 16px 100px 16px 50px !important;
+          }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 576px) {
+          .p-3 {
+            padding: 12px !important;
+          }
+          
+          .form-control {
+            padding: 14px 90px 14px 45px !important;
           }
         }
         

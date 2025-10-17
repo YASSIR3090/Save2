@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED VERSION WITH SEPARATE IMAGE AND DETAILS SECTIONS
+// src/SearchResultsPage.jsx - UPDATED WITH BETTER BORDER DETAILS
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -543,6 +543,13 @@ const SearchResultsPage = () => {
     return `${item.currencySymbol || '$'} ${item.price?.toLocaleString() || '0'}`;
   };
 
+  // NEW: Function to truncate description to 42 characters
+  const truncateDescription = (description) => {
+    if (!description) return 'No description available';
+    if (description.length <= 42) return description;
+    return description.substring(0, 42) + '...';
+  };
+
   if (isLoading) {
     return (
       <div className="min-vh-100 bg-white d-flex justify-content-center align-items-center">
@@ -817,49 +824,54 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* SEPARATE IMAGE AND DETAILS CARDS */}
+            {/* IMPROVED CARDS WITH BETTER BORDER DETAILS */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* CARD WITH SEPARATE IMAGE AND DETAILS */}
+                  {/* IMPROVED CARD WITH BETTER BORDER DETAILS */}
                   <div 
-                    className="separate-card"
+                    className="improved-card"
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       position: 'relative',
                       width: '100%',
-                      height: '300px',
-                      borderRadius: '8px',
+                      height: '280px',
+                      borderRadius: '16px',
                       overflow: 'hidden',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
                       backgroundColor: 'white',
-                      border: '1px solid #e0e0e0',
+                      border: '2px solid #e8e8e8',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.borderColor = '#c45500';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
                       e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.borderColor = '#e8e8e8';
                     }}
-                    onClick={() => navigate(`/product/${item.id}`)}
+                    onClick={() => {
+                      if (item.type === 'service') {
+                        navigate(`/service-detail/${item.id}`);
+                      } else {
+                        navigate(`/product-detail/${item.id}`);
+                      }
+                    }}
                   >
-                    {/* IMAGE SECTION - TAKES FULL WIDTH AND 70% HEIGHT */}
+                    {/* Image Container */}
                     <div 
-                      className="image-section-separate"
+                      className="image-container"
                       style={{
+                        position: 'relative',
                         width: '100%',
-                        height: '70%',
+                        height: '140px',
                         overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#f8f9fa',
-                        position: 'relative'
+                        backgroundColor: '#f8f9fa'
                       }}
                     >
                       <img
@@ -868,167 +880,171 @@ const SearchResultsPage = () => {
                         style={{
                           width: '100%',
                           height: '100%',
-                          objectFit: 'cover'
+                          objectFit: 'cover',
+                          transition: 'transform 0.3s ease'
                         }}
                         onError={(e) => {
                           e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
                         }}
                       />
                       
-                      {/* Badges on Image */}
-                      <div className="position-absolute top-0 start-0 w-100 p-2 d-flex justify-content-between">
-                        {item.isFuzzyMatch && (
-                          <div 
-                            className="badge"
-                            style={{
-                              background: 'linear-gradient(45deg, #f59e0b, #fbbf24)',
-                              color: '#1f2937',
-                              fontWeight: 'bold',
-                              padding: '2px 6px',
-                              fontSize: '0.5rem',
-                              borderRadius: '8px'
-                            }}
-                          >
-                            <i className="fas fa-bolt me-1"></i>
-                            Similar
-                          </div>
-                        )}
-                        
-                        {item.featured && (
-                          <div 
-                            className="badge"
-                            style={{
-                              background: 'linear-gradient(45deg, #8b5cf6, #a78bfa)',
-                              color: '#ffffff',
-                              fontWeight: 'bold',
-                              padding: '2px 6px',
-                              fontSize: '0.5rem',
-                              borderRadius: '8px'
-                            }}
-                          >
-                            <i className="fas fa-star me-1"></i>
-                            Featured
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Favorite Button */}
-                      <div 
-                        className="position-absolute top-0 end-0 p-2"
-                        style={{ zIndex: 10 }}
-                      >
-                        <button 
-                          className="btn btn-light btn-sm rounded-circle"
+                      {/* Featured Badge */}
+                      {item.featured && (
+                        <div 
+                          className="featured-badge"
                           style={{
-                            width: '28px',
-                            height: '28px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: 'rgba(255,255,255,0.9)',
-                            border: 'none'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Favorite logic
+                            position: 'absolute',
+                            top: '8px',
+                            left: '8px',
+                            backgroundColor: '#ff4444',
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '9px',
+                            fontWeight: 'bold',
+                            zIndex: 2
                           }}
                         >
-                          <i className="fas fa-heart text-danger" style={{ fontSize: '0.7rem' }}></i>
-                        </button>
+                          FEATURED
+                        </div>
+                      )}
+
+                      {/* Type Badge */}
+                      <div 
+                        className="type-badge"
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          color: 'white',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '9px',
+                          fontWeight: 'bold',
+                          zIndex: 2
+                        }}
+                      >
+                        {item.type === 'service' ? 'SERVICE' : 'PRODUCT'}
                       </div>
                     </div>
 
-                    {/* DETAILS SECTION - SEPARATE FROM IMAGE */}
+                    {/* Content Container */}
                     <div 
-                      className="details-section-separate"
+                      className="content-container"
                       style={{
-                        width: '100%',
-                        height: '30%',
+                        flex: 1,
                         padding: '12px',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        backgroundColor: 'white'
+                        justifyContent: 'space-between'
                       }}
                     >
-                      {/* Product Name */}
-                      <div 
-                        className="product-name"
-                        style={{
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          color: '#2d3748',
-                          lineHeight: '1.2',
-                          display: '-webkit-box',
-                          WebkitLineClamp: '2',
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          marginBottom: '4px'
-                        }}
-                      >
-                        {item.name}
+                      {/* Top Section - Name and Category */}
+                      <div>
+                        {/* Item Name */}
+                        <h6 
+                          className="item-name"
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            lineHeight: '1.3',
+                            marginBottom: '4px',
+                            color: '#1a1a1a',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            minHeight: '32px'
+                          }}
+                        >
+                          {item.name}
+                        </h6>
+
+                        {/* Category */}
+                        <p 
+                          className="category"
+                          style={{
+                            fontSize: '11px',
+                            color: '#666',
+                            marginBottom: '6px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          {item.category}
+                        </p>
                       </div>
 
-                      {/* Rating and Price Row */}
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <div className="d-flex align-items-center">
-                          <div className="me-1">
-                            {renderStars(item.rating)}
-                          </div>
-                          <small className="text-muted" style={{ fontSize: '0.6rem' }}>
-                            ({item.reviews || 0})
-                          </small>
-                        </div>
+                      {/* Middle Section - Description */}
+                      <div style={{ marginBottom: '8px' }}>
+                        <p 
+                          className="description"
+                          style={{
+                            fontSize: '10px',
+                            color: '#888',
+                            lineHeight: '1.3',
+                            margin: 0,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {truncateDescription(item.description)}
+                        </p>
+                      </div>
+
+                      {/* Bottom Section - Price, Rating, Business */}
+                      <div>
+                        {/* Price */}
                         <div 
                           className="price"
                           style={{
-                            fontSize: '0.9rem',
-                            fontWeight: '700',
-                            color: '#059669'
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: '#c45500',
+                            marginBottom: '4px'
                           }}
                         >
                           {formatPrice(item)}
+                          {item.type === 'product' && item.currency === 'USD' && (
+                            <span style={{ fontSize: '10px', color: '#666', marginLeft: '2px' }}>USD</span>
+                          )}
                         </div>
-                      </div>
 
-                      {/* Business & Stock Info */}
-                      <div className="d-flex justify-content-between align-items-center">
-                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>
-                          <i className="fas fa-store me-1"></i>
-                          {item.businessName ? (item.businessName.length > 12 ? `${item.businessName.substring(0, 12)}...` : item.businessName) : (item.business ? (item.business.length > 12 ? `${item.business.substring(0, 12)}...` : item.business) : 'Unknown')}
-                        </small>
-                        {item.type === 'product' && (
+                        {/* Rating and Business */}
+                        <div className="d-flex justify-content-between align-items-center">
+                          {/* Rating */}
+                          <div className="d-flex align-items-center">
+                            <div className="me-1">
+                              {renderStars(item.rating)}
+                            </div>
+                            <small 
+                              className="text-muted"
+                              style={{ fontSize: '9px' }}
+                            >
+                              {item.rating || '4.0'}
+                            </small>
+                          </div>
+
+                          {/* Business Name */}
                           <small 
-                            style={{ 
-                              fontSize: '0.65rem',
-                              background: item.stock > 0 ? '#10b981' : '#ef4444',
-                              color: 'white',
-                              padding: '2px 6px',
-                              borderRadius: '8px',
-                              fontWeight: '500'
+                            className="business-name text-end"
+                            style={{
+                              fontSize: '9px',
+                              color: '#666',
+                              fontWeight: '500',
+                              maxWidth: '60%',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
                             }}
                           >
-                            {item.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                            {item.businessName || item.business}
                           </small>
-                        )}
-                      </div>
-
-                      {/* Quick Action Button */}
-                      <div className="d-flex justify-content-center mt-2">
-                        <button 
-                          className="btn btn-primary btn-sm w-100"
-                          style={{
-                            fontSize: '0.7rem',
-                            padding: '4px 8px'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Add to cart logic
-                          }}
-                        >
-                          <i className="fas fa-cart-plus me-1"></i>
-                          Add to Cart
-                        </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1038,73 +1054,6 @@ const SearchResultsPage = () => {
           </>
         )}
       </div>
-
-      {/* Custom CSS for Separate Image and Details Cards */}
-      <style>
-        {`
-          .separate-card:hover {
-            border-color: #c45500 !important;
-          }
-
-          /* Responsive adjustments */
-          @media (max-width: 576px) {
-            .col-6 {
-              padding: 4px;
-            }
-            
-            .separate-card {
-              height: 250px !important;
-            }
-            
-            .image-section-separate {
-              height: 60% !important;
-            }
-            
-            .details-section-separate {
-              height: 40% !important;
-              padding: 8px !important;
-            }
-            
-            .product-name {
-              font-size: 0.7rem !important;
-            }
-            
-            .price {
-              font-size: 0.8rem !important;
-            }
-          }
-
-          @media (min-width: 576px) {
-            .col-sm-4 {
-              padding: 6px;
-            }
-            
-            .separate-card {
-              height: 270px !important;
-            }
-          }
-
-          @media (min-width: 768px) {
-            .col-md-3 {
-              padding: 8px;
-            }
-            
-            .separate-card {
-              height: 290px !important;
-            }
-          }
-
-          @media (min-width: 992px) {
-            .col-lg-2 {
-              padding: 10px;
-            }
-            
-            .separate-card {
-              height: 300px !important;
-            }
-          }
-        `}
-      </style>
     </div>
   );
 };

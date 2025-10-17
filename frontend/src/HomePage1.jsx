@@ -26,6 +26,11 @@ function HomePage1() {
   const [currentLanguage, setCurrentLanguage] = useState("ENG");
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
+  
+  // New state for dynamic placeholder with animation
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const languages = [
     { code: "ENG", name: "English", flag: "🇺🇸" },
@@ -45,6 +50,55 @@ function HomePage1() {
     { code: "DUT", name: "Nederlands", flag: "🇳🇱" },
     { code: "SWE", name: "Svenska", flag: "🇸🇪" }
   ];
+
+  // Dynamic placeholder texts
+  const placeholderTexts = [
+    "Search products...",
+    "Search services...", 
+    "Search businesses...",
+    "Search electronics...",
+    "Search hotels...",
+    "Search vehicles...",
+    "Search fashion...",
+    "Find anything..."
+  ];
+
+  // Smooth placeholder animation effect
+  useEffect(() => {
+    let currentTimeout;
+    
+    const animatePlaceholder = () => {
+      setIsAnimating(true);
+      setPlaceholderText("");
+      
+      const currentText = placeholderTexts[placeholderIndex];
+      let charIndex = 0;
+      
+      // Type animation
+      const typeInterval = setInterval(() => {
+        if (charIndex < currentText.length) {
+          setPlaceholderText(currentText.substring(0, charIndex + 1));
+          charIndex++;
+        } else {
+          clearInterval(typeInterval);
+          
+          // Wait before starting next animation
+          currentTimeout = setTimeout(() => {
+            setIsAnimating(false);
+            setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
+          }, 2000);
+        }
+      }, 100);
+    };
+
+    if (!isAnimating) {
+      animatePlaceholder();
+    }
+
+    return () => {
+      if (currentTimeout) clearTimeout(currentTimeout);
+    };
+  }, [placeholderIndex, isAnimating, placeholderTexts]);
 
   // Categories data
   const categoryData = [
@@ -587,6 +641,14 @@ function HomePage1() {
     }
   };
 
+  // Handle search input blur
+  const handleSearchInputBlur = () => {
+    // Delay hiding suggestions to allow for clicking on them
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 200);
+  };
+
   // Handle search suggestion click
   const handleSuggestionClick = (suggestion) => {
     setSearchQuery(suggestion);
@@ -1112,42 +1174,46 @@ function HomePage1() {
           </div>
         </div>
 
-        {/* Bottom Row: Search Bar Only */}
+        {/* Bottom Row: Square Search Bar */}
         <div className="container pb-2">
           <form onSubmit={handleSearch} className="position-relative">
             <div className="input-group">
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search products, services, businesses..."
+                placeholder={placeholderText}
                 value={searchQuery}
                 onChange={handleSearchInputChange}
                 onFocus={handleSearchInputFocus}
+                onBlur={handleSearchInputBlur}
                 style={{ 
-                  borderRadius: '20px',
+                  borderRadius: '0',
                   border: '2px solid #007bff',
-                  padding: '8px 16px',
-                  fontSize: '14px'
+                  padding: '12px 20px',
+                  fontSize: '16px',
+                  height: '50px',
+                  borderRight: 'none'
                 }}
               />
               <button 
-                className="btn btn-primary position-absolute end-0 h-100 border-0"
+                className="btn btn-primary border-0"
                 type="submit"
                 style={{ 
-                  borderRadius: '0 20px 20px 0',
-                  background: 'none',
-                  color: '#007bff',
-                  zIndex: 5
+                  borderRadius: '0',
+                  width: '60px',
+                  background: '#007bff',
+                  border: '2px solid #007bff',
+                  borderLeft: 'none'
                 }}
               >
-                <i className="fas fa-search"></i>
+                <i className="fas fa-search text-white"></i>
               </button>
             </div>
 
             {/* Search Suggestions */}
             {showSuggestions && (
               <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
-                <div className="bg-white border rounded-3 shadow-lg overflow-hidden">
+                <div className="bg-white border rounded-0 shadow-lg overflow-hidden">
                   {/* Recent Searches Section */}
                   {searchQuery === "" && recentSearches.length > 0 && (
                     <>
@@ -1654,6 +1720,12 @@ function HomePage1() {
       {/* Custom Styles */}
       <style>
         {`
+          /* Placeholder animation */
+          .form-control::placeholder {
+            color: #6c757d;
+            transition: all 0.3s ease;
+          }
+
           .category-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
