@@ -1,4 +1,4 @@
-// src/HomePage1.jsx - FIXED VERSION WITH PROPER DATA CONNECTION
+// src/HomePage1.jsx - REDESIGNED HEADER LIKE AMAZON MOBILE
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
@@ -648,6 +648,94 @@ function HomePage1() {
     return country?.flag || '🏳️';
   };
 
+  // Sidebar Component
+  const Sidebar = () => {
+    return (
+      <div className={`offcanvas offcanvas-start ${showSidebar ? 'show' : ''}`} 
+           style={{ 
+             visibility: showSidebar ? 'visible' : 'hidden',
+             width: '280px'
+           }}
+           tabIndex="-1">
+        <div className="offcanvas-header border-bottom">
+          <h5 className="offcanvas-title fw-bold text-primary">BisRun Menu</h5>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setShowSidebar(false)}
+          ></button>
+        </div>
+        <div className="offcanvas-body p-0">
+          <div className="list-group list-group-flush">
+            <Link to="/" className="list-group-item list-group-item-action border-0 py-3">
+              <i className="fas fa-home me-3 text-primary"></i>
+              Home
+            </Link>
+            <Link to="/search-results" className="list-group-item list-group-item-action border-0 py-3">
+              <i className="fas fa-search me-3 text-primary"></i>
+              Search
+            </Link>
+            <Link to="/categories" className="list-group-item list-group-item-action border-0 py-3">
+              <i className="fas fa-th-large me-3 text-primary"></i>
+              Categories
+            </Link>
+            <div className="border-top my-2"></div>
+            <h6 className="px-3 pt-2 text-muted small">BUSINESS</h6>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={handleBusinessAuth}
+            >
+              <i className="fas fa-store me-3 text-success"></i>
+              List Your Business
+            </button>
+            <Link to="/business-dashboard" className="list-group-item list-group-item-action border-0 py-3">
+              <i className="fas fa-chart-line me-3 text-success"></i>
+              Business Dashboard
+            </Link>
+            <div className="border-top my-2"></div>
+            <h6 className="px-3 pt-2 text-muted small">ACCOUNT</h6>
+            {user ? (
+              <>
+                <div className="list-group-item border-0 py-3">
+                  <div className="d-flex align-items-center">
+                    <img 
+                      src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                      alt={user.name}
+                      className="rounded-circle me-3"
+                      style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <div className="fw-bold">{user.name}</div>
+                      <small className="text-muted">{user.email}</small>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  className="list-group-item list-group-item-action border-0 py-3 text-danger"
+                  onClick={handleSignOut}
+                >
+                  <i className="fas fa-sign-out-alt me-3"></i>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button 
+                className="list-group-item list-group-item-action border-0 py-3"
+                onClick={() => {
+                  setShowSidebar(false);
+                  setShowAuthModal(true);
+                }}
+              >
+                <i className="fas fa-user me-3 text-primary"></i>
+                Sign In / Register
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Authentication Modal Component
   const AuthModal = () => {
     return (
@@ -915,236 +1003,223 @@ function HomePage1() {
   return (
     <div className="min-vh-100 bg-white">
       <AuthModal />
+      <Sidebar />
 
-      {/* Header with Responsive Layout */}
-      <div className="bg-white border-bottom py-2 py-md-3">
-        <div className="container">
-          <div className="d-flex justify-content-between align-items-center flex-nowrap">
-            {/* Logo - Simple Text Only */}
-            <div className="d-flex align-items-center flex-shrink-0">
-              <div className="d-flex align-items-center">
-                <span 
-                  className="fw-bold text-primary"
-                  style={{ 
-                    fontSize: '2rem',
-                    letterSpacing: '-1px',
-                    fontFamily: 'Arial, sans-serif',
-                    fontWeight: '800',
-                    cursor: 'default',
-                    background: 'none',
-                    border: 'none',
-                    textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  BisRun
-                </span>
-              </div>
-            </div>
-            
-            {/* Search Bar - Center - Takes available space */}
-            <div className="flex-grow-1 mx-2 mx-md-3" style={{ minWidth: '0' }}>
-              <form onSubmit={handleSearch} className="position-relative">
-                <div className="input-group">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search products, services..."
-                    value={searchQuery}
-                    onChange={handleSearchInputChange}
-                    onFocus={handleSearchInputFocus}
-                    style={{ 
-                      borderRadius: '20px 0 0 20px',
-                      border: '2px solid #e9ecef',
-                      borderRight: 'none',
-                      padding: '8px 12px',
-                      fontSize: '14px'
-                    }}
-                  />
-                  <button 
-                    className="btn btn-primary"
-                    type="submit"
-                    style={{ 
-                      borderRadius: '0 20px 20px 0',
-                      border: '2px solid #007bff',
-                      padding: '0 15px'
-                    }}
-                  >
-                    <i className="fas fa-search"></i>
-                  </button>
-                </div>
-
-                {/* Search Suggestions */}
-                {showSuggestions && (
-                  <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
-                    <div className="bg-white border rounded-3 shadow-lg overflow-hidden">
-                      {/* Recent Searches Section */}
-                      {searchQuery === "" && recentSearches.length > 0 && (
-                        <>
-                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
-                            <div className="d-flex justify-content-between align-items-center">
-                              <small className="text-muted fw-bold">RECENT SEARCHES</small>
-                              <button 
-                                className="btn btn-link p-0 text-danger text-decoration-none"
-                                onClick={handleClearRecentSearches}
-                                style={{ fontSize: '11px' }}
-                              >
-                                Clear all
-                              </button>
-                            </div>
-                          </div>
-                          {recentSearches.map((search, index) => (
-                            <button
-                              key={`recent-${index}`}
-                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
-                              onClick={() => handleSuggestionClick(search)}
-                              style={{ 
-                                border: 'none', 
-                                borderRadius: '0',
-                                fontSize: '14px'
-                              }}
-                            >
-                              <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
-                              {search}
-                            </button>
-                          ))}
-                        </>
-                      )}
-                      
-                      {/* Search Suggestions Section */}
-                      {searchQuery !== "" && searchSuggestions.length > 0 && (
-                        <>
-                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
-                            <small className="text-muted fw-bold">SUGGESTIONS</small>
-                          </div>
-                          {searchSuggestions.map((suggestion, index) => (
-                            <button
-                              key={`suggestion-${index}`}
-                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
-                              onClick={() => handleSuggestionClick(suggestion)}
-                              style={{ 
-                                border: 'none', 
-                                borderRadius: '0',
-                                fontSize: '14px'
-                              }}
-                            >
-                              <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
-                              {suggestion}
-                            </button>
-                          ))}
-                        </>
-                      )}
-
-                      {/* No Results Message */}
-                      {searchQuery !== "" && searchSuggestions.length === 0 && (
-                        <div className="p-3 text-center text-muted">
-                          <i className="fas fa-search me-2"></i>
-                          No suggestions found for "{searchQuery}"
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </form>
-            </div>
-            
-            {/* Language Selector - Between Search and Account Icon */}
-            <div className="d-flex align-items-center flex-shrink-0 mx-1 mx-md-2 position-relative">
+      {/* Header with Amazon-like Mobile Design */}
+      <div className="bg-white border-bottom">
+        {/* Top Row: Logo, Menu, Language, Account */}
+        <div className="container py-2">
+          <div className="d-flex justify-content-between align-items-center">
+            {/* Left: Menu Icon and Logo */}
+            <div className="d-flex align-items-center">
+              {/* Menu Icon */}
               <button
-                className="btn btn-outline-secondary border-0 d-flex align-items-center gap-1"
-                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                className="btn border-0 p-0 me-2"
+                onClick={() => setShowSidebar(true)}
+                style={{ background: 'none' }}
+              >
+                <i className="fas fa-bars text-dark" style={{ fontSize: '1.2rem' }}></i>
+              </button>
+              
+              {/* Logo */}
+              <span 
+                className="fw-bold text-primary"
                 style={{ 
-                  background: 'none',
-                  transition: 'all 0.3s ease',
-                  padding: '6px 10px',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f8f9fa';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  fontSize: '1.5rem',
+                  fontWeight: '800',
                 }}
               >
-                <span>{currentLanguage}</span>
-                <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '12px' }}></i>
-              </button>
+                BisRun
+              </span>
+            </div>
 
-              {/* Language Dropdown */}
-              {showLanguageDropdown && (
-                <div 
-                  className="position-absolute top-100 end-0 mt-1 bg-white border rounded-3 shadow-lg"
+            {/* Right: Language and Account */}
+            <div className="d-flex align-items-center gap-2">
+              {/* Language Selector */}
+              <div className="position-relative">
+                <button
+                  className="btn btn-outline-secondary border-0 d-flex align-items-center gap-1"
+                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
                   style={{ 
-                    zIndex: 1040,
-                    width: '200px',
-                    maxHeight: '300px',
-                    overflowY: 'auto'
+                    background: 'none',
+                    padding: '4px 8px',
+                    fontSize: '12px',
+                    fontWeight: '500'
                   }}
                 >
-                  {languages.map((language) => (
-                    <button
-                      key={language.code}
-                      className={`btn btn-light w-100 text-start p-2 border-bottom ${
-                        currentLanguage === language.code ? 'bg-primary text-white' : ''
-                      }`}
-                      onClick={() => handleLanguageChange(language.code)}
-                      style={{ 
-                        border: 'none', 
-                        borderRadius: '0',
-                        fontSize: '14px'
-                      }}
-                    >
-                      <span className="me-2">{language.flag}</span>
-                      {language.name} ({language.code})
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Account Icon Only - Far Right */}
-            <div className="d-flex align-items-center flex-shrink-0 ms-1 ms-md-2">
+                  <span>{currentLanguage}</span>
+                  <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '10px' }}></i>
+                </button>
+
+                {/* Language Dropdown */}
+                {showLanguageDropdown && (
+                  <div 
+                    className="position-absolute top-100 end-0 mt-1 bg-white border rounded-2 shadow-lg"
+                    style={{ 
+                      zIndex: 1040,
+                      width: '180px',
+                      maxHeight: '250px',
+                      overflowY: 'auto'
+                    }}
+                  >
+                    {languages.map((language) => (
+                      <button
+                        key={language.code}
+                        className={`btn btn-light w-100 text-start p-2 border-bottom ${
+                          currentLanguage === language.code ? 'bg-primary text-white' : ''
+                        }`}
+                        onClick={() => handleLanguageChange(language.code)}
+                        style={{ 
+                          border: 'none', 
+                          borderRadius: '0',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <span className="me-2">{language.flag}</span>
+                        {language.name} ({language.code})
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Account Icon */}
               <button
                 className="btn border-0 p-0"
                 onClick={handleAccountClick}
-                style={{ 
-                  background: 'none',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
+                style={{ background: 'none' }}
               >
                 {user ? (
-                  // User logged in - show icon/avatar
                   user.picture ? (
                     <img 
                       src={user.picture} 
                       alt={user.name}
                       className="rounded-circle"
                       style={{ 
-                        width: '32px',
-                        height: '32px',
+                        width: '28px',
+                        height: '28px',
                         objectFit: 'cover'
                       }}
                     />
                   ) : (
-                    <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.8rem' }}></i>
+                    <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.5rem' }}></i>
                   )
                 ) : (
-                  // User not logged in - show icon only
-                  <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.8rem' }}></i>
+                  <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.5rem' }}></i>
                 )}
               </button>
             </div>
           </div>
         </div>
+
+        {/* Bottom Row: Search Bar Only */}
+        <div className="container pb-2">
+          <form onSubmit={handleSearch} className="position-relative">
+            <div className="input-group">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search products, services, businesses..."
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                onFocus={handleSearchInputFocus}
+                style={{ 
+                  borderRadius: '20px',
+                  border: '2px solid #007bff',
+                  padding: '8px 16px',
+                  fontSize: '14px'
+                }}
+              />
+              <button 
+                className="btn btn-primary position-absolute end-0 h-100 border-0"
+                type="submit"
+                style={{ 
+                  borderRadius: '0 20px 20px 0',
+                  background: 'none',
+                  color: '#007bff',
+                  zIndex: 5
+                }}
+              >
+                <i className="fas fa-search"></i>
+              </button>
+            </div>
+
+            {/* Search Suggestions */}
+            {showSuggestions && (
+              <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
+                <div className="bg-white border rounded-3 shadow-lg overflow-hidden">
+                  {/* Recent Searches Section */}
+                  {searchQuery === "" && recentSearches.length > 0 && (
+                    <>
+                      <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <small className="text-muted fw-bold">RECENT SEARCHES</small>
+                          <button 
+                            className="btn btn-link p-0 text-danger text-decoration-none"
+                            onClick={handleClearRecentSearches}
+                            style={{ fontSize: '11px' }}
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                      </div>
+                      {recentSearches.map((search, index) => (
+                        <button
+                          key={`recent-${index}`}
+                          className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                          onClick={() => handleSuggestionClick(search)}
+                          style={{ 
+                            border: 'none', 
+                            borderRadius: '0',
+                            fontSize: '14px'
+                          }}
+                        >
+                          <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
+                          {search}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  
+                  {/* Search Suggestions Section */}
+                  {searchQuery !== "" && searchSuggestions.length > 0 && (
+                    <>
+                      <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                        <small className="text-muted fw-bold">SUGGESTIONS</small>
+                      </div>
+                      {searchSuggestions.map((suggestion, index) => (
+                        <button
+                          key={`suggestion-${index}`}
+                          className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          style={{ 
+                            border: 'none', 
+                            borderRadius: '0',
+                            fontSize: '14px'
+                          }}
+                        >
+                          <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
+                          {suggestion}
+                        </button>
+                      ))}
+                    </>
+                  )}
+
+                  {/* No Results Message */}
+                  {searchQuery !== "" && searchSuggestions.length === 0 && (
+                    <div className="p-3 text-center text-muted">
+                      <i className="fas fa-search me-2"></i>
+                      No suggestions found for "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
       </div>
 
-      {/* Main Content */}
+      {/* Rest of the content remains the same */}
       <div>
         
         {/* Hero Section */}
@@ -1651,6 +1726,11 @@ function HomePage1() {
             background: #a8a8a8;
           }
 
+          /* Sidebar backdrop */
+          .offcanvas-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+          }
+
           /* Mobile Responsive */
           @media (max-width: 768px) {
             .hero-section h1 {
@@ -1665,102 +1745,12 @@ function HomePage1() {
               padding-left: 12px;
               padding-right: 12px;
             }
-            
-            .d-flex.justify-content-between.align-items-center {
-              flex-wrap: nowrap !important;
-              gap: 8px;
-            }
-            
-            .flex-grow-1.mx-2 {
-              margin-left: 8px !important;
-              margin-right: 8px !important;
-              min-width: 0 !important;
-            }
-            
-            /* Logo mobile styles */
-            .navbar-brand {
-              font-size: 1.6rem !important;
-            }
-            
-            .form-control {
-              font-size: 14px !important;
-              padding: 6px 10px !important;
-            }
-            
-            .form-control::placeholder {
-              font-size: 12px;
-            }
-            
-            .btn-primary {
-              padding: 0 12px !important;
-            }
-            
-            .fas.fa-user-circle {
-              font-size: 1.6rem !important;
-            }
-            
-            /* Language selector mobile styles */
-            .btn-outline-secondary {
-              padding: 4px 8px !important;
-              font-size: 12px !important;
-            }
-
-            /* Search suggestions mobile */
-            .position-absolute.top-100 {
-              width: 100% !important;
-              left: 0 !important;
-              right: 0 !important;
-            }
           }
 
           @media (max-width: 576px) {
             .container {
               padding-left: 10px;
               padding-right: 10px;
-            }
-            
-            /* Logo small mobile styles */
-            .navbar-brand {
-              font-size: 1.4rem !important;
-            }
-            
-            .form-control {
-              font-size: 13px !important;
-              padding: 5px 8px !important;
-            }
-            
-            .flex-grow-1.mx-2 {
-              margin-left: 6px !important;
-              margin-right: 6px !important;
-            }
-            
-            .fas.fa-user-circle {
-              font-size: 1.5rem !important;
-            }
-            
-            .btn-outline-secondary {
-              padding: 3px 6px !important;
-              font-size: 11px !important;
-            }
-          }
-
-          @media (max-width: 400px) {
-            .form-control::placeholder {
-              font-size: 11px;
-            }
-            
-            /* Logo extra small mobile styles */
-            .navbar-brand {
-              font-size: 1.2rem !important;
-            }
-            
-            .fas.fa-user-circle {
-              font-size: 1.4rem !important;
-            }
-            
-            .btn-outline-secondary {
-              padding: 2px 4px !important;
-              font-size: 10px !important;
             }
           }
         `}
