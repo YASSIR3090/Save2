@@ -1058,7 +1058,7 @@ const SearchResultsPage = () => {
       <style>
         {`
           .bg-silver {
-            background: linear-gradient(135deg, #f8f9faff 0%, #a89e9eff 50%, #f0f0f0 100%) !important;
+            background: linear-gradient(135deg, #f8f9faff 0%, #e2e3e4ff 50%, #f0f0f0 100%) !important;
             background-color: #feffffff !important;
           }
 
