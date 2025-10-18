@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH SILVER BACKGROUND
+// src/SearchResultsPage.jsx - UPDATED WITHOUT VIEW DETAILS BUTTON
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -832,7 +832,7 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* GLASS MORPHISM CARDS WITH SILVER BACKGROUND */}
+            {/* GLASS MORPHISM CARDS WITH SILVER BACKGROUND - NO VIEW DETAILS BUTTON */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
@@ -981,10 +981,10 @@ const SearchResultsPage = () => {
                         </p>
                       </div>
 
-                      {/* Bottom Section */}
+                      {/* Bottom Section - REMOVED VIEW DETAILS BUTTON */}
                       <div>
                         {/* Rating and Price Row */}
-                        <div className="d-flex justify-content-between align-items-center mb-2">
+                        <div className="d-flex justify-content-between align-items-center">
                           {/* Rating */}
                           {renderStars(item.rating)}
 
@@ -1002,48 +1002,7 @@ const SearchResultsPage = () => {
                           </div>
                         </div>
 
-                        {/* FIXED: View Details Button - Now properly visible for all items */}
-                        <div className="d-flex justify-content-center">
-                          <button
-                            className="btn"
-                            style={{
-                              background: 'rgba(37, 99, 235, 0.3)', // BLUE COLOR
-                              color: '#2563eb', // BLUE COLOR
-                              border: '1px solid rgba(37, 99, 235, 0.5)', // BLUE COLOR
-                              borderRadius: '12px',
-                              padding: '4px 12px',
-                              fontSize: '10px',
-                              fontWeight: '600',
-                              transition: 'all 0.3s ease',
-                              cursor: 'pointer',
-                              backdropFilter: 'blur(5px)',
-                              minWidth: '80px',
-                              minHeight: '24px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '100%'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(37, 99, 235, 0.5)'; // DARKER BLUE
-                              e.target.style.color = 'white';
-                              e.target.style.transform = 'translateY(-1px)';
-                              e.target.style.boxShadow = '0 4px 8px rgba(37, 99, 235, 0.3)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(37, 99, 235, 0.3)'; // LIGHTER BLUE
-                              e.target.style.color = '#2563eb';
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = 'none';
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/product/${item.id}`);
-                            }}
-                          >
-                            VIEW DETAILS
-                          </button>
-                        </div>
+                        {/* REMOVED: View Details Button Section */}
                       </div>
                     </div>
                   </div>
@@ -1079,13 +1038,6 @@ const SearchResultsPage = () => {
             transform: scale(1.05);
           }
 
-          /* FIXED: Ensure View Details button is always properly visible */
-          .card-body .btn {
-            opacity: 1 !important;
-            visibility: visible !important;
-            z-index: 10;
-          }
-
           /* Responsive adjustments */
           @media (max-width: 576px) {
             .col-6 {
@@ -1119,13 +1071,6 @@ const SearchResultsPage = () => {
             
             .price {
               font-size: 11px !important;
-            }
-
-            /* FIXED: Mobile button sizing */
-            .card-body .btn {
-              font-size: 9px !important;
-              padding: 3px 10px !important;
-              min-height: 22px !important;
             }
           }
 
