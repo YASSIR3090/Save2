@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH SINGLE BLACK STAR AND RATING NUMBER
+// src/SearchResultsPage.jsx - UPDATED WITH BOLDER PRODUCT NAMES
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -832,11 +832,11 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* SIMPLIFIED CARDS WITH PURE WHITE BORDER AND SINGLE BLACK STAR WITH RATING */}
+            {/* SIMPLIFIED CARDS WITH BOLDER PRODUCT NAMES AND PURE WHITE BORDER */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* SIMPLIFIED CARD - WITH PURE WHITE BORDER */}
+                  {/* SIMPLIFIED CARD - WITH PURE WHITE BORDER AND BOLDER PRODUCT NAMES */}
                   <div 
                     className="simple-card"
                     style={{
@@ -929,20 +929,21 @@ const SearchResultsPage = () => {
                         backgroundColor: 'white'
                       }}
                     >
-                      {/* Product Name with Ellipsis */}
+                      {/* UPDATED: Product Name with BOLDER and SLIGHTLY LARGER FONT */}
                       <h6 
                         className="simple-card-title"
                         style={{
-                          fontSize: '11px',
-                          fontWeight: '600',
+                          fontSize: '12px', // Increased from 11px
+                          fontWeight: '700', // Bolder font weight
                           lineHeight: '1.2',
                           margin: '0 0 2px 0',
-                          color: '#333',
+                          color: '#222', // Darker color for better contrast
                           overflow: 'hidden',
                           display: '-webkit-box',
                           WebkitLineClamp: '1',
                           WebkitBoxOrient: 'vertical',
-                          textAlign: 'left'
+                          textAlign: 'left',
+                          fontFamily: 'Arial, sans-serif' // Clean font family
                         }}
                         title={item.name}
                       >
@@ -1042,7 +1043,8 @@ const SearchResultsPage = () => {
             }
             
             .simple-card-title {
-              font-size: 10px !important;
+              font-size: 11px !important; /* Adjusted for mobile */
+              font-weight: 700 !important; /* Maintain bold on mobile */
               -webkit-line-clamp: 1;
             }
             
@@ -1066,6 +1068,8 @@ const SearchResultsPage = () => {
             }
 
             .simple-card-title {
+              font-size: 11px !important;
+              font-weight: 700 !important;
               -webkit-line-clamp: 1;
             }
 
@@ -1084,6 +1088,8 @@ const SearchResultsPage = () => {
             }
 
             .simple-card-title {
+              font-size: 12px !important;
+              font-weight: 700 !important;
               -webkit-line-clamp: 1;
             }
 
@@ -1102,6 +1108,8 @@ const SearchResultsPage = () => {
             }
 
             .simple-card-title {
+              font-size: 12px !important;
+              font-weight: 700 !important;
               -webkit-line-clamp: 1;
             }
 
