@@ -1,5 +1,4 @@
-
-// src/ProductDetailPage.jsx - WITH ONLY SEND MESSAGE BUTTON
+// src/ProductDetailPage.jsx - WITH HEADER LIKE HOMEPAGE1 AND SEARCH
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
@@ -14,48 +13,285 @@ function ProductDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
-  const [currentWelcomeText, setCurrentWelcomeText] = useState("");
-  const [welcomeTextIndex, setWelcomeTextIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [typingSpeed, setTypingSpeed] = useState(100);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
 
-  // Welcome messages for typewriter animation
-  const welcomeMessages = [
-    "Welcome to see our products",
-    "Welcome to see our stores"
+  // Categories data (same as HomePage1)
+  const categoryData = [
+    {
+      id: "electronics",
+      name: "Electronics & Devices",
+      icon: "fa-microchip",
+      color: "primary",
+      description: "Laptops, smartphones, tablets, and gadgets",
+      image: "https://images.pexels.com/photos/2047905/pexels-photo-2047905.jpeg?auto=compress&cs=tinysrgb&w=600"
+    },
+    {
+      id: "general",
+      name: "General Goods", 
+      icon: "fa-tshirt",
+      color: "warning",
+      description: "Clothing, shoes, accessories, and daily items",
+      image: "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=600"
+    },
+    {
+      id: "building",
+      name: "Building & Hotels",
+      icon: "fa-building",
+      color: "success",
+      description: "Hotels, apartments, and luxury properties",
+      image: "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600"
+    },
+    {
+      id: "vehicles",
+      name: "Vehicles",
+      icon: "fa-car",
+      color: "danger",
+      description: "Cars, motorcycles, and transportation",
+      image: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600"
+    }
   ];
 
-  // Typewriter effect for welcome messages
+  // Check user authentication
   useEffect(() => {
-    const currentMessage = welcomeMessages[welcomeTextIndex];
-    
-    const timer = setTimeout(() => {
-      if (!isDeleting) {
-        // Typing forward
-        if (currentWelcomeText.length < currentMessage.length) {
-          setCurrentWelcomeText(currentMessage.substring(0, currentWelcomeText.length + 1));
-          setTypingSpeed(100);
-        } else {
-          // Finished typing, wait then start deleting
-          setTimeout(() => setIsDeleting(true), 2000);
-          setTypingSpeed(100);
-        }
-      } else {
-        // Deleting
-        if (currentWelcomeText.length > 0) {
-          setCurrentWelcomeText(currentWelcomeText.substring(0, currentWelcomeText.length - 1));
-          setTypingSpeed(50);
-        } else {
-          // Finished deleting, move to next message
-          setIsDeleting(false);
-          setWelcomeTextIndex((prevIndex) => (prevIndex + 1) % welcomeMessages.length);
-          setTypingSpeed(100);
-        }
-      }
-    }, typingSpeed);
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      setUser(JSON.parse(currentUser));
+    }
+  }, []);
 
-    return () => clearTimeout(timer);
-  }, [currentWelcomeText, isDeleting, welcomeTextIndex, typingSpeed]);
+  // Handle account click
+  const handleAccountClick = () => {
+    setShowAuthModal(true);
+  };
+
+  // Handle business auth
+  const handleBusinessAuth = () => {
+    const isBusinessAuthenticated = localStorage.getItem('businessAuthenticated') === 'true';
+    if (isBusinessAuthenticated) {
+      navigate('/business-dashboard');
+    } else {
+      navigate('/business-auth');
+    }
+  };
+
+  // Sidebar Component (same as HomePage1)
+  const Sidebar = () => {
+    return (
+      <div className={`offcanvas offcanvas-start ${showSidebar ? 'show' : ''}`} 
+           style={{ 
+             visibility: showSidebar ? 'visible' : 'hidden',
+             width: '280px'
+           }}
+           tabIndex="-1">
+        <div className="offcanvas-header border-bottom">
+          <h5 className="offcanvas-title fw-bold text-primary">BisRun Menu</h5>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setShowSidebar(false)}
+          ></button>
+        </div>
+        <div className="offcanvas-body p-0">
+          <div className="list-group list-group-flush">
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/');
+              }}
+            >
+              <i className="fas fa-home me-3 text-primary"></i>
+              Home
+            </button>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/search-results?q=');
+              }}
+            >
+              <i className="fas fa-search me-3 text-primary"></i>
+              Search
+            </button>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/categories');
+              }}
+            >
+              <i className="fas fa-th-large me-3 text-primary"></i>
+              Categories
+            </button>
+            <div className="border-top my-2"></div>
+            <h6 className="px-3 pt-2 text-muted small">BUSINESS</h6>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                handleBusinessAuth();
+              }}
+            >
+              <i className="fas fa-store me-3 text-success"></i>
+              List Your Business
+            </button>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/business-dashboard');
+              }}
+            >
+              <i className="fas fa-chart-line me-3 text-success"></i>
+              Business Dashboard
+            </button>
+            <div className="border-top my-2"></div>
+            <h6 className="px-3 pt-2 text-muted small">ACCOUNT</h6>
+            {user ? (
+              <>
+                <div className="list-group-item border-0 py-3">
+                  <div className="d-flex align-items-center">
+                    <img 
+                      src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                      alt={user.name}
+                      className="rounded-circle me-3"
+                      style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <div className="fw-bold">{user.name}</div>
+                      <small className="text-muted">{user.email}</small>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  className="list-group-item list-group-item-action border-0 py-3 text-danger"
+                  onClick={() => {
+                    setShowSidebar(false);
+                    setUser(null);
+                    localStorage.removeItem('currentUser');
+                  }}
+                >
+                  <i className="fas fa-sign-out-alt me-3"></i>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button 
+                className="list-group-item list-group-item-action border-0 py-3"
+                onClick={() => {
+                  setShowSidebar(false);
+                  setShowAuthModal(true);
+                }}
+              >
+                <i className="fas fa-user me-3 text-primary"></i>
+                Sign In / Register
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Auth Modal Component (simplified version)
+  const AuthModal = () => {
+    return (
+      <div className={`modal fade ${showAuthModal ? 'show d-block' : ''}`} 
+           style={{ 
+             backgroundColor: 'rgba(0,0,0,0.5)', 
+             position: 'fixed',
+             top: 0,
+             left: 0,
+             right: 0,
+             bottom: 0,
+             zIndex: 9999
+           }} 
+           tabIndex="-1">
+        <div className="d-flex align-items-center justify-content-center min-vh-100 p-3">
+          <div className="modal-dialog modal-dialog-centered" 
+               style={{ 
+                 maxWidth: '420px',
+                 width: '100%',
+                 margin: '0 auto'
+               }}>
+            <div className="modal-content rounded-3 border shadow-lg" 
+                 style={{ 
+                   borderColor: '#e0e0e0', 
+                   backdropFilter: 'blur(10px)',
+                   transform: 'translateY(0)'
+                 }}>
+              
+              {/* Header */}
+              <div className="modal-header border-0 pb-0 pt-4 px-4">
+                <div className="w-100 text-center">
+                  <div className="avatar-placeholder mb-3 mx-auto">
+                    <i className="fas fa-user display-4 text-primary"></i>
+                  </div>
+                  <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
+                    Authentication Required
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    Sign in to access all features
+                  </p>
+                </div>
+                <button 
+                  type="button" 
+                  className="btn-close position-absolute top-0 end-0 m-3" 
+                  onClick={() => setShowAuthModal(false)}
+                  style={{ fontSize: '0.8rem' }}
+                ></button>
+              </div>
+              
+              {/* Body */}
+              <div className="modal-body py-4 px-4 text-center">
+                <p className="text-muted mb-4">
+                  Please sign in to your account to continue.
+                </p>
+                
+                <div className="d-grid gap-2">
+                  <button
+                    className="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-medium"
+                    onClick={() => {
+                      setShowAuthModal(false);
+                      // Simulate successful login
+                      const userData = {
+                        uid: 'demo-user',
+                        name: 'Demo User',
+                        email: 'demo@example.com',
+                        picture: null,
+                        emailVerified: true
+                      };
+                      setUser(userData);
+                      localStorage.setItem('currentUser', JSON.stringify(userData));
+                    }}
+                    style={{ fontSize: '1rem' }}
+                  >
+                    <i className="fas fa-sign-in-alt me-2"></i>
+                    Sign In (Demo)
+                  </button>
+                  
+                  <button
+                    className="btn btn-outline-dark btn-lg w-100 py-3 rounded-3 fw-medium"
+                    onClick={() => setShowAuthModal(false)}
+                    style={{ fontSize: '1rem' }}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Countries and Currencies
   const countries = [
@@ -69,6 +305,81 @@ function ProductDetailPage() {
     { code: "IN", name: "India", currency: "INR", currencySymbol: "₹", flag: "🇮🇳" },
     { code: "ZA", name: "South Africa", currency: "ZAR", currencySymbol: "R", flag: "🇿🇦" }
   ];
+
+  // Search functionality
+  const loadRecentSearches = useCallback(() => {
+    try {
+      const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+      setRecentSearches(recent.slice(0, 5));
+    } catch (error) {
+      console.error("Error loading recent searches:", error);
+    }
+  }, []);
+
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    if (value.trim() !== "") {
+      // Simple search suggestions based on recent searches
+      const suggestions = recentSearches.filter(search => 
+        search.toLowerCase().includes(value.toLowerCase())
+      );
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Save to recent searches
+      const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+      const filtered = recent.filter(item => item.toLowerCase() !== searchQuery.toLowerCase());
+      filtered.unshift(searchQuery);
+      localStorage.setItem('recentSearches', JSON.stringify(filtered.slice(0, 10)));
+      
+      navigate(`/search-results?q=${encodeURIComponent(searchQuery)}`);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSearchInputFocus = () => {
+    if (searchQuery.trim() !== "") {
+      const suggestions = recentSearches.filter(search => 
+        search.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0);
+    } else if (recentSearches.length > 0) {
+      setSearchSuggestions(recentSearches);
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    // Save to recent searches
+    const recent = JSON.parse(localStorage.getItem('recentSearches')) || [];
+    const filtered = recent.filter(item => item.toLowerCase() !== suggestion.toLowerCase());
+    filtered.unshift(suggestion);
+    localStorage.setItem('recentSearches', JSON.stringify(filtered.slice(0, 10)));
+    
+    setShowSuggestions(false);
+    navigate(`/search-results?q=${encodeURIComponent(suggestion)}`);
+  };
+
+  const handleClearRecentSearches = () => {
+    localStorage.removeItem('recentSearches');
+    setRecentSearches([]);
+    setSearchSuggestions([]);
+  };
+
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/search-results?q=${encodeURIComponent(categoryName)}`);
+  };
 
   // CRITICAL FIX: Improved data loading with real-time updates
   const loadAllItemsFromStorage = () => {
@@ -388,7 +699,8 @@ function ProductDetailPage() {
 
   useEffect(() => {
     loadItemData();
-  }, [loadItemData]);
+    loadRecentSearches();
+  }, [loadItemData, loadRecentSearches]);
 
   const getItemImages = (item) => {
     if (item && item.images && item.images.length > 0) {
@@ -590,13 +902,11 @@ function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-vh-100 d-flex justify-content-center align-items-center" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="text-center text-white">
-          <div className="spinner-border mb-3" style={{ width: '3rem', height: '3rem' }} role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
+      <div className="min-vh-100 bg-white d-flex justify-content-center align-items-center">
+        <div className="text-center">
+          <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }}></div>
           <h5>Loading Product Details...</h5>
-          <p className="text-light">Please wait while we fetch the item information</p>
+          <p className="text-muted">Please wait while we fetch the item information</p>
         </div>
       </div>
     );
@@ -604,17 +914,17 @@ function ProductDetailPage() {
 
   if (error || !item) {
     return (
-      <div className="min-vh-100 d-flex justify-content-center align-items-center" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="text-center text-white">
-          <i className="fas fa-exclamation-triangle fa-3x mb-3"></i>
-          <h3>{error || "Product Not Found"}</h3>
-          <p className="text-light">The product you're looking for doesn't exist or may have been removed.</p>
+      <div className="min-vh-100 bg-white d-flex justify-content-center align-items-center">
+        <div className="text-center">
+          <i className="fas fa-exclamation-triangle fa-3x mb-3 text-muted"></i>
+          <h3 className="text-dark">{error || "Product Not Found"}</h3>
+          <p className="text-muted">The product you're looking for doesn't exist or may have been removed.</p>
           <div className="d-flex gap-3 justify-content-center">
-            <button className="btn btn-light" onClick={() => navigate('/search')}>
+            <button className="btn btn-primary" onClick={() => navigate('/search')}>
               <i className="fas fa-arrow-left me-2"></i>
               Back to Search
             </button>
-            <button className="btn btn-outline-light" onClick={() => navigate('/')}>
+            <button className="btn btn-outline-primary" onClick={() => navigate('/')}>
               <i className="fas fa-home me-2"></i>
               Go Home
             </button>
@@ -630,160 +940,573 @@ function ProductDetailPage() {
   const categoryIcon = getCategoryIcon(item.category);
 
   return (
-    <div className="min-vh-100" style={{ background: '#f8f9fa' }}>
-      {/* Modern Header */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-        <div className="container">
-          <Link className="navbar-brand fw-bold text-primary" to="/">
-            <i className="fas fa-globe-americas me-2"></i>
-            BisRun
-          </Link>
-          <div className="navbar-nav ms-auto">
-            <button className="btn btn-outline-primary btn-sm" onClick={() => navigate('/search')}>
-              <i className="fas fa-arrow-left me-2"></i>
-              Back to Search
+    <div className="min-vh-100 bg-white" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
+      
+      {/* Sidebar Overlay */}
+      {showSidebar && (
+        <div 
+          className="modal-backdrop fade show" 
+          onClick={() => setShowSidebar(false)}
+        ></div>
+      )}
+
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Auth Modal */}
+      {showAuthModal && <AuthModal />}
+
+      {/* Main Content */}
+      <div className="container-fluid px-0 bg-white">
+        
+        {/* Header Section - SAME AS HOMEPAGE1 */}
+        <header className="bg-white border-bottom py-3 px-4 position-relative">
+          <div className="d-flex align-items-center justify-content-between">
+            
+            {/* Left: Menu Button */}
+            <button
+              className="btn btn-lg p-2 me-3"
+              onClick={() => setShowSidebar(true)}
+              style={{ 
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                borderRadius: '12px',
+                color: '#495057'
+              }}
+            >
+              <i className="fas fa-bars"></i>
+            </button>
+
+            {/* Center: Logo */}
+            <div className="flex-grow-1 text-center">
+              <h1 className="h3 mb-0 fw-bold text-primary">
+                BisRun
+              </h1>
+              <small className="text-muted opacity-75">
+                Find Everything You Need
+              </small>
+            </div>
+
+            {/* Right: Account Button */}
+            <button
+              className="btn btn-lg p-2 ms-3"
+              onClick={handleAccountClick}
+              style={{ 
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                borderRadius: '12px',
+                color: '#495057'
+              }}
+            >
+              <i className="fas fa-user"></i>
             </button>
           </div>
-        </div>
-      </nav>
+        </header>
 
-      {/* Product Details Section */}
-      <div className="container py-4">
-        {/* Breadcrumb */}
-        <nav aria-label="breadcrumb" className="mb-4">
-          <ol className="breadcrumb">
-            <li className="breadcrumb-item">
-              <Link to="/" className="text-decoration-none">
-                <i className="fas fa-home me-1"></i>
-                Home
-              </Link>
-            </li>
-            <li className="breadcrumb-item">
-              <Link to="/search" className="text-decoration-none">Search</Link>
-            </li>
-            <li className="breadcrumb-item active text-dark">{item.name}</li>
-          </ol>
-        </nav>
-
-        <div className="row g-4">
-          {/* Image Gallery - RESPONSIVE DESIGN */}
-          <div className="col-lg-7 col-xl-8">
-            <div className="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
-              <div className="card-body p-0">
-                {/* Main Large Image - RESPONSIVE HEIGHT */}
-                <div 
-                  className="main-image-container position-relative cursor-pointer"
-                  onClick={() => openImageModal(selectedImageIndex)}
-                  style={{ 
-                    height: 'clamp(300px, 40vh, 500px)', // Responsive height
-                    background: `url(${itemImages[selectedImageIndex]}) center/contain no-repeat`,
-                    backgroundColor: '#f8f9fa',
-                    cursor: 'zoom-in'
-                  }}
-                >
-                  {/* Image Overlay */}
-                  <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                    style={{ background: 'rgba(0,0,0,0.1)', transition: 'all 0.3s ease' }}>
-                    <div className="text-white text-center" style={{ opacity: 0.8 }}>
-                      <i className="fas fa-search-plus fa-lg mb-2 d-none d-md-block"></i>
-                      <i className="fas fa-search-plus mb-2 d-md-none"></i>
-                      <p className="mb-0 small d-none d-sm-block">Click to enlarge</p>
-                    </div>
-                  </div>
-
-                  {/* Image Navigation - RESPONSIVE SIZE */}
-                  {itemImages.length > 1 && (
-                    <>
-                      <button 
-                        className="btn btn-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ms-lg-3 shadow d-none d-md-flex"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigateImage('prev');
-                        }}
-                        style={{ width: 'clamp(40px, 4vw, 50px)', height: 'clamp(40px, 4vw, 50px)' }}
-                      >
-                        <i className="fas fa-chevron-left"></i>
-                      </button>
-                      <button 
-                        className="btn btn-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 me-lg-3 shadow d-none d-md-flex"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigateImage('next');
-                        }}
-                        style={{ width: 'clamp(40px, 4vw, 50px)', height: 'clamp(40px, 4vw, 50px)' }}
-                      >
-                        <i className="fas fa-chevron-right"></i>
-                      </button>
-                    </>
-                  )}
-
-                  {/* Image Counter */}
-                  <div className="position-absolute bottom-0 end-0 m-2 m-lg-3">
-                    <span className="badge bg-dark bg-opacity-75 text-white px-3 py-2 rounded-pill">
-                      {selectedImageIndex + 1} / {itemImages.length}
+        {/* Search Section - SAME AS HOMEPAGE1 */}
+        <section className="px-4 py-4 bg-white">
+          <div className="row justify-content-center">
+            <div className="col-12 col-md-10 col-lg-8">
+              
+              {/* Search Container */}
+              <div className="position-relative">
+                <form onSubmit={handleSearch}>
+                  <div className="input-group input-group-lg shadow-sm" 
+                       style={{ 
+                         borderRadius: '16px',
+                         overflow: 'hidden',
+                         border: '2px solid #007bff'
+                       }}>
+                    
+                    {/* Search Icon */}
+                    <span className="input-group-text border-0 bg-white px-4">
+                      <i className="fas fa-search text-muted"></i>
                     </span>
+                    
+                    {/* Search Input */}
+                    <input
+                      type="text"
+                      className="form-control border-0 bg-white py-3"
+                      placeholder="Search products, services, businesses..."
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      onFocus={handleSearchInputFocus}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                      style={{ 
+                        fontSize: '1.1rem',
+                        outline: 'none',
+                        boxShadow: 'none'
+                      }}
+                    />
+                    
+                    {/* Search Button */}
+                    <button
+                      type="submit"
+                      className="btn btn-primary px-4 border-0"
+                      style={{ 
+                        borderRadius: '0 14px 14px 0',
+                        fontWeight: '600'
+                      }}
+                    >
+                      Search
+                    </button>
                   </div>
-                </div>
+                </form>
 
-                {/* Thumbnail Gallery - RESPONSIVE */}
-                {itemImages.length > 1 && (
-                  <div className="p-3 bg-light">
-                    <div className="d-flex gap-2 overflow-auto pb-2">
-                      {itemImages.map((img, index) => (
-                        <div 
+                {/* Search Suggestions Dropdown */}
+                {showSuggestions && searchSuggestions.length > 0 && (
+                  <div className="position-absolute top-100 start-0 end-0 mt-1 shadow-lg rounded-3 overflow-hidden z-3"
+                       style={{ 
+                         background: 'white',
+                         border: '1px solid #dee2e6'
+                       }}>
+                    
+                    {/* Recent Searches Header */}
+                    {searchQuery.trim() === "" && recentSearches.length > 0 && (
+                      <div className="d-flex justify-content-between align-items-center px-3 pt-3 pb-2 border-bottom">
+                        <small className="text-muted fw-semibold">RECENT SEARCHES</small>
+                        <button
+                          className="btn btn-sm p-0 text-danger"
+                          onClick={handleClearRecentSearches}
+                          style={{ fontSize: '0.7rem' }}
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Suggestions List */}
+                    <div className="py-2">
+                      {searchSuggestions.map((suggestion, index) => (
+                        <button
                           key={index}
-                          className={`thumbnail-item flex-shrink-0 cursor-pointer ${selectedImageIndex === index ? 'active' : ''}`}
-                          onClick={() => setSelectedImageIndex(index)}
+                          className="btn btn-light w-100 text-start rounded-0 border-0 py-3 px-4 d-flex align-items-center"
+                          onClick={() => handleSuggestionClick(suggestion)}
                           style={{ 
-                            width: 'clamp(60px, 8vw, 80px)', 
-                            height: 'clamp(60px, 8vw, 80px)',
-                            border: selectedImageIndex === index ? '3px solid #007bff' : '2px solid #dee2e6',
-                            borderRadius: '10px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease'
+                            background: 'transparent',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(0, 123, 255, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = 'transparent';
                           }}
                         >
-                          <img 
-                            src={img} 
-                            alt={`Thumbnail ${index + 1}`}
-                            className="w-100 h-100 object-fit-cover"
-                          />
-                        </div>
+                          <i className="fas fa-search text-muted me-3" style={{ fontSize: '0.8rem' }}></i>
+                          <span className="text-dark" style={{ fontSize: '0.95rem' }}>
+                            {suggestion}
+                          </span>
+                        </button>
                       ))}
                     </div>
                   </div>
                 )}
+              </div>
 
-                {/* NEW: Welcome Message with Typewriter Animation */}
-                <div className="p-4 border-top bg-light">
-                  <div className="text-center">
-                    <h4 className="fw-bold text-dark mb-2">
-                      <i className="fas fa-hand-wave me-2 text-primary"></i>
-                      {currentWelcomeText}
-                      <span className="typewriter-cursor text-dark">|</span>
-                    </h4>
-                    <p className="text-muted mb-0">
-                      Discover amazing {item.type === 'service' ? 'services' : 'products'} from trusted businesses
-                    </p>
+              {/* Quick Categories */}
+              <div className="row g-2 mt-3">
+                {categoryData.slice(0, 4).map((category) => (
+                  <div key={category.id} className="col-6 col-sm-3">
+                    <button
+                      className="btn w-100 py-2 text-dark border rounded-3"
+                      onClick={() => handleCategoryClick(category.name)}
+                      style={{ 
+                        background: '#f8f9fa',
+                        border: '1px solid #dee2e6',
+                        fontSize: '0.8rem',
+                        fontWeight: '500'
+                      }}
+                    >
+                      <i className={`fas ${category.icon} me-1`}></i>
+                      {category.name.split(' ')[0]}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Product Details Section */}
+        <div className="container py-4">
+          {/* Breadcrumb */}
+          <nav aria-label="breadcrumb" className="mb-4">
+            <ol className="breadcrumb">
+              <li className="breadcrumb-item">
+                <Link to="/" className="text-decoration-none">
+                  <i className="fas fa-home me-1"></i>
+                  Home
+                </Link>
+              </li>
+              <li className="breadcrumb-item">
+                <Link to="/search" className="text-decoration-none">Search</Link>
+              </li>
+              <li className="breadcrumb-item active text-dark">{item.name}</li>
+            </ol>
+          </nav>
+
+          <div className="row g-4">
+            {/* Image Gallery */}
+            <div className="col-lg-7 col-xl-8">
+              <div className="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+                <div className="card-body p-0">
+                  {/* Main Large Image */}
+                  <div 
+                    className="main-image-container position-relative cursor-pointer"
+                    onClick={() => openImageModal(selectedImageIndex)}
+                    style={{ 
+                      height: '400px',
+                      background: `url(${itemImages[selectedImageIndex]}) center/contain no-repeat`,
+                      backgroundColor: '#f8f9fa',
+                      cursor: 'zoom-in'
+                    }}
+                  >
+                    {/* Image Navigation */}
+                    {itemImages.length > 1 && (
+                      <>
+                        <button 
+                          className="btn btn-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-3 shadow"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigateImage('prev');
+                          }}
+                          style={{ width: '50px', height: '50px' }}
+                        >
+                          <i className="fas fa-chevron-left"></i>
+                        </button>
+                        <button 
+                          className="btn btn-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-3 shadow"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigateImage('next');
+                          }}
+                          style={{ width: '50px', height: '50px' }}
+                        >
+                          <i className="fas fa-chevron-right"></i>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Image Counter */}
+                    <div className="position-absolute bottom-0 end-0 m-3">
+                      <span className="badge bg-dark bg-opacity-75 text-white px-3 py-2 rounded-pill">
+                        {selectedImageIndex + 1} / {itemImages.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Thumbnail Gallery */}
+                  {itemImages.length > 1 && (
+                    <div className="p-3 bg-light">
+                      <div className="d-flex gap-2 overflow-auto pb-2">
+                        {itemImages.map((img, index) => (
+                          <div 
+                            key={index}
+                            className={`thumbnail-item flex-shrink-0 cursor-pointer ${selectedImageIndex === index ? 'active' : ''}`}
+                            onClick={() => setSelectedImageIndex(index)}
+                            style={{ 
+                              width: '80px', 
+                              height: '80px',
+                              border: selectedImageIndex === index ? '3px solid #007bff' : '2px solid #dee2e6',
+                              borderRadius: '10px',
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease'
+                            }}
+                          >
+                            <img 
+                              src={img} 
+                              alt={`Thumbnail ${index + 1}`}
+                              className="w-100 h-100 object-fit-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Send Message Button Only */}
+                  <div className="p-4 border-top">
+                    <div className="row align-items-center">
+                      <div className="col-md-8">
+                        <h5 className="fw-bold text-dark mb-2">
+                          <i className="fas fa-comments me-2 text-primary"></i>
+                          Interested in this item?
+                        </h5>
+                        <p className="text-muted mb-0">
+                          Chat directly with the business owner. Ask questions, negotiate prices, or request more details.
+                        </p>
+                      </div>
+                      <div className="col-md-4 text-md-end">
+                        <button 
+                          className="btn btn-success btn-lg px-4 py-3 rounded-pill fw-bold"
+                          onClick={handleMessagesClick}
+                          style={{
+                            background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                            border: 'none',
+                            boxShadow: '0 4px 15px rgba(40, 167, 69, 0.3)'
+                          }}
+                        >
+                          <i className="fas fa-paper-plane me-2"></i>
+                          Send Message
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                {/* NEW: Send Message Button Only - Below Welcome Message */}
-                <div className="p-4 border-top">
-                  <div className="row align-items-center">
-                    <div className="col-md-8">
-                      <h5 className="fw-bold text-dark mb-2">
-                        <i className="fas fa-comments me-2 text-primary"></i>
-                        Interested in this item?
-                      </h5>
-                      <p className="text-muted mb-0">
-                        Chat directly with the business owner. Ask questions, negotiate prices, or request more details.
-                      </p>
+              {/* Contact & Location Section */}
+              <div className="card border-0 shadow-lg rounded-4">
+                <div className="card-header bg-white border-0 py-4">
+                  <h5 className="fw-bold mb-0 d-flex align-items-center">
+                    <i className="fas fa-map-marker-alt me-3 text-primary"></i>
+                    Contact & Location Information
+                  </h5>
+                </div>
+                <div className="card-body p-4">
+                  <div className="row g-4">
+                    {/* Contact Information */}
+                    <div className="col-lg-6 col-12">
+                      <div className="card bg-light border-0 h-100">
+                        <div className="card-body">
+                          <h6 className="fw-bold mb-4 text-dark d-flex align-items-center">
+                            <i className="fas fa-address-card me-2 text-primary"></i>
+                            Contact Details
+                          </h6>
+                          
+                          <div className="mb-4">
+                            <div className="d-flex align-items-center mb-3">
+                              <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                <i className="fas fa-store text-primary fa-lg"></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">Business Name</h6>
+                                <p className="text-muted mb-0">{item.businessName || item.business}</p>
+                              </div>
+                            </div>
+
+                            <div className="d-flex align-items-center mb-3">
+                              <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                <i className="fas fa-phone text-success fa-lg"></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">Phone Number</h6>
+                                <p className="text-muted mb-0">{item.businessPhone || "+255754000000"}</p>
+                              </div>
+                            </div>
+
+                            <div className="d-flex align-items-center mb-3">
+                              <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                <i className="fas fa-envelope text-info fa-lg"></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">Email Address</h6>
+                                <p className="text-muted mb-0">{item.businessEmail || `${item.businessName?.toLowerCase().replace(/\s+/g, '')}@email.com`}</p>
+                              </div>
+                            </div>
+
+                            <div className="d-flex align-items-center">
+                              <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                <i className="fas fa-map-marker-alt text-warning fa-lg"></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">Location</h6>
+                                <p className="text-muted mb-0">
+                                  {item.businessAddress || item.address}, {item.city}, {item.country}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="d-grid gap-2">
+                            <button 
+                              className="btn btn-primary btn-lg rounded-pill fw-bold"
+                              onClick={handleContactBusiness}
+                            >
+                              <i className="fas fa-phone-alt me-2"></i>
+                              Contact Business
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="col-md-4 text-md-end">
+
+                    {/* Location Information */}
+                    <div className="col-lg-6 col-12">
+                      <div className="card bg-light border-0 h-100">
+                        <div className="card-body">
+                          <h6 className="fw-bold mb-4 text-dark d-flex align-items-center">
+                            <i className="fas fa-map-marked-alt me-2 text-primary"></i>
+                            Location Details
+                          </h6>
+                          
+                          <div className="mb-4">
+                            <div className="d-flex align-items-center mb-3">
+                              <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                <span className="text-primary fw-bold">{getCountryFlag(item.country)}</span>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">Country</h6>
+                                <p className="text-muted mb-0">{item.country || 'Tanzania'}</p>
+                              </div>
+                            </div>
+
+                            <div className="d-flex align-items-center mb-3">
+                              <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                <i className="fas fa-city text-success fa-lg"></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">City/Region</h6>
+                                <p className="text-muted mb-0">
+                                  {item.city || item.region || 'Dar es Salaam'}
+                                  {item.region && item.city !== item.region ? `, ${item.region}` : ''}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="d-flex align-items-center mb-3">
+                              <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                <i className="fas fa-road text-info fa-lg"></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">Address</h6>
+                                <p className="text-muted mb-0">{item.businessAddress || item.address || 'Address not specified'}</p>
+                              </div>
+                            </div>
+
+                            <div className="d-flex align-items-center">
+                              <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                <i className="fas fa-globe-africa text-warning fa-lg"></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">Coordinates</h6>
+                                <p className="text-muted mb-0">
+                                  {item.location ? 
+                                    `${item.location.lat?.toFixed(4)}, ${item.location.lng?.toFixed(4)}` : 
+                                    'Coordinates not available'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="d-grid gap-2">
+                            <button 
+                              className="btn btn-outline-primary btn-lg rounded-pill fw-bold"
+                              onClick={handleGetDirections}
+                            >
+                              <i className="fas fa-directions me-2"></i>
+                              Get Directions
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Information */}
+            <div className="col-lg-5 col-xl-4">
+              <div className="sticky-top" style={{ top: '100px' }}>
+                {/* Main Info Card */}
+                <div className="card border-0 shadow-lg rounded-4 mb-4 overflow-hidden">
+                  {/* Category Header */}
+                  <div 
+                    className="card-header text-white border-0 py-4"
+                    style={{ background: categoryColor }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center">
+                        <i className={`fas ${categoryIcon} fa-2x me-3`}></i>
+                        <div>
+                          <h5 className="fw-bold mb-1">{item.category}</h5>
+                          <span className="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
+                            {item.type === 'service' ? 'Service' : 'Product'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
+                        {getCountryFlag(item.country)} {item.country || 'Tanzania'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="card-body p-4">
+                    {/* Title and Rating */}
+                    <div className="mb-4">
+                      <h2 className="fw-bold text-dark mb-3">{item.name}</h2>
+                      <div className="d-flex align-items-center flex-wrap gap-3">
+                        <div className="d-flex align-items-center">
+                          <div className="me-2">
+                            {renderStars(item.rating)}
+                          </div>
+                          <span className="text-warning fw-bold me-1">{item.rating || 4.0}</span>
+                          <span className="text-muted">({item.reviews || 0} reviews)</span>
+                        </div>
+                        <span className={`badge bg-${categoryBadgeColor} bg-opacity-10 text-${categoryBadgeColor} px-3 py-2 rounded-pill`}>
+                          <i className={`fas ${categoryIcon} me-2`}></i>
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Price Section */}
+                    <div className="mb-4 p-4 bg-light rounded-4">
+                      <div className="d-flex align-items-center justify-content-between">
+                        <div>
+                          <h6 className="text-muted mb-2">Price</h6>
+                          <h3 className="fw-bold text-primary mb-0">
+                            {formatPrice(item)}
+                          </h3>
+                          {item.type === 'product' && item.stock !== undefined && (
+                            <p className="text-muted mb-0 mt-2">
+                              <i className="fas fa-box me-2"></i>
+                              {item.stock > 0 ? (
+                                <span className="text-success">
+                                  {item.stock} in stock
+                                </span>
+                              ) : (
+                                <span className="text-danger">
+                                  Out of stock
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-end">
+                          {item.condition && (
+                            <span className={`badge ${item.condition === 'new' ? 'bg-success' : 'bg-warning'} px-3 py-2 rounded-pill`}>
+                              {item.condition === 'new' ? 'New' : 'Used'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="d-grid gap-3 mb-4">
                       <button 
-                        className="btn btn-success btn-lg px-4 py-3 rounded-pill fw-bold"
+                        className="btn btn-primary btn-lg rounded-pill fw-bold py-3"
+                        onClick={handleContactBusiness}
+                      >
+                        <i className="fas fa-phone-alt me-2"></i>
+                        Contact Business
+                      </button>
+                      
+                      <button 
+                        className="btn btn-outline-primary btn-lg rounded-pill fw-bold py-3"
+                        onClick={handleGetDirections}
+                      >
+                        <i className="fas fa-directions me-2"></i>
+                        Get Directions
+                      </button>
+
+                      {/* Send Message Button */}
+                      <button 
+                        className="btn btn-success btn-lg rounded-pill fw-bold py-3"
                         onClick={handleMessagesClick}
                         style={{
                           background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
@@ -795,769 +1518,504 @@ function ProductDetailPage() {
                         Send Message
                       </button>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Contact & Location Section */}
-            <div className="card border-0 shadow-lg rounded-4">
-              <div className="card-header bg-white border-0 py-4">
-                <h5 className="fw-bold mb-0 d-flex align-items-center">
-                  <i className="fas fa-map-marker-alt me-3 text-primary"></i>
-                  Contact & Location Information
-                </h5>
-              </div>
-              <div className="card-body p-4">
-                <div className="row g-4">
-                  {/* Contact Information */}
-                  <div className="col-lg-6 col-12">
-                    <div className="card bg-light border-0 h-100">
-                      <div className="card-body">
-                        <h6 className="fw-bold mb-4 text-dark d-flex align-items-center">
-                          <i className="fas fa-address-card me-2 text-primary"></i>
-                          Contact Details
-                        </h6>
-                        
-                        <div className="mb-4">
-                          <div className="d-flex align-items-center mb-3">
-                            <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
-                              <i className="fas fa-store text-primary fa-lg"></i>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">Business Name</h6>
-                              <p className="text-muted mb-0">{item.businessName || item.business}</p>
-                            </div>
-                          </div>
-
-                          <div className="d-flex align-items-center mb-3">
-                            <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                              <i className="fas fa-phone text-success fa-lg"></i>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">Phone Number</h6>
-                              <p className="text-muted mb-0">{item.businessPhone || "+255754000000"}</p>
-                            </div>
-                          </div>
-
-                          <div className="d-flex align-items-center mb-3">
-                            <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                              <i className="fas fa-envelope text-info fa-lg"></i>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">Email Address</h6>
-                              <p className="text-muted mb-0">{item.businessEmail || `${item.businessName?.toLowerCase().replace(/\s+/g, '')}@email.com`}</p>
-                            </div>
-                          </div>
-
-                          <div className="d-flex align-items-center">
-                            <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                              <i className="fas fa-map-marker-alt text-warning fa-lg"></i>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">Location</h6>
-                              <p className="text-muted mb-0">
-                                {item.businessAddress || item.address}, {item.city}, {item.country}
-                              </p>
-                            </div>
-                          </div>
+                    {/* Business Info */}
+                    <div className="border-top pt-4">
+                      <h6 className="fw-bold text-dark mb-3 d-flex align-items-center">
+                        <i className="fas fa-store me-2 text-primary"></i>
+                        Business Information
+                      </h6>
+                      <div className="d-flex align-items-center mb-3">
+                        <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                          <i className="fas fa-building text-primary"></i>
                         </div>
-
-                        <div className="d-grid gap-2">
-                          <button 
-                            className="btn btn-primary btn-lg rounded-pill fw-bold"
-                            onClick={handleContactBusiness}
-                          >
-                            <i className="fas fa-phone-alt me-2"></i>
-                            Contact Business
-                          </button>
+                        <div>
+                          <h6 className="fw-bold mb-1 text-dark">Business Name</h6>
+                          <p className="text-muted mb-0">{item.businessName || item.business}</p>
                         </div>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Location Information */}
-                  <div className="col-lg-6 col-12">
-                    <div className="card bg-light border-0 h-100">
-                      <div className="card-body">
-                        <h6 className="fw-bold mb-4 text-dark d-flex align-items-center">
-                          <i className="fas fa-map-marked-alt me-2 text-primary"></i>
-                          Location Details
-                        </h6>
-                        
-                        <div className="mb-4">
-                          <div className="d-flex align-items-center mb-3">
-                            <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
-                              <span className="text-primary fw-bold">{getCountryFlag(item.country)}</span>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">Country</h6>
-                              <p className="text-muted mb-0">{item.country || 'Tanzania'}</p>
-                            </div>
-                          </div>
-
-                          <div className="d-flex align-items-center mb-3">
-                            <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                              <i className="fas fa-city text-success fa-lg"></i>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">City/Region</h6>
-                              <p className="text-muted mb-0">
-                                {item.city || item.region || 'Dar es Salaam'}
-                                {item.region && item.city !== item.region ? `, ${item.region}` : ''}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="d-flex align-items-center mb-3">
-                            <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                              <i className="fas fa-road text-info fa-lg"></i>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">Address</h6>
-                              <p className="text-muted mb-0">{item.businessAddress || item.address || 'Address not specified'}</p>
-                            </div>
-                          </div>
-
-                          <div className="d-flex align-items-center">
-                            <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                              <i className="fas fa-globe-africa text-warning fa-lg"></i>
-                            </div>
-                            <div>
-                              <h6 className="fw-bold mb-1 text-dark">Coordinates</h6>
-                              <p className="text-muted mb-0">
-                                {item.location ? 
-                                  `${item.location.lat?.toFixed(4)}, ${item.location.lng?.toFixed(4)}` : 
-                                  'Coordinates not available'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="d-grid gap-2">
-                          <button 
-                            className="btn btn-outline-primary btn-lg rounded-pill fw-bold"
-                            onClick={handleGetDirections}
-                          >
-                            <i className="fas fa-directions me-2"></i>
-                            Get Directions
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Product Information - RESPONSIVE */}
-          <div className="col-lg-5 col-xl-4">
-            <div className="sticky-top" style={{ top: '100px' }}>
-              {/* Main Info Card */}
-              <div className="card border-0 shadow-lg rounded-4 mb-4 overflow-hidden">
-                {/* Category Header */}
-                <div 
-                  className="card-header text-white border-0 py-4"
-                  style={{ background: categoryColor }}
-                >
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <i className={`fas ${categoryIcon} fa-2x me-3`}></i>
-                      <div>
-                        <h5 className="fw-bold mb-1">{item.category}</h5>
-                        <span className="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
-                          {item.type === 'service' ? 'Service' : 'Product'}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
-                      {getCountryFlag(item.country)} {item.country || 'Tanzania'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="card-body p-4">
-                  {/* Title and Rating */}
-                  <div className="mb-4">
-                    <h2 className="fw-bold text-dark mb-3">{item.name}</h2>
-                    <div className="d-flex align-items-center flex-wrap gap-3">
                       <div className="d-flex align-items-center">
-                        <div className="me-2">
-                          {renderStars(item.rating)}
+                        <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                          <i className="fas fa-map-marker-alt text-success"></i>
                         </div>
-                        <span className="text-warning fw-bold me-1">{item.rating || 4.0}</span>
-                        <span className="text-muted">({item.reviews || 0} reviews)</span>
-                      </div>
-                      <span className={`badge bg-${categoryBadgeColor} bg-opacity-10 text-${categoryBadgeColor} px-3 py-2 rounded-pill`}>
-                        <i className={`fas ${categoryIcon} me-2`}></i>
-                        {item.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Price Section */}
-                  <div className="mb-4 p-4 bg-light rounded-4">
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div>
-                        <h6 className="text-muted mb-2">Price</h6>
-                        <h3 className="fw-bold text-primary mb-0">
-                          {formatPrice(item)}
-                        </h3>
-                        {item.type === 'product' && item.stock !== undefined && (
-                          <p className="text-muted mb-0 mt-2">
-                            <i className="fas fa-box me-2"></i>
-                            {item.stock > 0 ? (
-                              <span className="text-success">
-                                {item.stock} in stock
-                              </span>
-                            ) : (
-                              <span className="text-danger">
-                                Out of stock
-                              </span>
-                            )}
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-end">
-                        {item.condition && (
-                          <span className={`badge ${item.condition === 'new' ? 'bg-success' : 'bg-warning'} px-3 py-2 rounded-pill`}>
-                            {item.condition === 'new' ? 'New' : 'Used'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="d-grid gap-3 mb-4">
-                    <button 
-                      className="btn btn-primary btn-lg rounded-pill fw-bold py-3"
-                      onClick={handleContactBusiness}
-                    >
-                      <i className="fas fa-phone-alt me-2"></i>
-                      Contact Business
-                    </button>
-                    
-                    <button 
-                      className="btn btn-outline-primary btn-lg rounded-pill fw-bold py-3"
-                      onClick={handleGetDirections}
-                    >
-                      <i className="fas fa-directions me-2"></i>
-                      Get Directions
-                    </button>
-
-                    {/* NEW: Send Message Button */}
-                    <button 
-                      className="btn btn-success btn-lg rounded-pill fw-bold py-3"
-                      onClick={handleMessagesClick}
-                      style={{
-                        background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                        border: 'none',
-                        boxShadow: '0 4px 15px rgba(40, 167, 69, 0.3)'
-                      }}
-                    >
-                      <i className="fas fa-paper-plane me-2"></i>
-                      Send Message
-                    </button>
-                  </div>
-
-                  {/* Business Info */}
-                  <div className="border-top pt-4">
-                    <h6 className="fw-bold text-dark mb-3 d-flex align-items-center">
-                      <i className="fas fa-store me-2 text-primary"></i>
-                      Business Information
-                    </h6>
-                    <div className="d-flex align-items-center mb-3">
-                      <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
-                        <i className="fas fa-building text-primary"></i>
-                      </div>
-                      <div>
-                        <h6 className="fw-bold mb-1 text-dark">Business Name</h6>
-                        <p className="text-muted mb-0">{item.businessName || item.business}</p>
-                      </div>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                        <i className="fas fa-map-marker-alt text-success"></i>
-                      </div>
-                      <div>
-                        <h6 className="fw-bold mb-1 text-dark">Location</h6>
-                        <p className="text-muted mb-0">
-                          {item.city}, {item.country}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Description Card */}
-              <div className="card border-0 shadow-lg rounded-4">
-                <div className="card-header bg-white border-0 py-4">
-                  <h5 className="fw-bold mb-0 d-flex align-items-center">
-                    <i className="fas fa-file-alt me-3 text-primary"></i>
-                    Description
-                  </h5>
-                </div>
-                <div className="card-body p-4">
-                  <p className="text-dark mb-0" style={{ lineHeight: '1.6' }}>
-                    {item.description || 'No description available for this item.'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs Section */}
-        <div className="row mt-4">
-          <div className="col-12">
-            <div className="card border-0 shadow-lg rounded-4">
-              <div className="card-header bg-white border-0 py-4">
-                <ul className="nav nav-pills nav-fill" role="tablist">
-                  <li className="nav-item">
-                    <button 
-                      className={`nav-link ${activeTab === 'details' ? 'active' : ''} rounded-pill fw-bold`}
-                      onClick={() => setActiveTab('details')}
-                    >
-                      <i className="fas fa-info-circle me-2"></i>
-                      Details & Specifications
-                    </button>
-                  </li>
-                  <li className="nav-item">
-                    <button 
-                      className={`nav-link ${activeTab === 'features' ? 'active' : ''} rounded-pill fw-bold`}
-                      onClick={() => setActiveTab('features')}
-                    >
-                      <i className="fas fa-star me-2"></i>
-                      Features & Amenities
-                    </button>
-                  </li>
-                  <li className="nav-item">
-                    <button 
-                      className={`nav-link ${activeTab === 'reviews' ? 'active' : ''} rounded-pill fw-bold`}
-                      onClick={() => setActiveTab('reviews')}
-                    >
-                      <i className="fas fa-comment me-2"></i>
-                      Reviews & Ratings
-                    </button>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="card-body p-4">
-                {/* Details & Specifications Tab */}
-                {activeTab === 'details' && (
-                  <div className="tab-content">
-                    <div className="row g-4">
-                      {/* Specifications */}
-                      {item.specifications && item.specifications.length > 0 && (
-                        <div className="col-md-6">
-                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
-                            <i className="fas fa-list-alt me-2 text-primary"></i>
-                            Specifications
-                          </h5>
-                          <div className="bg-light rounded-4 p-4">
-                            {item.specifications.map((spec, index) => {
-                              const formattedSpec = formatSpecification(spec);
-                              return (
-                                <div key={index} className="mb-3 pb-3 border-bottom">
-                                  <h6 className="fw-bold text-primary mb-1">{formattedSpec.key}</h6>
-                                  <p className="text-dark mb-0">{formattedSpec.value}</p>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Additional Details */}
-                      <div className="col-md-6">
-                        <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
-                          <i className="fas fa-clipboard-list me-2 text-primary"></i>
-                          Additional Details
-                        </h5>
-                        <div className="bg-light rounded-4 p-4">
-                          {item.brand && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Brand</h6>
-                              <p className="text-dark mb-0">{item.brand}</p>
-                            </div>
-                          )}
-                          
-                          {item.condition && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Condition</h6>
-                              <p className="text-dark mb-0 text-capitalize">{item.condition}</p>
-                            </div>
-                          )}
-
-                          {item.size && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Size</h6>
-                              <p className="text-dark mb-0">{item.size}</p>
-                            </div>
-                          )}
-
-                          {item.color && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Color</h6>
-                              <p className="text-dark mb-0">{item.color}</p>
-                            </div>
-                          )}
-
-                          {item.material && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Material</h6>
-                              <p className="text-dark mb-0">{item.material}</p>
-                            </div>
-                          )}
-
-                          {/* Vehicle Specific Details */}
-                          {item.vehicleType && (
-                            <>
-                              <div className="mb-3 pb-3 border-bottom">
-                                <h6 className="fw-bold text-primary mb-1">Vehicle Type</h6>
-                                <p className="text-dark mb-0 text-capitalize">{item.vehicleType}</p>
-                              </div>
-                              {item.year && (
-                                <div className="mb-3 pb-3 border-bottom">
-                                  <h6 className="fw-bold text-primary mb-1">Year</h6>
-                                  <p className="text-dark mb-0">{item.year}</p>
-                                </div>
-                              )}
-                              {item.mileage && (
-                                <div className="mb-3 pb-3 border-bottom">
-                                  <h6 className="fw-bold text-primary mb-1">Mileage</h6>
-                                  <p className="text-dark mb-0">{item.mileage}</p>
-                                </div>
-                              )}
-                              {item.fuelType && (
-                                <div className="mb-3 pb-3 border-bottom">
-                                  <h6 className="fw-bold text-primary mb-1">Fuel Type</h6>
-                                  <p className="text-dark mb-0 text-capitalize">{item.fuelType}</p>
-                                </div>
-                              )}
-                              {item.transmission && (
-                                <div className="mb-3 pb-3 border-bottom">
-                                  <h6 className="fw-bold text-primary mb-1">Transmission</h6>
-                                  <p className="text-dark mb-0 text-capitalize">{item.transmission}</p>
-                                </div>
-                              )}
-                            </>
-                          )}
-
-                          {/* Service Specific Details */}
-                          {item.serviceType && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Service Type</h6>
-                              <p className="text-dark mb-0">{item.serviceType}</p>
-                            </div>
-                          )}
-
-                          {item.capacity && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Capacity</h6>
-                              <p className="text-dark mb-0">{item.capacity}</p>
-                            </div>
-                          )}
-
-                          {item.checkInTime && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Check-in Time</h6>
-                              <p className="text-dark mb-0">{item.checkInTime}</p>
-                            </div>
-                          )}
-
-                          {item.checkOutTime && (
-                            <div className="mb-3 pb-3 border-bottom">
-                              <h6 className="fw-bold text-primary mb-1">Check-out Time</h6>
-                              <p className="text-dark mb-0">{item.checkOutTime}</p>
-                            </div>
-                          )}
-
-                          <div className="mb-3">
-                            <h6 className="fw-bold text-primary mb-1">Last Updated</h6>
-                            <p className="text-dark mb-0">{item.lastUpdated || '2024-01-15'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Features & Amenities Tab */}
-                {activeTab === 'features' && (
-                  <div className="tab-content">
-                    <div className="row g-4">
-                      {/* Features */}
-                      {item.features && item.features.length > 0 && (
-                        <div className="col-md-6">
-                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
-                            <i className="fas fa-star me-2 text-warning"></i>
-                            Key Features
-                          </h5>
-                          <div className="row g-3">
-                            {item.features.map((feature, index) => (
-                              <div key={index} className="col-sm-6">
-                                <div className="card border-0 bg-light h-100">
-                                  <div className="card-body text-center p-4">
-                                    <i className="fas fa-check-circle text-success fa-2x mb-3"></i>
-                                    <h6 className="fw-bold text-dark mb-0">{feature}</h6>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Amenities */}
-                      {item.amenities && item.amenities.length > 0 && (
-                        <div className="col-md-6">
-                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
-                            <i className="fas fa-concierge-bell me-2 text-primary"></i>
-                            Amenities
-                          </h5>
-                          <div className="row g-3">
-                            {item.amenities.map((amenity, index) => (
-                              <div key={index} className="col-sm-6">
-                                <div className="card border-0 bg-light h-100">
-                                  <div className="card-body text-center p-4">
-                                    <i className="fas fa-check text-success fa-2x mb-3"></i>
-                                    <h6 className="fw-bold text-dark mb-0">{amenity}</h6>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Services */}
-                      {item.services && item.services.length > 0 && (
-                        <div className="col-12 mt-4">
-                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
-                            <i className="fas fa-hands-helping me-2 text-success"></i>
-                            Services Offered
-                          </h5>
-                          <div className="row g-3">
-                            {item.services.map((service, index) => (
-                              <div key={index} className="col-md-4 col-sm-6">
-                                <div className="card border-0 bg-success bg-opacity-10 h-100">
-                                  <div className="card-body text-center p-4">
-                                    <i className="fas fa-hand-holding-heart text-success fa-2x mb-3"></i>
-                                    <h6 className="fw-bold text-dark mb-0">{service}</h6>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Policies */}
-                      {item.policies && (
-                        <div className="col-12 mt-4">
-                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
-                            <i className="fas fa-file-contract me-2 text-info"></i>
-                            Policies & Information
-                          </h5>
-                          <div className="card border-0 bg-info bg-opacity-10">
-                            <div className="card-body p-4">
-                              <pre className="text-dark mb-0" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
-                                {item.policies}
-                              </pre>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Reviews & Ratings Tab */}
-                {activeTab === 'reviews' && (
-                  <div className="tab-content">
-                    <div className="row g-4">
-                      {/* Rating Summary */}
-                      <div className="col-md-4">
-                        <div className="card border-0 bg-light rounded-4 p-4 text-center">
-                          <div className="display-4 fw-bold text-warning mb-2">
-                            {item.rating || 4.0}
-                          </div>
-                          <div className="mb-3">
-                            {renderStars(item.rating)}
-                          </div>
+                        <div>
+                          <h6 className="fw-bold mb-1 text-dark">Location</h6>
                           <p className="text-muted mb-0">
-                            {item.reviews || 0} reviews
+                            {item.city}, {item.country}
                           </p>
-                        </div>
-                      </div>
-
-                      {/* Review Stats */}
-                      <div className="col-md-8">
-                        <h5 className="fw-bold text-dark mb-4">Customer Reviews</h5>
-                        
-                        {/* Sample Reviews */}
-                        <div className="space-y-4">
-                          {/* Review 1 */}
-                          <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-start mb-3">
-                              <div className="d-flex align-items-center">
-                                <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
-                                  <i className="fas fa-user text-primary"></i>
-                                </div>
-                                <div>
-                                  <h6 className="fw-bold text-dark mb-1">John M.</h6>
-                                  <div className="d-flex align-items-center">
-                                    {renderStars(5)}
-                                    <span className="text-muted ms-2">2 days ago</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-dark mb-0">
-                              Excellent {item.type === 'service' ? 'service' : 'product'}! The quality exceeded my expectations. 
-                              {item.businessName || item.business} provided outstanding customer service and the {item.type === 'service' ? 'service was delivered' : 'item was delivered'} on time.
-                            </p>
-                          </div>
-
-                          {/* Review 2 */}
-                          <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-start mb-3">
-                              <div className="d-flex align-items-center">
-                                <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                                  <i className="fas fa-user text-success"></i>
-                                </div>
-                                <div>
-                                  <h6 className="fw-bold text-dark mb-1">Sarah K.</h6>
-                                  <div className="d-flex align-items-center">
-                                    {renderStars(4)}
-                                    <span className="text-muted ms-2">1 week ago</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-dark mb-0">
-                              Very satisfied with my purchase. The {item.type === 'service' ? 'service was professional' : 'product works perfectly'} and the price was reasonable. 
-                              Would recommend {item.businessName || item.business} to others.
-                            </p>
-                          </div>
-
-                          {/* Review 3 */}
-                          <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-start mb-3">
-                              <div className="d-flex align-items-center">
-                                <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                                  <i className="fas fa-user text-warning"></i>
-                                </div>
-                                <div>
-                                  <h6 className="fw-bold text-dark mb-1">David L.</h6>
-                                  <div className="d-flex align-items-center">
-                                    {renderStars(4.5)}
-                                    <span className="text-muted ms-2">2 weeks ago</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-dark mb-0">
-                              Good {item.type === 'service' ? 'service experience' : 'quality product'}. The {item.type === 'service' ? 'service met my requirements' : 'item arrived as described'} and the communication was clear throughout the process.
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Load More Reviews Button */}
-                        <div className="text-center mt-4">
-                          <button className="btn btn-outline-primary rounded-pill px-4">
-                            <i className="fas fa-arrow-down me-2"></i>
-                            Load More Reviews
-                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+
+                {/* Description Card */}
+                <div className="card border-0 shadow-lg rounded-4">
+                  <div className="card-header bg-white border-0 py-4">
+                    <h5 className="fw-bold mb-0 d-flex align-items-center">
+                      <i className="fas fa-file-alt me-3 text-primary"></i>
+                      Description
+                    </h5>
+                  </div>
+                  <div className="card-body p-4">
+                    <p className="text-dark mb-0" style={{ lineHeight: '1.6' }}>
+                      {item.description || 'No description available for this item.'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Related Items Section */}
-        {relatedItems.length > 0 && (
+          {/* Tabs Section */}
           <div className="row mt-4">
             <div className="col-12">
               <div className="card border-0 shadow-lg rounded-4">
                 <div className="card-header bg-white border-0 py-4">
-                  <h5 className="fw-bold mb-0 d-flex align-items-center">
-                    <i className="fas fa-th-large me-3 text-primary"></i>
-                    Related {item.type === 'service' ? 'Services' : 'Products'}
-                  </h5>
+                  <ul className="nav nav-pills nav-fill" role="tablist">
+                    <li className="nav-item">
+                      <button 
+                        className={`nav-link ${activeTab === 'details' ? 'active' : ''} rounded-pill fw-bold`}
+                        onClick={() => setActiveTab('details')}
+                      >
+                        <i className="fas fa-info-circle me-2"></i>
+                        Details & Specifications
+                      </button>
+                    </li>
+                    <li className="nav-item">
+                      <button 
+                        className={`nav-link ${activeTab === 'features' ? 'active' : ''} rounded-pill fw-bold`}
+                        onClick={() => setActiveTab('features')}
+                      >
+                        <i className="fas fa-star me-2"></i>
+                        Features & Amenities
+                      </button>
+                    </li>
+                    <li className="nav-item">
+                      <button 
+                        className={`nav-link ${activeTab === 'reviews' ? 'active' : ''} rounded-pill fw-bold`}
+                        onClick={() => setActiveTab('reviews')}
+                      >
+                        <i className="fas fa-comment me-2"></i>
+                        Reviews & Ratings
+                      </button>
+                    </li>
+                  </ul>
                 </div>
+
                 <div className="card-body p-4">
-                  <div className="row g-4">
-                    {relatedItems.slice(0, 4).map((relatedItem, index) => (
-                      <div key={index} className="col-lg-3 col-md-6">
-                        <div 
-                          className="card border-0 shadow-sm h-100 cursor-pointer"
-                          onClick={() => navigate(`/product/${relatedItem.id}`)}
-                          style={{ 
-                            transition: 'all 0.3s ease',
-                            cursor: 'pointer'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-5px)';
-                            e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-                          }}
-                        >
-                          <div className="position-relative overflow-hidden rounded-top-4">
-                            <img 
-                              src={getItemImages(relatedItem)[0]} 
-                              className="card-img-top"
-                              alt={relatedItem.name}
-                              style={{ 
-                                height: '200px', 
-                                objectFit: 'cover',
-                                transition: 'transform 0.3s ease'
-                              }}
-                            />
-                            <div className="position-absolute top-0 end-0 m-3">
-                              <span className={`badge bg-${getCategoryBadgeColor(relatedItem.category)} bg-opacity-90 text-white px-3 py-2 rounded-pill`}>
-                                <i className={`fas ${getCategoryIcon(relatedItem.category)} me-1`}></i>
-                                {relatedItem.category}
-                              </span>
+                  {/* Details & Specifications Tab */}
+                  {activeTab === 'details' && (
+                    <div className="tab-content">
+                      <div className="row g-4">
+                        {/* Specifications */}
+                        {item.specifications && item.specifications.length > 0 && (
+                          <div className="col-md-6">
+                            <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                              <i className="fas fa-list-alt me-2 text-primary"></i>
+                              Specifications
+                            </h5>
+                            <div className="bg-light rounded-4 p-4">
+                              {item.specifications.map((spec, index) => {
+                                const formattedSpec = formatSpecification(spec);
+                                return (
+                                  <div key={index} className="mb-3 pb-3 border-bottom">
+                                    <h6 className="fw-bold text-primary mb-1">{formattedSpec.key}</h6>
+                                    <p className="text-dark mb-0">{formattedSpec.value}</p>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
-                          <div className="card-body">
-                            <h6 className="card-title fw-bold text-dark mb-2">{relatedItem.name}</h6>
-                            <p className="card-text text-primary fw-bold mb-2">
-                              {formatPrice(relatedItem)}
-                            </p>
-                            <div className="d-flex align-items-center justify-content-between">
-                              <small className="text-muted">
-                                <i className="fas fa-store me-1"></i>
-                                {relatedItem.businessName || relatedItem.business}
-                              </small>
-                              <div className="d-flex align-items-center">
-                                {renderStars(relatedItem.rating)}
-                                <small className="text-muted ms-1">({relatedItem.reviews || 0})</small>
+                        )}
+
+                        {/* Additional Details */}
+                        <div className="col-md-6">
+                          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                            <i className="fas fa-clipboard-list me-2 text-primary"></i>
+                            Additional Details
+                          </h5>
+                          <div className="bg-light rounded-4 p-4">
+                            {item.brand && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Brand</h6>
+                                <p className="text-dark mb-0">{item.brand}</p>
                               </div>
+                            )}
+                            
+                            {item.condition && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Condition</h6>
+                                <p className="text-dark mb-0 text-capitalize">{item.condition}</p>
+                              </div>
+                            )}
+
+                            {item.size && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Size</h6>
+                                <p className="text-dark mb-0">{item.size}</p>
+                              </div>
+                            )}
+
+                            {item.color && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Color</h6>
+                                <p className="text-dark mb-0">{item.color}</p>
+                              </div>
+                            )}
+
+                            {item.material && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Material</h6>
+                                <p className="text-dark mb-0">{item.material}</p>
+                              </div>
+                            )}
+
+                            {/* Vehicle Specific Details */}
+                            {item.vehicleType && (
+                              <>
+                                <div className="mb-3 pb-3 border-bottom">
+                                  <h6 className="fw-bold text-primary mb-1">Vehicle Type</h6>
+                                  <p className="text-dark mb-0 text-capitalize">{item.vehicleType}</p>
+                                </div>
+                                {item.year && (
+                                  <div className="mb-3 pb-3 border-bottom">
+                                    <h6 className="fw-bold text-primary mb-1">Year</h6>
+                                    <p className="text-dark mb-0">{item.year}</p>
+                                  </div>
+                                )}
+                                {item.mileage && (
+                                  <div className="mb-3 pb-3 border-bottom">
+                                    <h6 className="fw-bold text-primary mb-1">Mileage</h6>
+                                    <p className="text-dark mb-0">{item.mileage}</p>
+                                  </div>
+                                )}
+                                {item.fuelType && (
+                                  <div className="mb-3 pb-3 border-bottom">
+                                    <h6 className="fw-bold text-primary mb-1">Fuel Type</h6>
+                                    <p className="text-dark mb-0 text-capitalize">{item.fuelType}</p>
+                                  </div>
+                                )}
+                                {item.transmission && (
+                                  <div className="mb-3 pb-3 border-bottom">
+                                    <h6 className="fw-bold text-primary mb-1">Transmission</h6>
+                                    <p className="text-dark mb-0 text-capitalize">{item.transmission}</p>
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {/* Service Specific Details */}
+                            {item.serviceType && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Service Type</h6>
+                                <p className="text-dark mb-0">{item.serviceType}</p>
+                              </div>
+                            )}
+
+                            {item.capacity && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Capacity</h6>
+                                <p className="text-dark mb-0">{item.capacity}</p>
+                              </div>
+                            )}
+
+                            {item.checkInTime && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Check-in Time</h6>
+                                <p className="text-dark mb-0">{item.checkInTime}</p>
+                              </div>
+                            )}
+
+                            {item.checkOutTime && (
+                              <div className="mb-3 pb-3 border-bottom">
+                                <h6 className="fw-bold text-primary mb-1">Check-out Time</h6>
+                                <p className="text-dark mb-0">{item.checkOutTime}</p>
+                              </div>
+                            )}
+
+                            <div className="mb-3">
+                              <h6 className="fw-bold text-primary mb-1">Last Updated</h6>
+                              <p className="text-dark mb-0">{item.lastUpdated || '2024-01-15'}</p>
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Features & Amenities Tab */}
+                  {activeTab === 'features' && (
+                    <div className="tab-content">
+                      <div className="row g-4">
+                        {/* Features */}
+                        {item.features && item.features.length > 0 && (
+                          <div className="col-md-6">
+                            <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                              <i className="fas fa-star me-2 text-warning"></i>
+                              Key Features
+                            </h5>
+                            <div className="row g-3">
+                              {item.features.map((feature, index) => (
+                                <div key={index} className="col-sm-6">
+                                  <div className="card border-0 bg-light h-100">
+                                    <div className="card-body text-center p-4">
+                                      <i className="fas fa-check-circle text-success fa-2x mb-3"></i>
+                                      <h6 className="fw-bold text-dark mb-0">{feature}</h6>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Amenities */}
+                        {item.amenities && item.amenities.length > 0 && (
+                          <div className="col-md-6">
+                            <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                              <i className="fas fa-concierge-bell me-2 text-primary"></i>
+                              Amenities
+                            </h5>
+                            <div className="row g-3">
+                              {item.amenities.map((amenity, index) => (
+                                <div key={index} className="col-sm-6">
+                                  <div className="card border-0 bg-light h-100">
+                                    <div className="card-body text-center p-4">
+                                      <i className="fas fa-check text-success fa-2x mb-3"></i>
+                                      <h6 className="fw-bold text-dark mb-0">{amenity}</h6>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Services */}
+                        {item.services && item.services.length > 0 && (
+                          <div className="col-12 mt-4">
+                            <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                              <i className="fas fa-hands-helping me-2 text-success"></i>
+                              Services Offered
+                            </h5>
+                            <div className="row g-3">
+                              {item.services.map((service, index) => (
+                                <div key={index} className="col-md-4 col-sm-6">
+                                  <div className="card border-0 bg-success bg-opacity-10 h-100">
+                                    <div className="card-body text-center p-4">
+                                      <i className="fas fa-hand-holding-heart text-success fa-2x mb-3"></i>
+                                      <h6 className="fw-bold text-dark mb-0">{service}</h6>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Policies */}
+                        {item.policies && (
+                          <div className="col-12 mt-4">
+                            <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                              <i className="fas fa-file-contract me-2 text-info"></i>
+                              Policies & Information
+                            </h5>
+                            <div className="card border-0 bg-info bg-opacity-10">
+                              <div className="card-body p-4">
+                                <pre className="text-dark mb-0" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+                                  {item.policies}
+                                </pre>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reviews & Ratings Tab */}
+                  {activeTab === 'reviews' && (
+                    <div className="tab-content">
+                      <div className="row g-4">
+                        {/* Rating Summary */}
+                        <div className="col-md-4">
+                          <div className="card border-0 bg-light rounded-4 p-4 text-center">
+                            <div className="display-4 fw-bold text-warning mb-2">
+                              {item.rating || 4.0}
+                            </div>
+                            <div className="mb-3">
+                              {renderStars(item.rating)}
+                            </div>
+                            <p className="text-muted mb-0">
+                              {item.reviews || 0} reviews
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Review Stats */}
+                        <div className="col-md-8">
+                          <h5 className="fw-bold text-dark mb-4">Customer Reviews</h5>
+                          
+                          {/* Sample Reviews */}
+                          <div className="space-y-4">
+                            {/* Review 1 */}
+                            <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
+                              <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="d-flex align-items-center">
+                                  <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i className="fas fa-user text-primary"></i>
+                                  </div>
+                                  <div>
+                                    <h6 className="fw-bold text-dark mb-1">John M.</h6>
+                                    <div className="d-flex align-items-center">
+                                      {renderStars(5)}
+                                      <span className="text-muted ms-2">2 days ago</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <p className="text-dark mb-0">
+                                Excellent {item.type === 'service' ? 'service' : 'product'}! The quality exceeded my expectations. 
+                                {item.businessName || item.business} provided outstanding customer service and the {item.type === 'service' ? 'service was delivered' : 'item was delivered'} on time.
+                              </p>
+                            </div>
+
+                            {/* Review 2 */}
+                            <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
+                              <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="d-flex align-items-center">
+                                  <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i className="fas fa-user text-success"></i>
+                                  </div>
+                                  <div>
+                                    <h6 className="fw-bold text-dark mb-1">Sarah K.</h6>
+                                    <div className="d-flex align-items-center">
+                                      {renderStars(4)}
+                                      <span className="text-muted ms-2">1 week ago</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <p className="text-dark mb-0">
+                                Very satisfied with my purchase. The {item.type === 'service' ? 'service was professional' : 'product works perfectly'} and the price was reasonable. 
+                                Would recommend {item.businessName || item.business} to others.
+                              </p>
+                            </div>
+
+                            {/* Review 3 */}
+                            <div className="card border-0 bg-white rounded-4 p-4 shadow-sm">
+                              <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="d-flex align-items-center">
+                                  <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i className="fas fa-user text-warning"></i>
+                                  </div>
+                                  <div>
+                                    <h6 className="fw-bold text-dark mb-1">David L.</h6>
+                                    <div className="d-flex align-items-center">
+                                      {renderStars(4.5)}
+                                      <span className="text-muted ms-2">2 weeks ago</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <p className="text-dark mb-0">
+                                Good {item.type === 'service' ? 'service experience' : 'quality product'}. The {item.type === 'service' ? 'service met my requirements' : 'item arrived as described'} and the communication was clear throughout the process.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Load More Reviews Button */}
+                          <div className="text-center mt-4">
+                            <button className="btn btn-outline-primary rounded-pill px-4">
+                              <i className="fas fa-arrow-down me-2"></i>
+                              Load More Reviews
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        )}
+
+          {/* Related Items Section */}
+          {relatedItems.length > 0 && (
+            <div className="row mt-4">
+              <div className="col-12">
+                <div className="card border-0 shadow-lg rounded-4">
+                  <div className="card-header bg-white border-0 py-4">
+                    <h5 className="fw-bold mb-0 d-flex align-items-center">
+                      <i className="fas fa-th-large me-3 text-primary"></i>
+                      Related {item.type === 'service' ? 'Services' : 'Products'}
+                    </h5>
+                  </div>
+                  <div className="card-body p-4">
+                    <div className="row g-4">
+                      {relatedItems.slice(0, 4).map((relatedItem, index) => (
+                        <div key={index} className="col-lg-3 col-md-6">
+                          <div 
+                            className="card border-0 shadow-sm h-100 cursor-pointer"
+                            onClick={() => navigate(`/product/${relatedItem.id}`)}
+                            style={{ 
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-5px)';
+                              e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                            }}
+                          >
+                            <div className="position-relative overflow-hidden rounded-top-4">
+                              <img 
+                                src={getItemImages(relatedItem)[0]} 
+                                className="card-img-top"
+                                alt={relatedItem.name}
+                                style={{ 
+                                  height: '200px', 
+                                  objectFit: 'cover',
+                                  transition: 'transform 0.3s ease'
+                                }}
+                              />
+                              <div className="position-absolute top-0 end-0 m-3">
+                                <span className={`badge bg-${getCategoryBadgeColor(relatedItem.category)} bg-opacity-90 text-white px-3 py-2 rounded-pill`}>
+                                  <i className={`fas ${getCategoryIcon(relatedItem.category)} me-1`}></i>
+                                  {relatedItem.category}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="card-body">
+                              <h6 className="card-title fw-bold text-dark mb-2">{relatedItem.name}</h6>
+                              <p className="card-text text-primary fw-bold mb-2">
+                                {formatPrice(relatedItem)}
+                              </p>
+                              <div className="d-flex align-items-center justify-content-between">
+                                <small className="text-muted">
+                                  <i className="fas fa-store me-1"></i>
+                                  {relatedItem.businessName || relatedItem.business}
+                                </small>
+                                <div className="d-flex align-items-center">
+                                  {renderStars(relatedItem.rating)}
+                                  <small className="text-muted ms-1">({relatedItem.reviews || 0})</small>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Image Modal */}
@@ -1615,93 +2073,6 @@ function ProductDetailPage() {
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="bg-dark text-white py-5 mt-5">
-        <div className="container">
-          <div className="row g-4">
-            <div className="col-lg-4">
-              <h5 className="fw-bold mb-3">
-                <i className="fas fa-globe-americas me-2 text-primary"></i>
-                BisRun
-              </h5>
-              <p className="text-light mb-4">
-                Connecting businesses with customers across Tanzania and beyond. 
-                Discover amazing products and services in your local area.
-              </p>
-              <div className="d-flex gap-3">
-                <a href="#" className="text-white text-decoration-none">
-                  <i className="fab fa-facebook fa-lg"></i>
-                </a>
-                <a href="#" className="text-white text-decoration-none">
-                  <i className="fab fa-twitter fa-lg"></i>
-                </a>
-                <a href="#" className="text-white text-decoration-none">
-                  <i className="fab fa-instagram fa-lg"></i>
-                </a>
-                <a href="#" className="text-white text-decoration-none">
-                  <i className="fab fa-linkedin fa-lg"></i>
-                </a>
-              </div>
-            </div>
-            <div className="col-lg-2 col-md-4">
-              <h6 className="fw-bold mb-3">Quick Links</h6>
-              <ul className="list-unstyled">
-                <li className="mb-2">
-                  <Link to="/" className="text-light text-decoration-none">Home</Link>
-                </li>
-                <li className="mb-2">
-                  <Link to="/search" className="text-light text-decoration-none">Search</Link>
-                </li>
-                <li className="mb-2">
-                  <a href="#" className="text-light text-decoration-none">About Us</a>
-                </li>
-                <li className="mb-2">
-                  <a href="#" className="text-light text-decoration-none">Contact</a>
-                </li>
-              </ul>
-            </div>
-            <div className="col-lg-3 col-md-4">
-              <h6 className="fw-bold mb-3">Categories</h6>
-              <ul className="list-unstyled">
-                <li className="mb-2">
-                  <a href="#" className="text-light text-decoration-none">Electronics & Devices</a>
-                </li>
-                <li className="mb-2">
-                  <a href="#" className="text-light text-decoration-none">Vehicles</a>
-                </li>
-                <li className="mb-2">
-                  <a href="#" className="text-light text-decoration-none">General Goods</a>
-                </li>
-                <li className="mb-2">
-                  <a href="#" className="text-light text-decoration-none">Building & Hotels</a>
-                </li>
-              </ul>
-            </div>
-            <div className="col-lg-3 col-md-4">
-              <h6 className="fw-bold mb-3">Contact Info</h6>
-              <ul className="list-unstyled text-light">
-                <li className="mb-2 d-flex align-items-center">
-                  <i className="fas fa-map-marker-alt me-2 text-primary"></i>
-                  Dar es Salaam, Tanzania
-                </li>
-                <li className="mb-2 d-flex align-items-center">
-                  <i className="fas fa-phone me-2 text-primary"></i>
-                  +255 754 000 000
-                </li>
-                <li className="mb-2 d-flex align-items-center">
-                  <i className="fas fa-envelope me-2 text-primary"></i>
-                  info@bisrun.com
-                </li>
-              </ul>
-            </div>
-          </div>
-          <hr className="my-4 bg-light" />
-          <div className="text-center text-light">
-            <p className="mb-0">&copy; 2024 BisRun. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-
       {/* Add Bootstrap Icons */}
       <link 
         rel="stylesheet" 
@@ -1711,8 +2082,6 @@ function ProductDetailPage() {
         {`
           .cursor-pointer { cursor: pointer; }
           .thumbnail-item.active { border-color: #007bff !important; }
-          .typewriter-cursor { animation: blink 1s infinite; }
-          @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
           
           /* Responsive Design Improvements */
           @media (max-width: 768px) {
