@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - MODERN DESIGN UPDATE
+// src/SearchResultsPage.jsx - UPDATED WITH CUSTOMIZABLE CARD DIMENSIONS
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -14,6 +14,14 @@ const SearchResultsPage = () => {
   const [recentSearches, setRecentSearches] = useState([]);
   const [sortBy, setSortBy] = useState("relevance");
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
+
+  // CUSTOMIZABLE CARD DIMENSIONS - YOU CAN CHANGE THESE VALUES
+  const [cardDimensions, setCardDimensions] = useState({
+    width: "230px",      // Change this for card width
+    height: "280px",     // Change this for card height
+    borderWidth: "2px",  // Change this for border width
+    maxHeight: "330px"   // Change this for maximum height
+  });
 
   // FUZZY SEARCH FUNCTIONS
   const levenshteinDistance = (str1, str2) => {
@@ -525,6 +533,25 @@ const SearchResultsPage = () => {
     return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
   };
 
+  // UPDATED: Function to render single black star with rating number
+  const renderStars = (rating) => {
+    const numRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 4.0);
+    return (
+      <div className="d-flex align-items-center">
+        <i
+          className="fas fa-star me-1"
+          style={{ fontSize: '0.7rem', color: '#000000' }}
+        ></i>
+        <small 
+          className="text-dark"
+          style={{ fontSize: '10px', fontWeight: '600' }}
+        >
+          {numRating.toFixed(1)}
+        </small>
+      </div>
+    );
+  };
+
   const formatPrice = (item) => {
     if (item.type === 'service') {
       return `${item.currencySymbol || '$'} ${item.priceRange}`;
@@ -532,204 +559,11 @@ const SearchResultsPage = () => {
     return `${item.currencySymbol || '$'} ${item.price?.toLocaleString() || '0'}`;
   };
 
-  // MODERN CARD COMPONENT
-  const ModernProductCard = ({ item }) => {
-    return (
-      <div 
-        className="modern-card"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-          height: '330px',
-          maxHeight: '330px',
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0px 10px 12px rgba(0, 0, 0, 0.08), -4px -4px 12px rgba(0, 0, 0, 0.08)',
-          overflow: 'hidden',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          cursor: 'pointer',
-          boxSizing: 'border-box',
-          padding: '12px'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
-          e.currentTarget.style.boxShadow = '0px 20px 25px rgba(0, 0, 0, 0.15), -4px -4px 12px rgba(0, 0, 0, 0.08)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0) scale(1)';
-          e.currentTarget.style.boxShadow = '0px 10px 12px rgba(0, 0, 0, 0.08), -4px -4px 12px rgba(0, 0, 0, 0.08)';
-        }}
-        onClick={() => navigate(`/product/${item.id}`)}
-      >
-        {/* Image Container */}
-        <div 
-          className="modern-card-image-container"
-          style={{
-            width: '100%',
-            height: '60%',
-            borderRadius: '8px',
-            marginBottom: '12px',
-            overflow: 'hidden',
-            backgroundColor: '#f8f9fa',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative'
-          }}
-        >
-          <img
-            src={getItemImage(item)}
-            alt={item.name}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              transition: 'transform 0.3s ease'
-            }}
-            onError={(e) => {
-              e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
-            }}
-          />
-          
-          {/* Featured Badge */}
-          {item.featured && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: '8px',
-                left: '8px',
-                background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-                color: 'white',
-                padding: '4px 8px',
-                borderRadius: '6px',
-                fontSize: '10px',
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-              }}
-            >
-              Featured
-            </div>
-          )}
-
-          {/* Rating Badge */}
-          <div 
-            style={{
-              position: 'absolute',
-              bottom: '8px',
-              right: '8px',
-              background: 'rgba(0, 0, 0, 0.75)',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              fontSize: '11px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              backdropFilter: 'blur(4px)'
-            }}
-          >
-            <i className="fas fa-star" style={{ color: '#FFD700', fontSize: '10px' }}></i>
-            <span>{(typeof item.rating === 'string' ? parseFloat(item.rating) : item.rating || 4.0).toFixed(1)}</span>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          {/* Product Name */}
-          <h3 
-            className="modern-card-title"
-            style={{
-              margin: '0 0 8px 0',
-              fontSize: '15px',
-              fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-              fontWeight: '700',
-              color: '#1a365d',
-              cursor: 'default',
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: '2',
-              WebkitBoxOrient: 'vertical',
-              lineHeight: '1.3',
-              minHeight: '39px'
-            }}
-            title={item.name}
-          >
-            {item.name}
-          </h3>
-
-          {/* Description */}
-          <p 
-            className="modern-card-description"
-            style={{
-              margin: '0 0 12px 0',
-              fontSize: '12px',
-              fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-              color: '#666',
-              cursor: 'default',
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: '2',
-              WebkitBoxOrient: 'vertical',
-              lineHeight: '1.4',
-              flex: '1',
-              minHeight: '34px'
-            }}
-            title={item.description}
-          >
-            {item.description || 'No description available'}
-          </p>
-
-          {/* Price and Action */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div 
-              style={{
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#2c5aa0',
-                fontFamily: 'Arial, sans-serif',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-              }}
-            >
-              {formatPrice(item)}
-            </div>
-            
-            <button 
-              className="btn btn-primary btn-sm"
-              style={{
-                padding: '6px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none',
-                transition: 'all 0.3s ease',
-                color: 'white',
-                boxShadow: '0 2px 4px rgba(102, 126, 234, 0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'scale(1.05)';
-                e.target.style.boxShadow = '0 4px 8px rgba(102, 126, 234, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'scale(1)';
-                e.target.style.boxShadow = '0 2px 4px rgba(102, 126, 234, 0.3)';
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/product/${item.id}`);
-              }}
-            >
-              View
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+  // NEW: Function to truncate description to 42 characters
+  const truncateDescription = (description) => {
+    if (!description) return 'No description available';
+    if (description.length <= 42) return description;
+    return description.substring(0, 42) + '...';
   };
 
   if (isLoading) {
@@ -1006,110 +840,139 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* MODERN CARDS GRID */}
-            <div className="row g-4 justify-content-center">
+            {/* CUSTOMIZABLE CARDS WITH UIVERSE.IO STYLE */}
+            <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
-                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
-                  <ModernProductCard item={item} />
+                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2 d-flex justify-content-center">
+                  {/* CUSTOMIZABLE CARD - FROM UIVERSE.IO BY AKSHAT-PATEL28 */}
+                  <div 
+                    className="card"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      width: cardDimensions.width,      // Customizable width
+                      height: cardDimensions.height,    // Customizable height
+                      maxHeight: cardDimensions.maxHeight, // Customizable max height
+                      backgroundColor: 'var(--white)',
+                      borderRadius: '10px',
+                      boxShadow: '0px 10px 12px rgba(0, 0, 0, 0.08), -4px -4px 12px rgba(0, 0, 0, 0.08)',
+                      overflow: 'hidden',
+                      transition: 'all 0.3s',
+                      cursor: 'pointer',
+                      boxSizing: 'border-box',
+                      padding: '10px',
+                      border: `${cardDimensions.borderWidth} solid #e0e0e0` // Customizable border width
+                    }}
+                    onClick={() => {
+                      if (item.type === 'service') {
+                        navigate(`/service-detail/${item.id}`);
+                      } else {
+                        navigate(`/product-detail/${item.id}`);
+                      }
+                    }}
+                  >
+                    <div 
+                      className="card-image-container"
+                      style={{
+                        width: '100%',
+                        height: '64%',
+                        borderRadius: '10px',
+                        marginBottom: '12px',
+                        overflow: 'hidden',
+                        backgroundColor: 'rgb(165, 165, 165)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {getItemImage(item) ? (
+                        <img 
+                          src={getItemImage(item)} 
+                          alt={item.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className="image-icon"
+                        style={{
+                          fontSize: '40px',
+                          color: '#666',
+                          display: getItemImage(item) ? 'none' : 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <i className="fas fa-image"></i>
+                      </div>
+                    </div>
+
+                    <h3 
+                      className="card-title"
+                      style={{
+                        margin: '0',
+                        fontSize: '17px',
+                        fontFamily: '"Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana, sans-serif',
+                        fontWeight: '600',
+                        color: '#1797b8',
+                        cursor: 'default',
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: '1',
+                        lineClamp: '1'
+                      }}
+                    >
+                      {item.name}
+                    </h3>
+
+                    <p 
+                      className="card-des"
+                      style={{
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: '3',
+                        lineClamp: '3',
+                        margin: '4px 0 8px 0',
+                        fontSize: '13px',
+                        fontFamily: '"Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana, sans-serif',
+                        color: '#1797b8',
+                        cursor: 'default',
+                        minHeight: '48px'
+                      }}
+                    >
+                      {truncateDescription(item.description)}
+                    </p>
+
+                    <div className="d-flex justify-content-between align-items-center mt-auto">
+                      <div className="text-primary fw-bold" style={{ fontSize: '14px' }}>
+                        {formatPrice(item)}
+                      </div>
+                      {renderStars(item.rating)}
+                    </div>
+
+                    {item.isFuzzyMatch && (
+                      <div className="position-absolute top-0 end-0 m-1">
+                        <span className="badge bg-warning text-dark" style={{ fontSize: '9px' }}>
+                          Similar
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </>
         )}
       </div>
-
-      {/* Custom CSS for Modern Cards */}
-      <style>
-        {`
-          .modern-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-          }
-
-          .modern-card:hover {
-            transform: translateY(-8px) scale(1.02) !important;
-          }
-
-          .modern-card-image-container img {
-            transition: transform 0.3s ease !important;
-          }
-
-          .modern-card:hover .modern-card-image-container img {
-            transform: scale(1.1) !important;
-          }
-
-          /* Responsive adjustments for modern cards */
-          @media (max-width: 576px) {
-            .col-6 {
-              padding: 6px;
-            }
-            
-            .modern-card {
-              height: 300px !important;
-            }
-            
-            .modern-card-title {
-              font-size: 14px !important;
-              -webkit-line-clamp: 2;
-            }
-            
-            .modern-card-description {
-              font-size: 11px !important;
-              -webkit-line-clamp: 2;
-            }
-          }
-
-          @media (min-width: 576px) {
-            .col-sm-4 {
-              padding: 8px;
-            }
-            
-            .modern-card {
-              height: 320px !important;
-            }
-
-            .modern-card-title {
-              font-size: 14px !important;
-            }
-          }
-
-          @media (min-width: 768px) {
-            .col-md-3 {
-              padding: 10px;
-            }
-            
-            .modern-card {
-              height: 330px !important;
-            }
-
-            .modern-card-title {
-              font-size: 15px !important;
-            }
-          }
-
-          @media (min-width: 992px) {
-            .col-lg-3 {
-              padding: 12px;
-            }
-          }
-
-          @media (min-width: 1200px) {
-            .col-xl-2 {
-              padding: 12px;
-            }
-          }
-
-          /* Smooth animations */
-          .modern-card * {
-            transition: all 0.3s ease;
-          }
-
-          /* Gradient background for the page */
-          .min-vh-100 {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-          }
-        `}
-      </style>
     </div>
   );
 };
