@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH BLUE PRICE COLOR
+// src/SearchResultsPage.jsx - UPDATED WITH SILVER BACKGROUND
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -560,7 +560,7 @@ const SearchResultsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-vh-100 bg-white d-flex justify-content-center align-items-center">
+      <div className="min-vh-100 bg-silver d-flex justify-content-center align-items-center">
         <div className="text-center">
           <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }}></div>
           <p className="text-dark">Loading search results...</p>
@@ -570,7 +570,7 @@ const SearchResultsPage = () => {
   }
 
   return (
-    <div className="min-vh-100 bg-white">
+    <div className="min-vh-100 bg-silver">
       {/* Header with Beautiful Animated Search Bar */}
       <div className="bg-white border-bottom sticky-top shadow-sm">
         <div className="container-fluid py-3">
@@ -832,7 +832,7 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* GLASS MORPHISM CARDS WITH BLUE PRICE */}
+            {/* GLASS MORPHISM CARDS WITH SILVER BACKGROUND */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
@@ -843,7 +843,7 @@ const SearchResultsPage = () => {
                       width: '100%',
                       height: '254px',
                       backdropFilter: 'blur(7px)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
                       borderRadius: '26px',
                       boxShadow: `
                         35px 35px 68px 0px rgba(157, 177, 255, 0.2),
@@ -1002,34 +1002,48 @@ const SearchResultsPage = () => {
                           </div>
                         </div>
 
-                        {/* View Details Button */}
-                        <button
-                          className="btn w-100"
-                          style={{
-                            background: 'rgba(37, 99, 235, 0.3)', // BLUE COLOR
-                            color: '#2563eb', // BLUE COLOR
-                            border: '1px solid rgba(37, 99, 235, 0.5)', // BLUE COLOR
-                            borderRadius: '12px',
-                            padding: '4px 8px',
-                            fontSize: '10px',
-                            fontWeight: '600',
-                            transition: 'all 0.3s ease',
-                            cursor: 'pointer',
-                            backdropFilter: 'blur(5px)'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = 'rgba(37, 99, 235, 0.5)'; // DARKER BLUE
-                            e.target.style.color = 'white';
-                            e.target.style.transform = 'translateY(-1px)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(37, 99, 235, 0.3)'; // LIGHTER BLUE
-                            e.target.style.color = '#2563eb';
-                            e.target.style.transform = 'translateY(0)';
-                          }}
-                        >
-                          VIEW DETAILS
-                        </button>
+                        {/* FIXED: View Details Button - Now properly visible for all items */}
+                        <div className="d-flex justify-content-center">
+                          <button
+                            className="btn"
+                            style={{
+                              background: 'rgba(37, 99, 235, 0.3)', // BLUE COLOR
+                              color: '#2563eb', // BLUE COLOR
+                              border: '1px solid rgba(37, 99, 235, 0.5)', // BLUE COLOR
+                              borderRadius: '12px',
+                              padding: '4px 12px',
+                              fontSize: '10px',
+                              fontWeight: '600',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer',
+                              backdropFilter: 'blur(5px)',
+                              minWidth: '80px',
+                              minHeight: '24px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '100%'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'rgba(37, 99, 235, 0.5)'; // DARKER BLUE
+                              e.target.style.color = 'white';
+                              e.target.style.transform = 'translateY(-1px)';
+                              e.target.style.boxShadow = '0 4px 8px rgba(37, 99, 235, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'rgba(37, 99, 235, 0.3)'; // LIGHTER BLUE
+                              e.target.style.color = '#2563eb';
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = 'none';
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/product/${item.id}`);
+                            }}
+                          >
+                            VIEW DETAILS
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1040,9 +1054,14 @@ const SearchResultsPage = () => {
         )}
       </div>
 
-      {/* Add CSS for glass morphism effects */}
+      {/* Add CSS for silver background and glass morphism effects */}
       <style>
         {`
+          .bg-silver {
+            background: linear-gradient(135deg, #383535ff 0%, #a89e9eff 50%, #f0f0f0 100%) !important;
+            background-color: #434644ff !important;
+          }
+
           .glass-card:active {
             transform: scale(0.95);
             border: 1px solid rgba(37, 99, 235, 0.3); /* BLUE BORDER */
@@ -1058,6 +1077,13 @@ const SearchResultsPage = () => {
 
           .product-image:hover {
             transform: scale(1.05);
+          }
+
+          /* FIXED: Ensure View Details button is always properly visible */
+          .card-body .btn {
+            opacity: 1 !important;
+            visibility: visible !important;
+            z-index: 10;
           }
 
           /* Responsive adjustments */
@@ -1093,6 +1119,13 @@ const SearchResultsPage = () => {
             
             .price {
               font-size: 11px !important;
+            }
+
+            /* FIXED: Mobile button sizing */
+            .card-body .btn {
+              font-size: 9px !important;
+              padding: 3px 10px !important;
+              min-height: 22px !important;
             }
           }
 
