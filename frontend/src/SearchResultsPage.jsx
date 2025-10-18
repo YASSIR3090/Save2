@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH BOLDER PRODUCT NAMES
+// src/SearchResultsPage.jsx - MODERN DESIGN UPDATE
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -525,25 +525,6 @@ const SearchResultsPage = () => {
     return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
   };
 
-  // UPDATED: Function to render single black star with rating number
-  const renderStars = (rating) => {
-    const numRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 4.0);
-    return (
-      <div className="d-flex align-items-center">
-        <i
-          className="fas fa-star me-1"
-          style={{ fontSize: '0.7rem', color: '#000000' }}
-        ></i>
-        <small 
-          className="text-dark"
-          style={{ fontSize: '10px', fontWeight: '600' }}
-        >
-          {numRating.toFixed(1)}
-        </small>
-      </div>
-    );
-  };
-
   const formatPrice = (item) => {
     if (item.type === 'service') {
       return `${item.currencySymbol || '$'} ${item.priceRange}`;
@@ -551,11 +532,204 @@ const SearchResultsPage = () => {
     return `${item.currencySymbol || '$'} ${item.price?.toLocaleString() || '0'}`;
   };
 
-  // NEW: Function to truncate description to 42 characters
-  const truncateDescription = (description) => {
-    if (!description) return 'No description available';
-    if (description.length <= 42) return description;
-    return description.substring(0, 42) + '...';
+  // MODERN CARD COMPONENT
+  const ModernProductCard = ({ item }) => {
+    return (
+      <div 
+        className="modern-card"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          height: '330px',
+          maxHeight: '330px',
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0px 10px 12px rgba(0, 0, 0, 0.08), -4px -4px 12px rgba(0, 0, 0, 0.08)',
+          overflow: 'hidden',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          cursor: 'pointer',
+          boxSizing: 'border-box',
+          padding: '12px'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+          e.currentTarget.style.boxShadow = '0px 20px 25px rgba(0, 0, 0, 0.15), -4px -4px 12px rgba(0, 0, 0, 0.08)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0) scale(1)';
+          e.currentTarget.style.boxShadow = '0px 10px 12px rgba(0, 0, 0, 0.08), -4px -4px 12px rgba(0, 0, 0, 0.08)';
+        }}
+        onClick={() => navigate(`/product/${item.id}`)}
+      >
+        {/* Image Container */}
+        <div 
+          className="modern-card-image-container"
+          style={{
+            width: '100%',
+            height: '60%',
+            borderRadius: '8px',
+            marginBottom: '12px',
+            overflow: 'hidden',
+            backgroundColor: '#f8f9fa',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative'
+          }}
+        >
+          <img
+            src={getItemImage(item)}
+            alt={item.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              transition: 'transform 0.3s ease'
+            }}
+            onError={(e) => {
+              e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
+            }}
+          />
+          
+          {/* Featured Badge */}
+          {item.featured && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: '8px',
+                left: '8px',
+                background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+              }}
+            >
+              Featured
+            </div>
+          )}
+
+          {/* Rating Badge */}
+          <div 
+            style={{
+              position: 'absolute',
+              bottom: '8px',
+              right: '8px',
+              background: 'rgba(0, 0, 0, 0.75)',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              backdropFilter: 'blur(4px)'
+            }}
+          >
+            <i className="fas fa-star" style={{ color: '#FFD700', fontSize: '10px' }}></i>
+            <span>{(typeof item.rating === 'string' ? parseFloat(item.rating) : item.rating || 4.0).toFixed(1)}</span>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          {/* Product Name */}
+          <h3 
+            className="modern-card-title"
+            style={{
+              margin: '0 0 8px 0',
+              fontSize: '15px',
+              fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+              fontWeight: '700',
+              color: '#1a365d',
+              cursor: 'default',
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: '2',
+              WebkitBoxOrient: 'vertical',
+              lineHeight: '1.3',
+              minHeight: '39px'
+            }}
+            title={item.name}
+          >
+            {item.name}
+          </h3>
+
+          {/* Description */}
+          <p 
+            className="modern-card-description"
+            style={{
+              margin: '0 0 12px 0',
+              fontSize: '12px',
+              fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+              color: '#666',
+              cursor: 'default',
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: '2',
+              WebkitBoxOrient: 'vertical',
+              lineHeight: '1.4',
+              flex: '1',
+              minHeight: '34px'
+            }}
+            title={item.description}
+          >
+            {item.description || 'No description available'}
+          </p>
+
+          {/* Price and Action */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div 
+              style={{
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: '#2c5aa0',
+                fontFamily: 'Arial, sans-serif',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}
+            >
+              {formatPrice(item)}
+            </div>
+            
+            <button 
+              className="btn btn-primary btn-sm"
+              style={{
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                transition: 'all 0.3s ease',
+                color: 'white',
+                boxShadow: '0 2px 4px rgba(102, 126, 234, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 4px 8px rgba(102, 126, 234, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = '0 2px 4px rgba(102, 126, 234, 0.3)';
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/product/${item.id}`);
+              }}
+            >
+              View
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -832,162 +1006,11 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* SIMPLIFIED CARDS WITH BOLDER PRODUCT NAMES AND PURE WHITE BORDER */}
-            <div className="row g-3 justify-content-center">
+            {/* MODERN CARDS GRID */}
+            <div className="row g-4 justify-content-center">
               {searchResults.map((item) => (
-                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* SIMPLIFIED CARD - WITH PURE WHITE BORDER AND BOLDER PRODUCT NAMES */}
-                  <div 
-                    className="simple-card"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      position: 'relative',
-                      width: '100%',
-                      height: '280px',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                      backgroundColor: 'white',
-                      border: '2px solid #ffffff', // PURE WHITE BORDER
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.borderColor = '#ffffff'; // PURE WHITE ON HOVER
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.borderColor = '#ffffff'; // PURE WHITE BORDER
-                    }}
-                    onClick={() => navigate(`/product/${item.id}`)}
-                  >
-                    {/* IMAGE SECTION - 75% HEIGHT */}
-                    <div 
-                      className="image-section-simple"
-                      style={{
-                        width: '100%',
-                        height: '75%',
-                        overflow: 'hidden',
-                        position: 'relative',
-                        backgroundColor: '#f8f9fa'
-                      }}
-                    >
-                      <img
-                        src={getItemImage(item)}
-                        alt={item.name}
-                        className="simple-card-image"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          objectPosition: 'center',
-                          display: 'block',
-                          transition: 'transform 0.3s ease'
-                        }}
-                        onError={(e) => {
-                          e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
-                        }}
-                      />
-                      
-                      {/* Featured Badge */}
-                      {item.featured && (
-                        <div 
-                          className="featured-badge-simple"
-                          style={{
-                            position: 'absolute',
-                            top: '8px',
-                            left: '8px',
-                            background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-                            color: 'white',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '9px',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                        >
-                          Featured
-                        </div>
-                      )}
-                    </div>
-
-                    {/* SIMPLIFIED DETAILS SECTION - 25% HEIGHT */}
-                    <div 
-                      className="details-section-simple"
-                      style={{
-                        padding: '8px',
-                        height: '25%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      {/* UPDATED: Product Name with BOLDER and SLIGHTLY LARGER FONT */}
-                      <h6 
-                        className="simple-card-title"
-                        style={{
-                          fontSize: '12px', // Increased from 11px
-                          fontWeight: '700', // Bolder font weight
-                          lineHeight: '1.2',
-                          margin: '0 0 2px 0',
-                          color: '#222', // Darker color for better contrast
-                          overflow: 'hidden',
-                          display: '-webkit-box',
-                          WebkitLineClamp: '1',
-                          WebkitBoxOrient: 'vertical',
-                          textAlign: 'left',
-                          fontFamily: 'Arial, sans-serif' // Clean font family
-                        }}
-                        title={item.name}
-                      >
-                        {item.name}
-                      </h6>
-
-                      {/* NEW: Description - Limited to 42 characters - NO EMPTY SPACE */}
-                      <p 
-                        className="simple-card-description"
-                        style={{
-                          fontSize: '9px',
-                          color: '#666',
-                          lineHeight: '1.2',
-                          margin: '0 0 4px 0',
-                          overflow: 'hidden',
-                          display: '-webkit-box',
-                          WebkitLineClamp: '2',
-                          WebkitBoxOrient: 'vertical',
-                          minHeight: '18px'
-                        }}
-                        title={item.description}
-                      >
-                        {truncateDescription(item.description)}
-                      </p>
-
-                      {/* Price and Rating Row */}
-                      <div className="d-flex justify-content-between align-items-center">
-                        {/* Price - Bold and Prominent */}
-                        <div 
-                          className="simple-card-price"
-                          style={{
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            color: '#2c5aa0'
-                          }}
-                        >
-                          {formatPrice(item)}
-                        </div>
-
-                        {/* Rating - SINGLE BLACK STAR WITH RATING NUMBER */}
-                        {renderStars(item.rating)}
-                      </div>
-                    </div>
-                  </div>
+                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+                  <ModernProductCard item={item} />
                 </div>
               ))}
             </div>
@@ -995,127 +1018,95 @@ const SearchResultsPage = () => {
         )}
       </div>
 
-      {/* Custom CSS for Simplified Cards */}
+      {/* Custom CSS for Modern Cards */}
       <style>
         {`
-          .simple-card:hover {
-            border-color: #ffffff !important; /* PURE WHITE ON HOVER */
+          .modern-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
           }
 
-          .simple-card:hover .simple-card-image {
-            transform: scale(1.05);
+          .modern-card:hover {
+            transform: translateY(-8px) scale(1.02) !important;
           }
 
-          /* Improved text handling with ellipsis */
-          .simple-card-title {
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
+          .modern-card-image-container img {
+            transition: transform 0.3s ease !important;
           }
 
-          .simple-card-description {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
+          .modern-card:hover .modern-card-image-container img {
+            transform: scale(1.1) !important;
           }
 
-          /* Responsive adjustments */
+          /* Responsive adjustments for modern cards */
           @media (max-width: 576px) {
             .col-6 {
-              padding: 4px;
+              padding: 6px;
             }
             
-            .simple-card {
-              height: 240px !important;
+            .modern-card {
+              height: 300px !important;
             }
             
-            .image-section-simple {
-              height: 70% !important;
-            }
-            
-            .details-section-simple {
-              height: 30% !important;
-              padding: 6px !important;
-            }
-            
-            .simple-card-title {
-              font-size: 11px !important; /* Adjusted for mobile */
-              font-weight: 700 !important; /* Maintain bold on mobile */
-              -webkit-line-clamp: 1;
-            }
-            
-            .simple-card-description {
-              font-size: 8px !important;
+            .modern-card-title {
+              font-size: 14px !important;
               -webkit-line-clamp: 2;
             }
             
-            .simple-card-price {
+            .modern-card-description {
               font-size: 11px !important;
+              -webkit-line-clamp: 2;
             }
           }
 
           @media (min-width: 576px) {
             .col-sm-4 {
-              padding: 6px;
+              padding: 8px;
             }
             
-            .simple-card {
-              height: 260px !important;
+            .modern-card {
+              height: 320px !important;
             }
 
-            .simple-card-title {
-              font-size: 11px !important;
-              font-weight: 700 !important;
-              -webkit-line-clamp: 1;
-            }
-
-            .simple-card-description {
-              -webkit-line-clamp: 2;
+            .modern-card-title {
+              font-size: 14px !important;
             }
           }
 
           @media (min-width: 768px) {
             .col-md-3 {
-              padding: 8px;
+              padding: 10px;
             }
             
-            .simple-card {
-              height: 270px !important;
+            .modern-card {
+              height: 330px !important;
             }
 
-            .simple-card-title {
-              font-size: 12px !important;
-              font-weight: 700 !important;
-              -webkit-line-clamp: 1;
-            }
-
-            .simple-card-description {
-              -webkit-line-clamp: 2;
+            .modern-card-title {
+              font-size: 15px !important;
             }
           }
 
           @media (min-width: 992px) {
-            .col-lg-2 {
-              padding: 10px;
+            .col-lg-3 {
+              padding: 12px;
             }
-            
-            .simple-card {
-              height: 280px !important;
-            }
+          }
 
-            .simple-card-title {
-              font-size: 12px !important;
-              font-weight: 700 !important;
-              -webkit-line-clamp: 1;
+          @media (min-width: 1200px) {
+            .col-xl-2 {
+              padding: 12px;
             }
+          }
 
-            .simple-card-description {
-              -webkit-line-clamp: 2;
-            }
+          /* Smooth animations */
+          .modern-card * {
+            transition: all 0.3s ease;
+          }
+
+          /* Gradient background for the page */
+          .min-vh-100 {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
           }
         `}
       </style>

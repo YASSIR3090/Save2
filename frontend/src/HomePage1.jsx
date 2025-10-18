@@ -1,5 +1,4 @@
-
-// src/HomePage1.jsx - REDESIGNED HEADER LIKE AMAZON MOBILE
+// src/HomePage1.jsx - REDESIGNED HEADER WITH CENTERED SEARCH FOR DESKTOP
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
@@ -28,10 +27,10 @@ function HomePage1() {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
   
-  // New state for dynamic placeholder with animation
+  // New state for dynamic placeholder with animation - FIXED VERSION
   const [placeholderText, setPlaceholderText] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const languages = [
     { code: "ENG", name: "English", flag: "🇺🇸" },
@@ -64,42 +63,45 @@ function HomePage1() {
     "Find anything..."
   ];
 
-  // Smooth placeholder animation effect
+  // FIXED: Smooth placeholder animation effect
   useEffect(() => {
-    let currentTimeout;
+    let timeoutId;
     
-    const animatePlaceholder = () => {
-      setIsAnimating(true);
-      setPlaceholderText("");
-      
+    const animateText = () => {
       const currentText = placeholderTexts[placeholderIndex];
-      let charIndex = 0;
       
-      // Type animation
-      const typeInterval = setInterval(() => {
-        if (charIndex < currentText.length) {
-          setPlaceholderText(currentText.substring(0, charIndex + 1));
-          charIndex++;
+      if (!isDeleting) {
+        // Typing animation
+        if (placeholderText.length < currentText.length) {
+          timeoutId = setTimeout(() => {
+            setPlaceholderText(currentText.substring(0, placeholderText.length + 1));
+          }, 100);
         } else {
-          clearInterval(typeInterval);
-          
-          // Wait before starting next animation
-          currentTimeout = setTimeout(() => {
-            setIsAnimating(false);
-            setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-          }, 2000);
+          // Finished typing, wait then start deleting
+          timeoutId = setTimeout(() => {
+            setIsDeleting(true);
+          }, 1500);
         }
-      }, 100);
+      } else {
+        // Deleting animation
+        if (placeholderText.length > 0) {
+          timeoutId = setTimeout(() => {
+            setPlaceholderText(currentText.substring(0, placeholderText.length - 1));
+          }, 50);
+        } else {
+          // Finished deleting, move to next text
+          setIsDeleting(false);
+          setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
+        }
+      }
     };
 
-    if (!isAnimating) {
-      animatePlaceholder();
-    }
+    timeoutId = setTimeout(animateText, isDeleting ? 50 : 100);
 
     return () => {
-      if (currentTimeout) clearTimeout(currentTimeout);
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [placeholderIndex, isAnimating, placeholderTexts]);
+  }, [placeholderText, placeholderIndex, isDeleting, placeholderTexts]);
 
   // Categories data
   const categoryData = [
@@ -831,7 +833,7 @@ function HomePage1() {
               <div className="modal-header border-0 pb-0 pt-4 px-4">
                 <div className="w-100 text-center">
                   <div className="avatar-placeholder mb-3 mx-auto">
-                    <i className="fas fa-user-circle display-4 text-primary"></i>
+                    <i className="fas fa-user display-4 text-primary"></i>
                   </div>
                   <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
                     {user ? "Account Settings" : authMode === "signin" ? "Welcome Back" : "Join BisRun"}
@@ -1068,221 +1070,438 @@ function HomePage1() {
       <AuthModal />
       <Sidebar />
 
-      {/* Header with Amazon-like Mobile Design */}
+      {/* Header with Centered Search for Desktop */}
       <div className="bg-white border-bottom">
-        {/* Top Row: Logo, Menu, Language, Account */}
-        <div className="container py-2">
-          <div className="d-flex justify-content-between align-items-center">
-            {/* Left: Menu Icon and Logo */}
-            <div className="d-flex align-items-center">
-              {/* Menu Icon */}
-              <button
-                className="btn border-0 p-0 me-2"
-                onClick={() => setShowSidebar(true)}
-                style={{ background: 'none' }}
-              >
-                <i className="fas fa-bars text-dark" style={{ fontSize: '1.2rem' }}></i>
-              </button>
-              
-              {/* Logo */}
-              <span 
-                className="fw-bold text-primary"
-                style={{ 
-                  fontSize: '1.5rem',
-                  fontWeight: '800',
-                }}
-              >
-                BisRun
-              </span>
-            </div>
-
-            {/* Right: Language and Account */}
-            <div className="d-flex align-items-center gap-2">
-              {/* Language Selector */}
-              <div className="position-relative">
+        {/* Mobile View - Same as before */}
+        <div className="d-md-none">
+          <div className="container py-2">
+            <div className="d-flex justify-content-between align-items-center">
+              {/* Left: Menu Icon and Logo */}
+              <div className="d-flex align-items-center">
+                {/* Menu Icon */}
                 <button
-                  className="btn btn-outline-secondary border-0 d-flex align-items-center gap-1"
-                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                  className="btn border-0 p-0 me-2"
+                  onClick={() => setShowSidebar(true)}
+                  style={{ background: 'none' }}
+                >
+                  <i className="fas fa-bars text-dark" style={{ fontSize: '1.2rem' }}></i>
+                </button>
+                
+                {/* Logo */}
+                <span 
+                  className="fw-bold text-primary"
                   style={{ 
-                    background: 'none',
-                    padding: '4px 8px',
-                    fontSize: '12px',
-                    fontWeight: '500'
+                    fontSize: '1.5rem',
+                    fontWeight: '800',
                   }}
                 >
-                  <span>{currentLanguage}</span>
-                  <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '10px' }}></i>
-                </button>
-
-                {/* Language Dropdown */}
-                {showLanguageDropdown && (
-                  <div 
-                    className="position-absolute top-100 end-0 mt-1 bg-white border rounded-2 shadow-lg"
-                    style={{ 
-                      zIndex: 1040,
-                      width: '180px',
-                      maxHeight: '250px',
-                      overflowY: 'auto'
-                    }}
-                  >
-                    {languages.map((language) => (
-                      <button
-                        key={language.code}
-                        className={`btn btn-light w-100 text-start p-2 border-bottom ${
-                          currentLanguage === language.code ? 'bg-primary text-white' : ''
-                        }`}
-                        onClick={() => handleLanguageChange(language.code)}
-                        style={{ 
-                          border: 'none', 
-                          borderRadius: '0',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <span className="me-2">{language.flag}</span>
-                        {language.name} ({language.code})
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  BisRun
+                </span>
               </div>
 
-              {/* Account Icon */}
-              <button
-                className="btn border-0 p-0"
-                onClick={handleAccountClick}
-                style={{ background: 'none' }}
-              >
-                {user ? (
-                  user.picture ? (
-                    <img 
-                      src={user.picture} 
-                      alt={user.name}
-                      className="rounded-circle"
+              {/* Right: Language and Account */}
+              <div className="d-flex align-items-center gap-2">
+                {/* Language Selector */}
+                <div className="position-relative">
+                  <button
+                    className="btn btn-outline-secondary border-0 d-flex align-items-center gap-1"
+                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                    style={{ 
+                      background: 'none',
+                      padding: '4px 8px',
+                      fontSize: '12px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    <span>{currentLanguage}</span>
+                    <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '10px' }}></i>
+                  </button>
+
+                  {/* Language Dropdown */}
+                  {showLanguageDropdown && (
+                    <div 
+                      className="position-absolute top-100 end-0 mt-1 bg-white border rounded-2 shadow-lg"
                       style={{ 
-                        width: '28px',
-                        height: '28px',
-                        objectFit: 'cover'
+                        zIndex: 1040,
+                        width: '180px',
+                        maxHeight: '250px',
+                        overflowY: 'auto'
                       }}
-                    />
-                  ) : (
-                    <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.5rem' }}></i>
-                  )
-                ) : (
-                  <i className="fas fa-user-circle text-dark" style={{ fontSize: '1.5rem' }}></i>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Row: Soft Square Search Bar */}
-        <div className="container pb-2">
-          <form onSubmit={handleSearch} className="position-relative">
-            <div className="input-group">
-              <input
-                type="text"
-                className="form-control"
-                placeholder={placeholderText}
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                onFocus={handleSearchInputFocus}
-                onBlur={handleSearchInputBlur}
-                style={{ 
-                  borderRadius: '8px 0 0 8px',
-                  border: '2px solid #007bff',
-                  borderRight: 'none',
-                  padding: '12px 20px',
-                  fontSize: '16px',
-                  height: '50px'
-                }}
-              />
-              <button 
-                className="btn btn-primary border-0"
-                type="submit"
-                style={{ 
-                  borderRadius: '0 8px 8px 0',
-                  width: '60px',
-                  background: '#007bff',
-                  border: '2px solid #007bff',
-                  borderLeft: 'none'
-                }}
-              >
-                <i className="fas fa-search text-white"></i>
-              </button>
-            </div>
-
-            {/* Search Suggestions */}
-            {showSuggestions && (
-              <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
-                <div className="bg-white border rounded-2 shadow-lg overflow-hidden">
-                  {/* Recent Searches Section */}
-                  {searchQuery === "" && recentSearches.length > 0 && (
-                    <>
-                      <div className="px-3 pt-2 pb-1 bg-light border-bottom">
-                        <div className="d-flex justify-content-between align-items-center">
-                          <small className="text-muted fw-bold">RECENT SEARCHES</small>
-                          <button 
-                            className="btn btn-link p-0 text-danger text-decoration-none"
-                            onClick={handleClearRecentSearches}
-                            style={{ fontSize: '11px' }}
-                          >
-                            Clear all
-                          </button>
-                        </div>
-                      </div>
-                      {recentSearches.map((search, index) => (
+                    >
+                      {languages.map((language) => (
                         <button
-                          key={`recent-${index}`}
-                          className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
-                          onClick={() => handleSuggestionClick(search)}
+                          key={language.code}
+                          className={`btn btn-light w-100 text-start p-2 border-bottom ${
+                            currentLanguage === language.code ? 'bg-primary text-white' : ''
+                          }`}
+                          onClick={() => handleLanguageChange(language.code)}
                           style={{ 
                             border: 'none', 
                             borderRadius: '0',
-                            fontSize: '14px'
+                            fontSize: '12px'
                           }}
                         >
-                          <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
-                          {search}
+                          <span className="me-2">{language.flag}</span>
+                          {language.name} ({language.code})
                         </button>
                       ))}
-                    </>
-                  )}
-                  
-                  {/* Search Suggestions Section */}
-                  {searchQuery !== "" && searchSuggestions.length > 0 && (
-                    <>
-                      <div className="px-3 pt-2 pb-1 bg-light border-bottom">
-                        <small className="text-muted fw-bold">SUGGESTIONS</small>
-                      </div>
-                      {searchSuggestions.map((suggestion, index) => (
-                        <button
-                          key={`suggestion-${index}`}
-                          className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          style={{ 
-                            border: 'none', 
-                            borderRadius: '0',
-                            fontSize: '14px'
-                          }}
-                        >
-                          <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
-                          {suggestion}
-                        </button>
-                      ))}
-                    </>
-                  )}
-
-                  {/* No Results Message */}
-                  {searchQuery !== "" && searchSuggestions.length === 0 && (
-                    <div className="p-3 text-center text-muted">
-                      <i className="fas fa-search me-2"></i>
-                      No suggestions found for "{searchQuery}"
                     </div>
                   )}
                 </div>
+
+                {/* Account Icon - CHANGED: White background */}
+                <button
+                  className="btn border-0 p-0 d-flex align-items-center justify-content-center"
+                  onClick={handleAccountClick}
+                  style={{ 
+                    background: 'white',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '4px',
+                    border: '1px solid #e0e0e0'
+                  }}
+                >
+                  {user ? (
+                    user.picture ? (
+                      <i className="fas fa-user text-primary" style={{ fontSize: '1.2rem' }}></i>
+                    ) : (
+                      <i className="fas fa-user text-dark" style={{ fontSize: '1.2rem' }}></i>
+                    )
+                  ) : (
+                    <i className="fas fa-user text-dark" style={{ fontSize: '1.2rem' }}></i>
+                  )}
+                </button>
               </div>
-            )}
-          </form>
+            </div>
+          </div>
+
+          {/* Search Bar for Mobile */}
+          <div className="container pb-2">
+            <form onSubmit={handleSearch} className="position-relative">
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder={placeholderText}
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  onFocus={handleSearchInputFocus}
+                  onBlur={handleSearchInputBlur}
+                  style={{ 
+                    borderRadius: '8px 0 0 8px',
+                    border: '2px solid #007bff',
+                    borderRight: 'none',
+                    padding: '12px 20px',
+                    fontSize: '16px',
+                    height: '50px'
+                  }}
+                />
+                <button 
+                  className="btn btn-primary border-0"
+                  type="submit"
+                  style={{ 
+                    borderRadius: '0 8px 8px 0',
+                    width: '60px',
+                    background: '#007bff',
+                    border: '2px solid #007bff',
+                    borderLeft: 'none'
+                  }}
+                >
+                  <i className="fas fa-search text-white"></i>
+                </button>
+              </div>
+
+              {/* Search Suggestions */}
+              {showSuggestions && (
+                <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
+                  <div className="bg-white border rounded-2 shadow-lg overflow-hidden">
+                    {/* Recent Searches Section */}
+                    {searchQuery === "" && recentSearches.length > 0 && (
+                      <>
+                        <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                          <div className="d-flex justify-content-between align-items-center">
+                            <small className="text-muted fw-bold">RECENT SEARCHES</small>
+                            <button 
+                              className="btn btn-link p-0 text-danger text-decoration-none"
+                              onClick={handleClearRecentSearches}
+                              style={{ fontSize: '11px' }}
+                            >
+                              Clear all
+                            </button>
+                          </div>
+                        </div>
+                        {recentSearches.map((search, index) => (
+                          <button
+                            key={`recent-${index}`}
+                            className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                            onClick={() => handleSuggestionClick(search)}
+                            style={{ 
+                              border: 'none', 
+                              borderRadius: '0',
+                              fontSize: '14px'
+                            }}
+                          >
+                            <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
+                            {search}
+                          </button>
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* Search Suggestions Section */}
+                    {searchQuery !== "" && searchSuggestions.length > 0 && (
+                      <>
+                        <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                          <small className="text-muted fw-bold">SUGGESTIONS</small>
+                        </div>
+                        {searchSuggestions.map((suggestion, index) => (
+                          <button
+                            key={`suggestion-${index}`}
+                            className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            style={{ 
+                              border: 'none', 
+                              borderRadius: '0',
+                              fontSize: '14px'
+                            }}
+                          >
+                            <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
+                            {suggestion}
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {/* No Results Message */}
+                    {searchQuery !== "" && searchSuggestions.length === 0 && (
+                      <div className="p-3 text-center text-muted">
+                        <i className="fas fa-search me-2"></i>
+                        No suggestions found for "{searchQuery}"
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+
+        {/* Desktop View - Centered Search */}
+        <div className="d-none d-md-block">
+          <div className="container py-3">
+            <div className="row align-items-center">
+              {/* Left: Menu and Logo */}
+              <div className="col-md-3">
+                <div className="d-flex align-items-center">
+                  {/* Menu Icon */}
+                  <button
+                    className="btn border-0 p-0 me-3"
+                    onClick={() => setShowSidebar(true)}
+                    style={{ background: 'none' }}
+                  >
+                    <i className="fas fa-bars text-dark" style={{ fontSize: '1.3rem' }}></i>
+                  </button>
+                  
+                  {/* Logo */}
+                  <span 
+                    className="fw-bold text-primary"
+                    style={{ 
+                      fontSize: '1.8rem',
+                      fontWeight: '800',
+                    }}
+                  >
+                    BisRun
+                  </span>
+                </div>
+              </div>
+
+              {/* Center: Search Bar */}
+              <div className="col-md-6">
+                <form onSubmit={handleSearch} className="position-relative">
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder={placeholderText}
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      onFocus={handleSearchInputFocus}
+                      onBlur={handleSearchInputBlur}
+                      style={{ 
+                        borderRadius: '8px 0 0 8px',
+                        border: '2px solid #007bff',
+                        borderRight: 'none',
+                        padding: '14px 20px',
+                        fontSize: '16px',
+                        height: '52px'
+                      }}
+                    />
+                    <button 
+                      className="btn btn-primary border-0"
+                      type="submit"
+                      style={{ 
+                        borderRadius: '0 8px 8px 0',
+                        width: '70px',
+                        background: '#007bff',
+                        border: '2px solid #007bff',
+                        borderLeft: 'none'
+                      }}
+                    >
+                      <i className="fas fa-search text-white" style={{ fontSize: '1.1rem' }}></i>
+                    </button>
+                  </div>
+
+                  {/* Search Suggestions */}
+                  {showSuggestions && (
+                    <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
+                      <div className="bg-white border rounded-2 shadow-lg overflow-hidden">
+                        {/* Recent Searches Section */}
+                        {searchQuery === "" && recentSearches.length > 0 && (
+                          <>
+                            <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                              <div className="d-flex justify-content-between align-items-center">
+                                <small className="text-muted fw-bold">RECENT SEARCHES</small>
+                                <button 
+                                  className="btn btn-link p-0 text-danger text-decoration-none"
+                                  onClick={handleClearRecentSearches}
+                                  style={{ fontSize: '11px' }}
+                                >
+                                  Clear all
+                                </button>
+                              </div>
+                            </div>
+                            {recentSearches.map((search, index) => (
+                              <button
+                                key={`recent-${index}`}
+                                className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                                onClick={() => handleSuggestionClick(search)}
+                                style={{ 
+                                  border: 'none', 
+                                  borderRadius: '0',
+                                  fontSize: '14px'
+                                }}
+                              >
+                                <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
+                                {search}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        
+                        {/* Search Suggestions Section */}
+                        {searchQuery !== "" && searchSuggestions.length > 0 && (
+                          <>
+                            <div className="px-3 pt-2 pb-1 bg-light border-bottom">
+                              <small className="text-muted fw-bold">SUGGESTIONS</small>
+                            </div>
+                            {searchSuggestions.map((suggestion, index) => (
+                              <button
+                                key={`suggestion-${index}`}
+                                className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
+                                onClick={() => handleSuggestionClick(suggestion)}
+                                style={{ 
+                                  border: 'none', 
+                                  borderRadius: '0',
+                                  fontSize: '14px'
+                                }}
+                              >
+                                <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
+                                {suggestion}
+                              </button>
+                            ))}
+                          </>
+                        )}
+
+                        {/* No Results Message */}
+                        {searchQuery !== "" && searchSuggestions.length === 0 && (
+                          <div className="p-3 text-center text-muted">
+                            <i className="fas fa-search me-2"></i>
+                            No suggestions found for "{searchQuery}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </form>
+              </div>
+
+              {/* Right: Language and Account */}
+              <div className="col-md-3">
+                <div className="d-flex align-items-center justify-content-end gap-3">
+                  {/* Language Selector */}
+                  <div className="position-relative">
+                    <button
+                      className="btn btn-outline-secondary border-0 d-flex align-items-center gap-2"
+                      onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                      style={{ 
+                        background: 'none',
+                        padding: '8px 12px',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      <span>{currentLanguage}</span>
+                      <i className={`fas fa-chevron-${showLanguageDropdown ? 'up' : 'down'}`} style={{ fontSize: '12px' }}></i>
+                    </button>
+
+                    {/* Language Dropdown */}
+                    {showLanguageDropdown && (
+                      <div 
+                        className="position-absolute top-100 end-0 mt-1 bg-white border rounded-2 shadow-lg"
+                        style={{ 
+                          zIndex: 1040,
+                          width: '200px',
+                          maxHeight: '300px',
+                          overflowY: 'auto'
+                        }}
+                      >
+                        {languages.map((language) => (
+                          <button
+                            key={language.code}
+                            className={`btn btn-light w-100 text-start p-3 border-bottom ${
+                              currentLanguage === language.code ? 'bg-primary text-white' : ''
+                            }`}
+                            onClick={() => handleLanguageChange(language.code)}
+                            style={{ 
+                              border: 'none', 
+                              borderRadius: '0',
+                              fontSize: '14px'
+                            }}
+                          >
+                            <span className="me-2">{language.flag}</span>
+                            {language.name} ({language.code})
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Account Icon - CHANGED: White background */}
+                  <button
+                    className="btn border-0 p-0 d-flex align-items-center justify-content-center"
+                    onClick={handleAccountClick}
+                    style={{ 
+                      background: 'white',
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '4px',
+                      border: '1px solid #e0e0e0'
+                    }}
+                  >
+                    {user ? (
+                      user.picture ? (
+                        <i className="fas fa-user text-primary" style={{ fontSize: '1.4rem' }}></i>
+                      ) : (
+                        <i className="fas fa-user text-dark" style={{ fontSize: '1.4rem' }}></i>
+                      )
+                    ) : (
+                      <i className="fas fa-user text-dark" style={{ fontSize: '1.4rem' }}></i>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1729,12 +1948,12 @@ function HomePage1() {
 
           .category-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+            boxShadow: 0 10px 30px rgba(0,0,0,0.1) !important;
           }
           
           .product-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+            boxShadow: 0 8px 25px rgba(0,0,0,0.15) !important;
           }
           
           .hero-section {
