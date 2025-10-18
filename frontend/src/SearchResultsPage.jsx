@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH SHORTER GRADIENT BORDER
+// src/SearchResultsPage.jsx - UPDATED WITH BLUE PRICE COLOR
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -832,208 +832,204 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* GRADIENT ANIMATED CARDS WITH SHORTER BORDER */}
+            {/* GLASS MORPHISM CARDS WITH BLUE PRICE */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* GRADIENT ANIMATED CARD WITH SHORT BORDER */}
+                  {/* GLASS MORPHISM CARD */}
                   <div 
-                    className="gradient-card"
+                    className="glass-card"
                     style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      position: 'relative',
                       width: '100%',
-                      height: '280px',
-                      borderRadius: '12px', // Slightly smaller border radius
+                      height: '254px',
+                      backdropFilter: 'blur(7px)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                      borderRadius: '26px',
+                      boxShadow: `
+                        35px 35px 68px 0px rgba(157, 177, 255, 0.2),
+                        inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
+                        inset 0px 11px 28px 0px rgb(255, 255, 255)
+                      `,
+                      transition: 'all 0.3s',
+                      cursor: 'pointer',
                       overflow: 'hidden',
-                      background: 'linear-gradient(43deg, #4158d0 0%, #c850c0 46%, #ffcc70 100%)',
-                      backgroundSize: '400% 400%',
-                      backgroundPosition: '0% 50%',
-                      // SHORTER BORDER - reduced from multiple shadows to single border
-                      border: '3px solid transparent',
-                      backgroundOrigin: 'border-box',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                      animation: 'gradientShift 5s ease infinite'
+                      position: 'relative'
                     }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '35px 35px 68px 0px rgba(157, 177, 255, 0.5)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = `
+                        35px 35px 68px 0px rgba(157, 177, 255, 0.2),
+                        inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
+                        inset 0px 11px 28px 0px rgb(255, 255, 255)
+                      `;
+                    }}
+                    onClick={() => navigate(`/product/${item.id}`)}
                   >
-                    {/* Card Content */}
+                    {/* Product Image */}
                     <div 
-                      className="card-content"
+                      className="product-image-container"
                       style={{
-                        position: 'relative',
-                        zIndex: 2,
-                        background: 'rgba(255, 255, 255, 0.98)',
-                        margin: '1px', // SHORTER MARGIN for thinner border effect
-                        borderRadius: '10px', // Slightly smaller to match outer border
-                        height: 'calc(100% - 2px)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden'
+                        width: '100%',
+                        height: '120px',
+                        overflow: 'hidden',
+                        position: 'relative'
                       }}
                     >
-                      {/* Product Image */}
-                      <div 
-                        className="product-image-container"
+                      <img
+                        src={getItemImage(item)}
+                        alt={item.name}
+                        className="product-image"
                         style={{
                           width: '100%',
-                          height: '120px',
-                          overflow: 'hidden',
-                          position: 'relative',
-                          borderTopLeftRadius: '10px',
-                          borderTopRightRadius: '10px'
+                          height: '100%',
+                          objectFit: 'cover',
+                          transition: 'transform 0.3s ease'
                         }}
-                      >
-                        <img
-                          src={getItemImage(item)}
-                          alt={item.name}
-                          className="product-image"
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      />
+                      {/* Featured Badge */}
+                      {item.featured && (
+                        <div 
+                          className="featured-badge"
                           style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            transition: 'transform 0.3s ease'
+                            position: 'absolute',
+                            top: '8px',
+                            left: '8px',
+                            background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                            color: '#000',
+                            padding: '3px 8px',
+                            borderRadius: '12px',
+                            fontSize: '9px',
+                            fontWeight: 'bold',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                            backdropFilter: 'blur(5px)'
                           }}
-                          onMouseEnter={(e) => {
-                            e.target.style.transform = 'scale(1.05)';
+                        >
+                          <i className="fas fa-star me-1" style={{ fontSize: '7px' }}></i>
+                          FEATURED
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Body */}
+                    <div 
+                      className="card-body"
+                      style={{
+                        padding: '12px',
+                        height: 'calc(100% - 120px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      {/* Product Info */}
+                      <div>
+                        {/* Product Name */}
+                        <h6 
+                          className="product-name mb-1"
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            lineHeight: '1.2',
+                            color: '#000',
+                            marginBottom: '4px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
                           }}
-                          onMouseLeave={(e) => {
-                            e.target.style.transform = 'scale(1)';
+                        >
+                          {item.name}
+                        </h6>
+
+                        {/* Business Name */}
+                        <p 
+                          className="business-name mb-1"
+                          style={{
+                            fontSize: '9px',
+                            color: '#666',
+                            fontWeight: '500',
+                            marginBottom: '4px'
                           }}
-                        />
-                        {/* Featured Badge */}
-                        {item.featured && (
-                          <div 
-                            className="featured-badge"
-                            style={{
-                              position: 'absolute',
-                              top: '6px',
-                              left: '6px',
-                              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                              color: '#000',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '8px',
-                              fontWeight: 'bold',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                            }}
-                          >
-                            <i className="fas fa-star me-1" style={{ fontSize: '6px' }}></i>
-                            FEATURED
-                          </div>
-                        )}
+                        >
+                          {item.businessName || item.business}
+                        </p>
+
+                        {/* Description */}
+                        <p 
+                          className="description mb-2"
+                          style={{
+                            fontSize: '9px',
+                            color: '#888',
+                            lineHeight: '1.2',
+                            marginBottom: '8px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            minHeight: '20px'
+                          }}
+                        >
+                          {truncateDescription(item.description)}
+                        </p>
                       </div>
 
-                      {/* Card Body */}
-                      <div 
-                        className="card-body"
-                        style={{
-                          flex: 1,
-                          padding: '10px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between'
-                        }}
-                      >
-                        {/* Product Info */}
-                        <div>
-                          {/* Product Name */}
-                          <h6 
-                            className="product-name mb-1"
+                      {/* Bottom Section */}
+                      <div>
+                        {/* Rating and Price Row */}
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          {/* Rating */}
+                          {renderStars(item.rating)}
+
+                          {/* Price - UPDATED: BLUE COLOR */}
+                          <div 
+                            className="price"
                             style={{
                               fontSize: '12px',
-                              fontWeight: '700',
-                              lineHeight: '1.2',
-                              color: '#000',
-                              marginBottom: '4px',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
+                              fontWeight: '800',
+                              color: '#2563eb', // BLUE COLOR
+                              textShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
                             }}
                           >
-                            {item.name}
-                          </h6>
-
-                          {/* Business Name */}
-                          <p 
-                            className="business-name mb-1"
-                            style={{
-                              fontSize: '9px',
-                              color: '#666',
-                              fontWeight: '500',
-                              marginBottom: '4px'
-                            }}
-                          >
-                            {item.businessName || item.business}
-                          </p>
-
-                          {/* Description */}
-                          <p 
-                            className="description mb-2"
-                            style={{
-                              fontSize: '9px',
-                              color: '#888',
-                              lineHeight: '1.2',
-                              marginBottom: '8px',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              minHeight: '20px'
-                            }}
-                          >
-                            {truncateDescription(item.description)}
-                          </p>
-                        </div>
-
-                        {/* Bottom Section */}
-                        <div>
-                          {/* Rating and Price Row */}
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            {/* Rating */}
-                            {renderStars(item.rating)}
-
-                            {/* Price */}
-                            <div 
-                              className="price"
-                              style={{
-                                fontSize: '12px',
-                                fontWeight: '800',
-                                color: '#000'
-                              }}
-                            >
-                              {formatPrice(item)}
-                            </div>
+                            {formatPrice(item)}
                           </div>
-
-                          {/* View Details Button */}
-                          <button
-                            className="btn w-100"
-                            onClick={() => navigate(`/product/${item.id}`)}
-                            style={{
-                              background: 'linear-gradient(45deg, #4158d0, #c850c0)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '4px 8px',
-                              fontSize: '10px',
-                              fontWeight: '600',
-                              transition: 'all 0.3s ease',
-                              cursor: 'pointer'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.background = 'linear-gradient(45deg, #c850c0, #4158d0)';
-                              e.target.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.background = 'linear-gradient(45deg, #4158d0, #c850c0)';
-                              e.target.style.transform = 'translateY(0)';
-                            }}
-                          >
-                            VIEW DETAILS
-                          </button>
                         </div>
+
+                        {/* View Details Button */}
+                        <button
+                          className="btn w-100"
+                          style={{
+                            background: 'rgba(37, 99, 235, 0.3)', // BLUE COLOR
+                            color: '#2563eb', // BLUE COLOR
+                            border: '1px solid rgba(37, 99, 235, 0.5)', // BLUE COLOR
+                            borderRadius: '12px',
+                            padding: '4px 8px',
+                            fontSize: '10px',
+                            fontWeight: '600',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            backdropFilter: 'blur(5px)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(37, 99, 235, 0.5)'; // DARKER BLUE
+                            e.target.style.color = 'white';
+                            e.target.style.transform = 'translateY(-1px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(37, 99, 235, 0.3)'; // LIGHTER BLUE
+                            e.target.style.color = '#2563eb';
+                            e.target.style.transform = 'translateY(0)';
+                          }}
+                        >
+                          VIEW DETAILS
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1044,28 +1040,16 @@ const SearchResultsPage = () => {
         )}
       </div>
 
-      {/* Add CSS for gradient animation */}
+      {/* Add CSS for glass morphism effects */}
       <style>
         {`
-          @keyframes gradientShift {
-            0% {
-              background-position: 0% 50%;
-            }
-            50% {
-              background-position: 100% 50%;
-            }
-            100% {
-              background-position: 0% 50%;
-            }
+          .glass-card:active {
+            transform: scale(0.95);
+            border: 1px solid rgba(37, 99, 235, 0.3); /* BLUE BORDER */
           }
 
-          .gradient-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }
-
-          .gradient-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+          .glass-card {
+            transition: all 0.3s;
           }
 
           .product-image {
@@ -1082,16 +1066,17 @@ const SearchResultsPage = () => {
               padding: 4px;
             }
             
-            .gradient-card {
+            .glass-card {
               height: 240px !important;
             }
             
             .product-image-container {
-              height: 100px !important;
+              height: 110px !important;
             }
             
             .card-body {
-              padding: 8px !important;
+              padding: 10px !important;
+              height: calc(100% - 110px) !important;
             }
             
             .product-name {
@@ -1116,8 +1101,8 @@ const SearchResultsPage = () => {
               padding: 6px;
             }
             
-            .gradient-card {
-              height: 260px !important;
+            .glass-card {
+              height: 254px !important;
             }
           }
 
@@ -1125,19 +1110,11 @@ const SearchResultsPage = () => {
             .col-md-3 {
               padding: 8px;
             }
-            
-            .gradient-card {
-              height: 270px !important;
-            }
           }
 
           @media (min-width: 992px) {
             .col-lg-2 {
               padding: 10px;
-            }
-            
-            .gradient-card {
-              height: 280px !important;
             }
           }
         `}
