@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH PURE WHITE BORDER DETAILS
+// src/SearchResultsPage.jsx - UPDATED WITH SINGLE BLACK STAR AND RATING NUMBER
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -525,15 +525,23 @@ const SearchResultsPage = () => {
     return 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
   };
 
+  // UPDATED: Function to render single black star with rating number
   const renderStars = (rating) => {
     const numRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 4.0);
-    return Array.from({ length: 5 }, (_, index) => (
-      <i
-        key={index}
-        className={`fas fa-star ${index < Math.floor(numRating) ? 'text-warning' : 'text-muted'}`}
-        style={{ fontSize: '0.7rem' }}
-      ></i>
-    ));
+    return (
+      <div className="d-flex align-items-center">
+        <i
+          className="fas fa-star me-1"
+          style={{ fontSize: '0.7rem', color: '#000000' }}
+        ></i>
+        <small 
+          className="text-dark"
+          style={{ fontSize: '10px', fontWeight: '600' }}
+        >
+          {numRating.toFixed(1)}
+        </small>
+      </div>
+    );
   };
 
   const formatPrice = (item) => {
@@ -824,63 +832,60 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* IMPROVED CARDS WITH PURE WHITE BORDER DETAILS */}
+            {/* SIMPLIFIED CARDS WITH PURE WHITE BORDER AND SINGLE BLACK STAR WITH RATING */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* IMPROVED CARD WITH PURE WHITE BORDER DETAILS */}
+                  {/* SIMPLIFIED CARD - WITH PURE WHITE BORDER */}
                   <div 
-                    className="improved-card"
+                    className="simple-card"
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       position: 'relative',
                       width: '100%',
                       height: '280px',
-                      borderRadius: '16px',
+                      borderRadius: '12px',
                       overflow: 'hidden',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                       backgroundColor: 'white',
                       border: '2px solid #ffffff', // PURE WHITE BORDER
                       cursor: 'pointer',
                       transition: 'all 0.3s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
                       e.currentTarget.style.borderColor = '#ffffff'; // PURE WHITE ON HOVER
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
                       e.currentTarget.style.transform = 'translateY(0)';
                       e.currentTarget.style.borderColor = '#ffffff'; // PURE WHITE BORDER
                     }}
-                    onClick={() => {
-                      if (item.type === 'service') {
-                        navigate(`/service-detail/${item.id}`);
-                      } else {
-                        navigate(`/product-detail/${item.id}`);
-                      }
-                    }}
+                    onClick={() => navigate(`/product/${item.id}`)}
                   >
-                    {/* Image Section */}
+                    {/* IMAGE SECTION - 75% HEIGHT */}
                     <div 
-                      className="card-image"
+                      className="image-section-simple"
                       style={{
-                        position: 'relative',
                         width: '100%',
-                        height: '140px',
+                        height: '75%',
                         overflow: 'hidden',
+                        position: 'relative',
                         backgroundColor: '#f8f9fa'
                       }}
                     >
                       <img
                         src={getItemImage(item)}
                         alt={item.name}
+                        className="simple-card-image"
                         style={{
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
+                          objectPosition: 'center',
+                          display: 'block',
                           transition: 'transform 0.3s ease'
                         }}
                         onError={(e) => {
@@ -891,162 +896,94 @@ const SearchResultsPage = () => {
                       {/* Featured Badge */}
                       {item.featured && (
                         <div 
-                          className="featured-badge"
+                          className="featured-badge-simple"
                           style={{
                             position: 'absolute',
                             top: '8px',
                             left: '8px',
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            background: 'linear-gradient(135deg, #FFD700, #FFA500)',
                             color: 'white',
-                            padding: '2px 8px',
-                            borderRadius: '12px',
-                            fontSize: '10px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '2px'
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '9px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                           }}
                         >
-                          <i className="fas fa-star" style={{ fontSize: '8px' }}></i>
-                          <span>Featured</span>
+                          Featured
                         </div>
                       )}
-
-                      {/* Type Badge */}
-                      <div 
-                        className="type-badge"
-                        style={{
-                          position: 'absolute',
-                          top: '8px',
-                          right: '8px',
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          color: '#333',
-                          padding: '2px 6px',
-                          borderRadius: '8px',
-                          fontSize: '9px',
-                          fontWeight: '600',
-                          border: '1px solid rgba(0, 0, 0, 0.1)'
-                        }}
-                      >
-                        {item.type === 'service' ? 'SERVICE' : 'PRODUCT'}
-                      </div>
                     </div>
 
-                    {/* Content Section */}
+                    {/* SIMPLIFIED DETAILS SECTION - 25% HEIGHT */}
                     <div 
-                      className="card-content"
+                      className="details-section-simple"
                       style={{
-                        padding: '12px',
-                        flex: '1',
+                        padding: '8px',
+                        height: '25%',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        background: 'white'
+                        backgroundColor: 'white'
                       }}
                     >
-                      {/* Title and Description */}
-                      <div className="content-top">
-                        <h6 
-                          className="card-title mb-1"
-                          style={{
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            lineHeight: '1.3',
-                            color: '#1a1a1a',
-                            display: '-webkit-box',
-                            WebkitLineClamp: '2',
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            minHeight: '34px'
-                          }}
-                        >
-                          {item.name}
-                        </h6>
-                        
-                        <p 
-                          className="card-description mb-2"
-                          style={{
-                            fontSize: '11px',
-                            color: '#666',
-                            lineHeight: '1.3',
-                            display: '-webkit-box',
-                            WebkitLineClamp: '2',
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            minHeight: '28px'
-                          }}
-                        >
-                          {truncateDescription(item.description)}
-                        </p>
-                      </div>
+                      {/* Product Name with Ellipsis */}
+                      <h6 
+                        className="simple-card-title"
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          lineHeight: '1.2',
+                          margin: '0 0 2px 0',
+                          color: '#333',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: '1',
+                          WebkitBoxOrient: 'vertical',
+                          textAlign: 'left'
+                        }}
+                        title={item.name}
+                      >
+                        {item.name}
+                      </h6>
 
-                      {/* Business and Rating */}
-                      <div className="content-bottom">
+                      {/* NEW: Description - Limited to 42 characters - NO EMPTY SPACE */}
+                      <p 
+                        className="simple-card-description"
+                        style={{
+                          fontSize: '9px',
+                          color: '#666',
+                          lineHeight: '1.2',
+                          margin: '0 0 4px 0',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: '2',
+                          WebkitBoxOrient: 'vertical',
+                          minHeight: '18px'
+                        }}
+                        title={item.description}
+                      >
+                        {truncateDescription(item.description)}
+                      </p>
+
+                      {/* Price and Rating Row */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        {/* Price - Bold and Prominent */}
                         <div 
-                          className="business-name mb-2"
+                          className="simple-card-price"
                           style={{
-                            fontSize: '11px',
-                            color: '#888',
-                            fontWeight: '500',
-                            display: '-webkit-box',
-                            WebkitLineClamp: '1',
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            color: '#2c5aa0'
                           }}
                         >
-                          <i className="fas fa-store me-1" style={{ fontSize: '9px' }}></i>
-                          {item.businessName || item.business}
+                          {formatPrice(item)}
                         </div>
 
-                        <div className="d-flex justify-content-between align-items-center">
-                          {/* Price */}
-                          <div 
-                            className="price"
-                            style={{
-                              fontSize: '14px',
-                              fontWeight: '700',
-                              color: '#2c5aa0'
-                            }}
-                          >
-                            {formatPrice(item)}
-                          </div>
-
-                          {/* Rating */}
-                          <div className="rating d-flex align-items-center">
-                            <div className="stars me-1">
-                              {renderStars(item.rating)}
-                            </div>
-                            <small 
-                              className="text-muted"
-                              style={{ fontSize: '10px', fontWeight: '600' }}
-                            >
-                              {item.rating || '4.0'}
-                            </small>
-                          </div>
-                        </div>
-
-                        {/* Stock/Location Info */}
-                        <div 
-                          className="stock-info mt-1"
-                          style={{
-                            fontSize: '10px',
-                            color: item.stock > 0 ? '#28a745' : '#dc3545',
-                            fontWeight: '500'
-                          }}
-                        >
-                          {item.type === 'service' ? (
-                            <span>
-                              <i className="fas fa-map-marker-alt me-1"></i>
-                              {item.city || 'Dar es Salaam'}
-                            </span>
-                          ) : (
-                            <span>
-                              {item.stock > 0 ? 
-                                `${item.stock} in stock` : 
-                                'Out of stock'}
-                            </span>
-                          )}
-                        </div>
+                        {/* Rating - SINGLE BLACK STAR WITH RATING NUMBER */}
+                        {renderStars(item.rating)}
                       </div>
                     </div>
                   </div>
@@ -1056,6 +993,124 @@ const SearchResultsPage = () => {
           </>
         )}
       </div>
+
+      {/* Custom CSS for Simplified Cards */}
+      <style>
+        {`
+          .simple-card:hover {
+            border-color: #ffffff !important; /* PURE WHITE ON HOVER */
+          }
+
+          .simple-card:hover .simple-card-image {
+            transform: scale(1.05);
+          }
+
+          /* Improved text handling with ellipsis */
+          .simple-card-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .simple-card-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          /* Responsive adjustments */
+          @media (max-width: 576px) {
+            .col-6 {
+              padding: 4px;
+            }
+            
+            .simple-card {
+              height: 240px !important;
+            }
+            
+            .image-section-simple {
+              height: 70% !important;
+            }
+            
+            .details-section-simple {
+              height: 30% !important;
+              padding: 6px !important;
+            }
+            
+            .simple-card-title {
+              font-size: 10px !important;
+              -webkit-line-clamp: 1;
+            }
+            
+            .simple-card-description {
+              font-size: 8px !important;
+              -webkit-line-clamp: 2;
+            }
+            
+            .simple-card-price {
+              font-size: 11px !important;
+            }
+          }
+
+          @media (min-width: 576px) {
+            .col-sm-4 {
+              padding: 6px;
+            }
+            
+            .simple-card {
+              height: 260px !important;
+            }
+
+            .simple-card-title {
+              -webkit-line-clamp: 1;
+            }
+
+            .simple-card-description {
+              -webkit-line-clamp: 2;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .col-md-3 {
+              padding: 8px;
+            }
+            
+            .simple-card {
+              height: 270px !important;
+            }
+
+            .simple-card-title {
+              -webkit-line-clamp: 1;
+            }
+
+            .simple-card-description {
+              -webkit-line-clamp: 2;
+            }
+          }
+
+          @media (min-width: 992px) {
+            .col-lg-2 {
+              padding: 10px;
+            }
+            
+            .simple-card {
+              height: 280px !important;
+            }
+
+            .simple-card-title {
+              -webkit-line-clamp: 1;
+            }
+
+            .simple-card-description {
+              -webkit-line-clamp: 2;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

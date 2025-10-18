@@ -756,12 +756,12 @@ function ProductDetailPage() {
                 )}
 
                 {/* NEW: Welcome Message with Typewriter Animation */}
-                <div className="p-4 border-top bg-primary bg-opacity-10">
+                <div className="p-4 border-top bg-light">
                   <div className="text-center">
-                    <h4 className="fw-bold text-primary mb-2">
-                      <i className="fas fa-hand-wave me-2"></i>
+                    <h4 className="fw-bold text-dark mb-2">
+                      <i className="fas fa-hand-wave me-2 text-primary"></i>
                       {currentWelcomeText}
-                      <span className="typewriter-cursor">|</span>
+                      <span className="typewriter-cursor text-dark">|</span>
                     </h4>
                     <p className="text-muted mb-0">
                       Discover amazing {item.type === 'service' ? 'services' : 'products'} from trusted businesses
