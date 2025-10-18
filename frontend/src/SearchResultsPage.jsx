@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITHOUT VIEW DETAILS BUTTON
+// src/SearchResultsPage.jsx - UPDATED WITH HEADER LIKE HOMEPAGE1
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -14,6 +14,281 @@ const SearchResultsPage = () => {
   const [recentSearches, setRecentSearches] = useState([]);
   const [sortBy, setSortBy] = useState("relevance");
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Categories data (same as HomePage1)
+  const categoryData = [
+    {
+      id: "electronics",
+      name: "Electronics & Devices",
+      icon: "fa-microchip",
+      color: "primary",
+      description: "Laptops, smartphones, tablets, and gadgets",
+      image: "https://images.pexels.com/photos/2047905/pexels-photo-2047905.jpeg?auto=compress&cs=tinysrgb&w=600"
+    },
+    {
+      id: "general",
+      name: "General Goods", 
+      icon: "fa-tshirt",
+      color: "warning",
+      description: "Clothing, shoes, accessories, and daily items",
+      image: "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=600"
+    },
+    {
+      id: "building",
+      name: "Building & Hotels",
+      icon: "fa-building",
+      color: "success",
+      description: "Hotels, apartments, and luxury properties",
+      image: "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600"
+    },
+    {
+      id: "vehicles",
+      name: "Vehicles",
+      icon: "fa-car",
+      color: "danger",
+      description: "Cars, motorcycles, and transportation",
+      image: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600"
+    }
+  ];
+
+  // Check user authentication
+  useEffect(() => {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      setUser(JSON.parse(currentUser));
+    }
+  }, []);
+
+  // Handle account click
+  const handleAccountClick = () => {
+    setShowAuthModal(true);
+  };
+
+  // Handle business auth
+  const handleBusinessAuth = () => {
+    const isBusinessAuthenticated = localStorage.getItem('businessAuthenticated') === 'true';
+    if (isBusinessAuthenticated) {
+      navigate('/business-dashboard');
+    } else {
+      navigate('/business-auth');
+    }
+  };
+
+  // Sidebar Component (same as HomePage1)
+  const Sidebar = () => {
+    return (
+      <div className={`offcanvas offcanvas-start ${showSidebar ? 'show' : ''}`} 
+           style={{ 
+             visibility: showSidebar ? 'visible' : 'hidden',
+             width: '280px'
+           }}
+           tabIndex="-1">
+        <div className="offcanvas-header border-bottom">
+          <h5 className="offcanvas-title fw-bold text-primary">BisRun Menu</h5>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setShowSidebar(false)}
+          ></button>
+        </div>
+        <div className="offcanvas-body p-0">
+          <div className="list-group list-group-flush">
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/');
+              }}
+            >
+              <i className="fas fa-home me-3 text-primary"></i>
+              Home
+            </button>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/search-results?q=');
+              }}
+            >
+              <i className="fas fa-search me-3 text-primary"></i>
+              Search
+            </button>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/categories');
+              }}
+            >
+              <i className="fas fa-th-large me-3 text-primary"></i>
+              Categories
+            </button>
+            <div className="border-top my-2"></div>
+            <h6 className="px-3 pt-2 text-muted small">BUSINESS</h6>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                handleBusinessAuth();
+              }}
+            >
+              <i className="fas fa-store me-3 text-success"></i>
+              List Your Business
+            </button>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3"
+              onClick={() => {
+                setShowSidebar(false);
+                navigate('/business-dashboard');
+              }}
+            >
+              <i className="fas fa-chart-line me-3 text-success"></i>
+              Business Dashboard
+            </button>
+            <div className="border-top my-2"></div>
+            <h6 className="px-3 pt-2 text-muted small">ACCOUNT</h6>
+            {user ? (
+              <>
+                <div className="list-group-item border-0 py-3">
+                  <div className="d-flex align-items-center">
+                    <img 
+                      src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
+                      alt={user.name}
+                      className="rounded-circle me-3"
+                      style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <div className="fw-bold">{user.name}</div>
+                      <small className="text-muted">{user.email}</small>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  className="list-group-item list-group-item-action border-0 py-3 text-danger"
+                  onClick={() => {
+                    setShowSidebar(false);
+                    setUser(null);
+                    localStorage.removeItem('currentUser');
+                  }}
+                >
+                  <i className="fas fa-sign-out-alt me-3"></i>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button 
+                className="list-group-item list-group-item-action border-0 py-3"
+                onClick={() => {
+                  setShowSidebar(false);
+                  setShowAuthModal(true);
+                }}
+              >
+                <i className="fas fa-user me-3 text-primary"></i>
+                Sign In / Register
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Auth Modal Component (simplified version)
+  const AuthModal = () => {
+    return (
+      <div className={`modal fade ${showAuthModal ? 'show d-block' : ''}`} 
+           style={{ 
+             backgroundColor: 'rgba(0,0,0,0.5)', 
+             position: 'fixed',
+             top: 0,
+             left: 0,
+             right: 0,
+             bottom: 0,
+             zIndex: 9999
+           }} 
+           tabIndex="-1">
+        <div className="d-flex align-items-center justify-content-center min-vh-100 p-3">
+          <div className="modal-dialog modal-dialog-centered" 
+               style={{ 
+                 maxWidth: '420px',
+                 width: '100%',
+                 margin: '0 auto'
+               }}>
+            <div className="modal-content rounded-3 border shadow-lg" 
+                 style={{ 
+                   borderColor: '#e0e0e0', 
+                   backdropFilter: 'blur(10px)',
+                   transform: 'translateY(0)'
+                 }}>
+              
+              {/* Header */}
+              <div className="modal-header border-0 pb-0 pt-4 px-4">
+                <div className="w-100 text-center">
+                  <div className="avatar-placeholder mb-3 mx-auto">
+                    <i className="fas fa-user display-4 text-primary"></i>
+                  </div>
+                  <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
+                    Authentication Required
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    Sign in to access all features
+                  </p>
+                </div>
+                <button 
+                  type="button" 
+                  className="btn-close position-absolute top-0 end-0 m-3" 
+                  onClick={() => setShowAuthModal(false)}
+                  style={{ fontSize: '0.8rem' }}
+                ></button>
+              </div>
+              
+              {/* Body */}
+              <div className="modal-body py-4 px-4 text-center">
+                <p className="text-muted mb-4">
+                  Please sign in to your account to continue.
+                </p>
+                
+                <div className="d-grid gap-2">
+                  <button
+                    className="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-medium"
+                    onClick={() => {
+                      setShowAuthModal(false);
+                      // Simulate successful login
+                      const userData = {
+                        uid: 'demo-user',
+                        name: 'Demo User',
+                        email: 'demo@example.com',
+                        picture: null,
+                        emailVerified: true
+                      };
+                      setUser(userData);
+                      localStorage.setItem('currentUser', JSON.stringify(userData));
+                    }}
+                    style={{ fontSize: '1rem' }}
+                  >
+                    <i className="fas fa-sign-in-alt me-2"></i>
+                    Sign In (Demo)
+                  </button>
+                  
+                  <button
+                    className="btn btn-outline-dark btn-lg w-100 py-3 rounded-3 fw-medium"
+                    onClick={() => setShowAuthModal(false)}
+                    style={{ fontSize: '1rem' }}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // FUZZY SEARCH FUNCTIONS
   const levenshteinDistance = (str1, str2) => {
@@ -513,6 +788,11 @@ const SearchResultsPage = () => {
     setSearchSuggestions([]);
   };
 
+  // Handle category click
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/search-results?q=${encodeURIComponent(categoryName)}`);
+  };
+
   const getItemImage = (item) => {
     if (item.images && item.images.length > 0) {
       const firstImage = item.images[0];
@@ -560,7 +840,7 @@ const SearchResultsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-vh-100 bg-silver d-flex justify-content-center align-items-center">
+      <div className="min-vh-100 bg-white d-flex justify-content-center align-items-center">
         <div className="text-center">
           <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }}></div>
           <p className="text-dark">Loading search results...</p>
@@ -570,533 +850,470 @@ const SearchResultsPage = () => {
   }
 
   return (
-    <div className="min-vh-100 bg-silver">
-      {/* Header with Beautiful Animated Search Bar */}
-      <div className="bg-white border-bottom sticky-top shadow-sm">
-        <div className="container-fluid py-3">
-          <div className="row align-items-center">
-            <div className="col-auto">
-              <button
-                className="btn btn-light rounded-circle border"
-                onClick={() => navigate('/')}
-                style={{ 
-                  width: '40px', 
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <i className="fas fa-arrow-left text-dark"></i>
-              </button>
-            </div>
+    <div className="min-vh-100 bg-white" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
+      
+      {/* Sidebar Overlay */}
+      {showSidebar && (
+        <div 
+          className="modal-backdrop fade show" 
+          onClick={() => setShowSidebar(false)}
+        ></div>
+      )}
+
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Auth Modal */}
+      {showAuthModal && <AuthModal />}
+
+      {/* Main Content */}
+      <div className="container-fluid px-0 bg-white">
+        
+        {/* Header Section - SAME AS HOMEPAGE1 */}
+        <header className="bg-white border-bottom py-3 px-4 position-relative">
+          <div className="d-flex align-items-center justify-content-between">
             
-            <div className="col position-relative">
-              <form onSubmit={handleSearch}>
-                {/* BEAUTIFUL ANIMATED SEARCH BAR */}
-                <div 
-                  className="form"
-                  style={{
-                    '--input-bg': '#FFF',
-                    '--padding': '1.5em',
-                    '--rotate': '80deg',
-                    '--gap': '2em',
-                    '--icon-change-color': '#15A986',
-                    '--height': '45px',
-                    width: '100%',
-                    paddingInlineEnd: '1em',
-                    background: 'var(--input-bg)',
-                    position: 'relative',
-                    borderRadius: '8px'
-                  }}
-                >
-                  <label style={{ display: 'flex', alignItems: 'center', width: '100%', height: 'var(--height)' }}>
+            {/* Left: Menu Button */}
+            <button
+              className="btn btn-lg p-2 me-3"
+              onClick={() => setShowSidebar(true)}
+              style={{ 
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                borderRadius: '12px',
+                color: '#495057'
+              }}
+            >
+              <i className="fas fa-bars"></i>
+            </button>
+
+            {/* Center: Logo */}
+            <div className="flex-grow-1 text-center">
+              <h1 className="h3 mb-0 fw-bold text-primary">
+                BisRun
+              </h1>
+              <small className="text-muted opacity-75">
+                Find Everything You Need
+              </small>
+            </div>
+
+            {/* Right: Account Button */}
+            <button
+              className="btn btn-lg p-2 ms-3"
+              onClick={handleAccountClick}
+              style={{ 
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                borderRadius: '12px',
+                color: '#495057'
+              }}
+            >
+              <i className="fas fa-user"></i>
+            </button>
+          </div>
+        </header>
+
+        {/* Search Section - SAME AS HOMEPAGE1 */}
+        <section className="px-4 py-4 bg-white">
+          <div className="row justify-content-center">
+            <div className="col-12 col-md-10 col-lg-8">
+              
+              {/* Search Container */}
+              <div className="position-relative">
+                <form onSubmit={handleSearch}>
+                  <div className="input-group input-group-lg shadow-sm" 
+                       style={{ 
+                         borderRadius: '16px',
+                         overflow: 'hidden',
+                         border: '2px solid #007bff'
+                       }}>
+                    
+                    {/* Search Icon */}
+                    <span className="input-group-text border-0 bg-white px-4">
+                      <i className="fas fa-search text-muted"></i>
+                    </span>
+                    
+                    {/* Search Input */}
                     <input
                       type="text"
+                      className="form-control border-0 bg-white py-3"
+                      placeholder="Search products, services, businesses..."
                       value={searchQuery}
                       onChange={handleSearchInputChange}
                       onFocus={handleSearchInputFocus}
-                      placeholder="Search products, services, businesses..."
-                      style={{
-                        width: '100%',
-                        paddingInlineStart: 'calc(var(--padding) + var(--gap))',
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                      style={{ 
+                        fontSize: '1.1rem',
                         outline: 'none',
-                        background: 'none',
-                        border: '0',
-                        fontSize: '0.9rem',
-                        height: '100%'
+                        boxShadow: 'none'
                       }}
-                      required
                     />
                     
-                    {/* Search Icon */}
-                    <div 
-                      className="icon"
-                      style={{
-                        position: 'absolute',
-                        left: 'var(--padding)',
-                        transition: '0.3s cubic-bezier(.4,0,.2,1)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: '100%'
+                    {/* Search Button */}
+                    <button
+                      type="submit"
+                      className="btn btn-primary px-4 border-0"
+                      style={{ 
+                        borderRadius: '0 14px 14px 0',
+                        fontWeight: '600'
                       }}
                     >
-                      <svg 
-                        className="swap-on"
-                        style={{ 
-                          display: 'block',
-                          color: '#111',
-                          transition: '0.3s cubic-bezier(.4,0,.2,1)',
-                          height: '18px'
-                        }} 
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M21.71,20.29,18,16.61A9,9,0,1,0,16.61,18l3.68,3.68a1,1,0,0,0,1.42,0A1,1,0,0,0,21.71,20.29ZM11,18a7,7,0,1,1,7-7A7,7,0,0,1,11,18Z"/>
-                      </svg>
-                      
-                      <svg 
-                        className="swap-off"
-                        style={{
-                          display: 'block',
-                          color: '#111',
-                          transition: '0.3s cubic-bezier(.4,0,.2,1)',
-                          position: 'absolute',
-                          height: '18px',
-                          transform: 'rotate(-80deg)',
-                          opacity: '0',
-                          visibility: 'hidden'
-                        }} 
-                        viewBox="0 0 512 512"
-                      >
-                        <path d="M443.6,387.1L312.4,255.4l131.5-130c5.4-5.4,5.4-14.2,0-19.6l-37.4-37.6c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4  L256,197.8L124.9,68.3c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4L68,105.9c-5.4,5.4-5.4,14.2,0,19.6l131.5,130L68.4,387.1  c-2.6,2.6-4.1,6.1-4.1,9.8c0,3.7,1.4,7.2,4.1,9.8l37.4,37.6c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1L256,313.1l130.7,131.1  c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1l37.4-37.6c2.6-2.6,4.1-6.1,4.1-9.8C447.7,393.2,446.2,389.7,443.6,387.1z"/>
-                      </svg>
-                    </div>
+                      Search
+                    </button>
+                  </div>
+                </form>
 
-                    {/* Close Button */}
-                    {searchQuery && (
-                      <button 
-                        type="button"
-                        className="close-btn"
-                        onClick={handleClearSearch}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          right: 'calc(var(--padding) - var(--gap))',
-                          boxSizing: 'border-box',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#111',
-                          padding: '0.1em',
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '50%',
-                          transition: '0.3s',
-                          position: 'absolute',
-                          opacity: '1',
-                          transform: 'scale(1)',
-                          visibility: 'visible'
-                        }}
-                      >
-                        <svg 
-                          style={{ width: '12px', height: '12px' }} 
-                          viewBox="0 0 512 512"
+                {/* Search Suggestions Dropdown */}
+                {showSuggestions && searchSuggestions.length > 0 && (
+                  <div className="position-absolute top-100 start-0 end-0 mt-1 shadow-lg rounded-3 overflow-hidden z-3"
+                       style={{ 
+                         background: 'white',
+                         border: '1px solid #dee2e6'
+                       }}>
+                    
+                    {/* Recent Searches Header */}
+                    {searchQuery.trim() === "" && recentSearches.length > 0 && (
+                      <div className="d-flex justify-content-between align-items-center px-3 pt-3 pb-2 border-bottom">
+                        <small className="text-muted fw-semibold">RECENT SEARCHES</small>
+                        <button
+                          className="btn btn-sm p-0 text-danger"
+                          onClick={handleClearRecentSearches}
+                          style={{ fontSize: '0.7rem' }}
                         >
-                          <path d="M443.6,387.1L312.4,255.4l131.5-130c5.4-5.4,5.4-14.2,0-19.6l-37.4-37.6c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4  L256,197.8L124.9,68.3c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4L68,105.9c-5.4,5.4-5.4,14.2,0,19.6l131.5,130L68.4,387.1  c-2.6,2.6-4.1,6.1-4.1,9.8c0,3.7,1.4,7.2,4.1,9.8l37.4,37.6c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1L256,313.1l130.7,131.1  c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1l37.4-37.6c2.6-2.6,4.1-6.1,4.1-9.8C447.7,393.2,446.2,389.7,443.6,387.1z"/>
-                        </svg>
-                      </button>
+                          Clear All
+                        </button>
+                      </div>
                     )}
-                  </label>
-                </div>
-
-                {/* Search Suggestions */}
-                {showSuggestions && (
-                  <div className="position-absolute top-100 start-0 end-0 mt-2" style={{ zIndex: 1030 }}>
-                    <div className="bg-white border rounded-3 shadow-lg overflow-hidden">
-                      {/* Recent Searches Section */}
-                      {searchQuery === "" && recentSearches.length > 0 && (
-                        <>
-                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
-                            <div className="d-flex justify-content-between align-items-center">
-                              <small className="text-muted fw-bold">RECENT SEARCHES</small>
-                              <button 
-                                className="btn btn-link p-0 text-danger text-decoration-none"
-                                onClick={handleClearRecentSearches}
-                                style={{ fontSize: '11px' }}
-                              >
-                                Clear all
-                              </button>
-                            </div>
-                          </div>
-                          {recentSearches.map((search, index) => (
-                            <button
-                              key={`recent-${index}`}
-                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
-                              onClick={() => handleSuggestionClick(search)}
-                              style={{ 
-                                border: 'none', 
-                                borderRadius: '0',
-                                fontSize: '14px'
-                              }}
-                            >
-                              <i className="fas fa-clock text-muted me-3" style={{ width: '16px' }}></i>
-                              {search}
-                            </button>
-                          ))}
-                        </>
-                      )}
-                      
-                      {/* Search Suggestions Section */}
-                      {searchQuery !== "" && searchSuggestions.length > 0 && (
-                        <>
-                          <div className="px-3 pt-2 pb-1 bg-light border-bottom">
-                            <small className="text-muted fw-bold">SUGGESTIONS</small>
-                          </div>
-                          {searchSuggestions.map((suggestion, index) => (
-                            <button
-                              key={`suggestion-${index}`}
-                              className="btn btn-light w-100 text-start p-3 border-bottom d-flex align-items-center"
-                              onClick={() => handleSuggestionClick(suggestion)}
-                              style={{ 
-                                border: 'none', 
-                                borderRadius: '0',
-                                fontSize: '14px'
-                              }}
-                            >
-                              <i className="fas fa-search text-muted me-3" style={{ width: '16px' }}></i>
-                              {suggestion}
-                            </button>
-                          ))}
-                        </>
-                      )}
-
-                      {/* No Results Message */}
-                      {searchQuery !== "" && searchSuggestions.length === 0 && (
-                        <div className="p-3 text-center text-muted">
-                          <i className="fas fa-search me-2"></i>
-                          No suggestions found for "{searchQuery}"
-                        </div>
-                      )}
+                    
+                    {/* Suggestions List */}
+                    <div className="py-2">
+                      {searchSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          className="btn btn-light w-100 text-start rounded-0 border-0 py-3 px-4 d-flex align-items-center"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          style={{ 
+                            background: 'transparent',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(0, 123, 255, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = 'transparent';
+                          }}
+                        >
+                          <i className="fas fa-search text-muted me-3" style={{ fontSize: '0.8rem' }}></i>
+                          <span className="text-dark" style={{ fontSize: '0.95rem' }}>
+                            {suggestion}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
+              </div>
 
-      {/* Results Section */}
-      <div className="container-fluid py-4">
-        {searchResults.length === 0 ? (
-          <div className="text-center py-5">
-            <div className="mb-4">
-              <i className="fas fa-search fa-3x text-muted mb-3"></i>
-            </div>
-            <h4 className="text-dark mb-3">No Results Found</h4>
-            <p className="text-muted mb-4">
-              {searchQuery ? `No items found for "${searchQuery}". Try different keywords.` : 'Please enter a search term to find items.'}
-            </p>
-            <button 
-              className="btn btn-primary"
-              onClick={() => navigate('/')}
-            >
-              <i className="fas fa-home me-2"></i>
-              Back to Home
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Search Summary */}
-            <div className="row mb-4">
-              <div className="col-12">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="text-muted small">
-                    {searchResults.length} results for "<span className="text-primary">"{searchQuery}"</span>"
-                  </div>
-                  <div className="dropdown">
-                    <button className="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                      Sort by: {sortBy === 'relevance' ? 'Relevance' : 
-                              sortBy === 'price-low' ? 'Price: Low to High' :
-                              sortBy === 'price-high' ? 'Price: High to Low' : 'Rating'}
-                    </button>
-                    <ul className="dropdown-menu">
-                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'relevance'}})}>Relevance</button></li>
-                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'price-low'}})}>Price: Low to High</button></li>
-                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'price-high'}})}>Price: High to Low</button></li>
-                      <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'rating'}})}>Highest Rating</button></li>
-                    </ul>
-                  </div>
+              {/* Categories Section - SAME AS HOMEPAGE1 */}
+              <div className="mt-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h6 className="mb-0 fw-bold text-dark">Browse Categories</h6>
+                  <button 
+                    className="btn btn-sm text-primary p-0"
+                    onClick={() => navigate('/categories')}
+                  >
+                    View All
+                  </button>
+                </div>
+                
+                <div className="row g-3">
+                  {categoryData.map((category) => (
+                    <div key={category.id} className="col-6 col-sm-3">
+                      <button
+                        className="btn btn-light w-100 h-100 p-3 border-0 shadow-sm"
+                        onClick={() => handleCategoryClick(category.name)}
+                        style={{ 
+                          borderRadius: '16px',
+                          transition: 'all 0.3s ease',
+                          background: 'white'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                        }}
+                      >
+                        <div className="text-center">
+                          <div 
+                            className="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                            style={{ 
+                              width: '50px', 
+                              height: '50px',
+                              background: `linear-gradient(135deg, var(--bs-${category.color}), #0056b3)`
+                            }}
+                          >
+                            <i className={`fas ${category.icon} text-white`}></i>
+                          </div>
+                          <small className="fw-semibold text-dark d-block" style={{ fontSize: '0.75rem' }}>
+                            {category.name.split(' ')[0]}
+                          </small>
+                          <small className="fw-semibold text-dark d-block" style={{ fontSize: '0.75rem' }}>
+                            {category.name.split(' ').slice(1).join(' ')}
+                          </small>
+                        </div>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* GLASS MORPHISM CARDS WITH SILVER BACKGROUND - NO VIEW DETAILS BUTTON */}
-            <div className="row g-3 justify-content-center">
-              {searchResults.map((item) => (
-                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* GLASS MORPHISM CARD */}
-                  <div 
-                    className="glass-card"
-                    style={{
-                      width: '100%',
-                      height: '254px',
-                      backdropFilter: 'blur(7px)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                      borderRadius: '26px',
-                      boxShadow: `
-                        35px 35px 68px 0px rgba(157, 177, 255, 0.2),
-                        inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
-                        inset 0px 11px 28px 0px rgb(255, 255, 255)
-                      `,
-                      transition: 'all 0.3s',
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      position: 'relative'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '35px 35px 68px 0px rgba(157, 177, 255, 0.5)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = `
-                        35px 35px 68px 0px rgba(157, 177, 255, 0.2),
-                        inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
-                        inset 0px 11px 28px 0px rgb(255, 255, 255)
-                      `;
-                    }}
-                    onClick={() => navigate(`/product/${item.id}`)}
-                  >
-                    {/* Product Image */}
-                    <div 
-                      className="product-image-container"
-                      style={{
-                        width: '100%',
-                        height: '120px',
-                        overflow: 'hidden',
-                        position: 'relative'
-                      }}
+        {/* Search Results Section */}
+        <section className="px-4 py-4 bg-white">
+          <div className="row justify-content-center">
+            <div className="col-12 col-md-10 col-lg-8">
+              
+              {/* Results Header */}
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 className="fw-bold text-dark mb-1">
+                    {searchQuery ? `Search Results for "${searchQuery}"` : "All Items"}
+                  </h4>
+                  <p className="text-muted mb-0">
+                    {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
+                  </p>
+                </div>
+                
+                {/* Sort Dropdown */}
+                {searchResults.length > 0 && (
+                  <div className="dropdown">
+                    <button
+                      className="btn btn-outline-secondary dropdown-toggle"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      style={{ borderRadius: '8px' }}
                     >
-                      <img
-                        src={getItemImage(item)}
-                        alt={item.name}
-                        className="product-image"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          transition: 'transform 0.3s ease'
+                      <i className="fas fa-sort me-2"></i>
+                      Sort: {sortBy === 'relevance' ? 'Relevance' : 
+                             sortBy === 'price-low' ? 'Price: Low to High' :
+                             sortBy === 'price-high' ? 'Price: High to Low' : 'Rating'}
+                    </button>
+                    <ul className="dropdown-menu shadow-sm border-0 rounded-3">
+                      <li>
+                        <button 
+                          className="dropdown-item"
+                          onClick={() => handleSortChange({ target: { value: 'relevance' } })}
+                        >
+                          Relevance
+                        </button>
+                      </li>
+                      <li>
+                        <button 
+                          className="dropdown-item"
+                          onClick={() => handleSortChange({ target: { value: 'price-low' } })}
+                        >
+                          Price: Low to High
+                        </button>
+                      </li>
+                      <li>
+                        <button 
+                          className="dropdown-item"
+                          onClick={() => handleSortChange({ target: { value: 'price-high' } })}
+                        >
+                          Price: High to Low
+                        </button>
+                      </li>
+                      <li>
+                        <button 
+                          className="dropdown-item"
+                          onClick={() => handleSortChange({ target: { value: 'rating' } })}
+                        >
+                          Rating
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Search Results Grid */}
+              {searchResults.length === 0 ? (
+                <div className="text-center py-5">
+                  <div className="mb-4">
+                    <i className="fas fa-search display-1 text-muted opacity-25"></i>
+                  </div>
+                  <h5 className="text-dark mb-3">No results found</h5>
+                  <p className="text-muted mb-4">
+                    {searchQuery ? `We couldn't find any matches for "${searchQuery}"` : 'No items available'}
+                  </p>
+                  <button
+                    className="btn btn-primary px-4 py-2 rounded-3"
+                    onClick={() => navigate('/')}
+                  >
+                    <i className="fas fa-home me-2"></i>
+                    Back to Home
+                  </button>
+                </div>
+              ) : (
+                <div className="row g-4">
+                  {searchResults.map((item, index) => (
+                    <div key={`${item.id}-${index}`} className="col-6 col-md-4 col-lg-3">
+                      <div 
+                        className="card h-100 border-0 shadow-sm position-relative"
+                        style={{ 
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => {
+                          if (item.type === 'service') {
+                            navigate(`/service-detail/${item.id}`);
+                          } else {
+                            navigate(`/product-detail/${item.id}`);
+                          }
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.transform = 'translateY(-4px)';
+                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.transform = 'scale(1)';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                         }}
-                      />
-                      {/* Featured Badge */}
-                      {item.featured && (
+                      >
+                        {/* Item Image */}
                         <div 
-                          className="featured-badge"
-                          style={{
-                            position: 'absolute',
-                            top: '8px',
-                            left: '8px',
-                            background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                            color: '#000',
-                            padding: '3px 8px',
-                            borderRadius: '12px',
-                            fontSize: '9px',
-                            fontWeight: 'bold',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                            backdropFilter: 'blur(5px)'
-                          }}
-                        >
-                          <i className="fas fa-star me-1" style={{ fontSize: '7px' }}></i>
-                          FEATURED
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card Body */}
-                    <div 
-                      className="card-body"
-                      style={{
-                        padding: '12px',
-                        height: 'calc(100% - 120px)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      {/* Product Info */}
-                      <div>
-                        {/* Product Name */}
-                        <h6 
-                          className="product-name mb-1"
-                          style={{
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            lineHeight: '1.2',
-                            color: '#000',
-                            marginBottom: '4px',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          {item.name}
-                        </h6>
-
-                        {/* Business Name */}
-                        <p 
-                          className="business-name mb-1"
-                          style={{
-                            fontSize: '9px',
-                            color: '#666',
-                            fontWeight: '500',
-                            marginBottom: '4px'
-                          }}
-                        >
-                          {item.businessName || item.business}
-                        </p>
-
-                        {/* Description */}
-                        <p 
-                          className="description mb-2"
-                          style={{
-                            fontSize: '9px',
-                            color: '#888',
-                            lineHeight: '1.2',
-                            marginBottom: '8px',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
+                          className="position-relative"
+                          style={{ 
+                            height: '140px',
                             overflow: 'hidden',
-                            minHeight: '20px'
+                            background: '#f8f9fa'
                           }}
                         >
-                          {truncateDescription(item.description)}
-                        </p>
-                      </div>
-
-                      {/* Bottom Section - REMOVED VIEW DETAILS BUTTON */}
-                      <div>
-                        {/* Rating and Price Row */}
-                        <div className="d-flex justify-content-between align-items-center">
-                          {/* Rating */}
-                          {renderStars(item.rating)}
-
-                          {/* Price - UPDATED: BLUE COLOR */}
+                          <img
+                            src={getItemImage(item)}
+                            alt={item.name}
+                            className="w-100 h-100"
+                            style={{ 
+                              objectFit: 'cover',
+                              transition: 'transform 0.3s ease'
+                            }}
+                            onError={(e) => {
+                              e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
+                            }}
+                          />
+                          
+                          {/* Business Name Badge */}
                           <div 
-                            className="price"
-                            style={{
-                              fontSize: '12px',
-                              fontWeight: '800',
-                              color: '#2563eb', // BLUE COLOR
-                              textShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
+                            className="position-absolute top-0 start-0 m-2 px-2 py-1 rounded-pill"
+                            style={{ 
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(10px)',
+                              fontSize: '0.65rem',
+                              fontWeight: '600'
                             }}
                           >
-                            {formatPrice(item)}
+                            {item.businessName || item.business}
                           </div>
+
+                          {/* Rating Badge */}
+                          <div 
+                            className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill d-flex align-items-center"
+                            style={{ 
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(10px)'
+                            }}
+                          >
+                            {renderStars(item.rating)}
+                          </div>
+
+                          {/* Fuzzy Match Indicator */}
+                          {item.isFuzzyMatch && (
+                            <div 
+                              className="position-absolute bottom-0 start-0 end-0 text-center p-1"
+                              style={{ 
+                                background: 'rgba(255, 193, 7, 0.9)',
+                                fontSize: '0.7rem',
+                                fontWeight: '600'
+                              }}
+                            >
+                              Similar Match
+                            </div>
+                          )}
                         </div>
 
-                        {/* REMOVED: View Details Button Section */}
+                        {/* Item Details */}
+                        <div className="card-body p-3">
+                          {/* Item Name */}
+                          <h6 
+                            className="card-title fw-bold text-dark mb-2"
+                            style={{ 
+                              fontSize: '0.9rem',
+                              lineHeight: '1.3',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {item.name}
+                          </h6>
+
+                          {/* Description */}
+                          <p 
+                            className="card-text text-muted mb-2"
+                            style={{ 
+                              fontSize: '0.75rem',
+                              lineHeight: '1.2',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {truncateDescription(item.description)}
+                          </p>
+
+                          {/* Price */}
+                          <div className="d-flex justify-content-between align-items-center mt-auto">
+                            <span 
+                              className="fw-bold text-primary"
+                              style={{ fontSize: '0.9rem' }}
+                            >
+                              {formatPrice(item)}
+                              {item.type === 'service' && '/night'}
+                            </span>
+                            
+                            {/* Stock/Status */}
+                            {item.type === 'product' && (
+                              <small 
+                                className={`fw-semibold ${
+                                  item.stock > 5 ? 'text-success' : 
+                                  item.stock > 0 ? 'text-warning' : 'text-danger'
+                                }`}
+                                style={{ fontSize: '0.7rem' }}
+                              >
+                                {item.stock > 5 ? 'In Stock' : 
+                                 item.stock > 0 ? `Only ${item.stock} left` : 'Out of Stock'}
+                              </small>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          </>
-        )}
+          </div>
+        </section>
       </div>
-
-      {/* Add CSS for silver background and glass morphism effects */}
-      <style>
-        {`
-          .bg-silver {
-            background: linear-gradient(135deg, #ffffffff 0%, #ffffffff 50%, #f0f0f0 100%) !important;
-            background-color: #feffffff !important;
-          }
-
-          .glass-card:active {
-            transform: scale(0.95);
-            border: 1px solid rgba(37, 99, 235, 0.3); /* BLUE BORDER */
-          }
-
-          .glass-card {
-            transition: all 0.3s;
-          }
-
-          .product-image {
-            transition: transform 0.3s ease;
-          }
-
-          .product-image:hover {
-            transform: scale(1.05);
-          }
-
-          /* Responsive adjustments */
-          @media (max-width: 576px) {
-            .col-6 {
-              padding: 4px;
-            }
-            
-            .glass-card {
-              height: 240px !important;
-            }
-            
-            .product-image-container {
-              height: 110px !important;
-            }
-            
-            .card-body {
-              padding: 10px !important;
-              height: calc(100% - 110px) !important;
-            }
-            
-            .product-name {
-              font-size: 11px !important;
-            }
-            
-            .business-name {
-              font-size: 8px !important;
-            }
-            
-            .description {
-              font-size: 8px !important;
-            }
-            
-            .price {
-              font-size: 11px !important;
-            }
-          }
-
-          @media (min-width: 576px) {
-            .col-sm-4 {
-              padding: 6px;
-            }
-            
-            .glass-card {
-              height: 254px !important;
-            }
-          }
-
-          @media (min-width: 768px) {
-            .col-md-3 {
-              padding: 8px;
-            }
-          }
-
-          @media (min-width: 992px) {
-            .col-lg-2 {
-              padding: 10px;
-            }
-          }
-        `}
-      </style>
     </div>
   );
 };
