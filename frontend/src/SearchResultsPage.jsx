@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH BETTER BORDER DETAILS
+// src/SearchResultsPage.jsx - UPDATED WITH DESCRIPTION (NO EMPTY SPACE)
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -824,63 +824,58 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* IMPROVED CARDS WITH BETTER BORDER DETAILS */}
+            {/* SIMPLIFIED CARDS WITH NAME, PRICE, RATING AND DESCRIPTION */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* IMPROVED CARD WITH BETTER BORDER DETAILS */}
+                  {/* SIMPLIFIED CARD - WITH DESCRIPTION (NO EMPTY SPACE) */}
                   <div 
-                    className="improved-card"
+                    className="simple-card"
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       position: 'relative',
                       width: '100%',
                       height: '280px',
-                      borderRadius: '16px',
+                      borderRadius: '12px',
                       overflow: 'hidden',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                       backgroundColor: 'white',
-                      border: '2px solid #e8e8e8',
+                      border: '1px solid #e0e0e0',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                      e.currentTarget.style.borderColor = '#c45500';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.borderColor = '#e8e8e8';
                     }}
-                    onClick={() => {
-                      if (item.type === 'service') {
-                        navigate(`/service-detail/${item.id}`);
-                      } else {
-                        navigate(`/product-detail/${item.id}`);
-                      }
-                    }}
+                    onClick={() => navigate(`/product/${item.id}`)}
                   >
-                    {/* Image Container */}
+                    {/* IMAGE SECTION - 75% HEIGHT */}
                     <div 
-                      className="image-container"
+                      className="image-section-simple"
                       style={{
-                        position: 'relative',
                         width: '100%',
-                        height: '140px',
+                        height: '75%',
                         overflow: 'hidden',
+                        position: 'relative',
                         backgroundColor: '#f8f9fa'
                       }}
                     >
                       <img
                         src={getItemImage(item)}
                         alt={item.name}
+                        className="simple-card-image"
                         style={{
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
+                          objectPosition: 'center',
+                          display: 'block',
                           transition: 'transform 0.3s ease'
                         }}
                         onError={(e) => {
@@ -891,159 +886,95 @@ const SearchResultsPage = () => {
                       {/* Featured Badge */}
                       {item.featured && (
                         <div 
-                          className="featured-badge"
+                          className="featured-badge-simple"
                           style={{
                             position: 'absolute',
                             top: '8px',
                             left: '8px',
-                            backgroundColor: '#ff4444',
+                            background: 'linear-gradient(135deg, #FFD700, #FFA500)',
                             color: 'white',
                             padding: '2px 6px',
                             borderRadius: '4px',
                             fontSize: '9px',
                             fontWeight: 'bold',
-                            zIndex: 2
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                           }}
                         >
-                          FEATURED
+                          Featured
                         </div>
                       )}
-
-                      {/* Type Badge */}
-                      <div 
-                        className="type-badge"
-                        style={{
-                          position: 'absolute',
-                          top: '8px',
-                          right: '8px',
-                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                          color: 'white',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '9px',
-                          fontWeight: 'bold',
-                          zIndex: 2
-                        }}
-                      >
-                        {item.type === 'service' ? 'SERVICE' : 'PRODUCT'}
-                      </div>
                     </div>
 
-                    {/* Content Container */}
+                    {/* SIMPLIFIED DETAILS SECTION - 25% HEIGHT */}
                     <div 
-                      className="content-container"
+                      className="details-section-simple"
                       style={{
-                        flex: 1,
-                        padding: '12px',
+                        padding: '8px',
+                        height: '25%',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'space-between'
+                        justifyContent: 'space-between',
+                        backgroundColor: 'white'
                       }}
                     >
-                      {/* Top Section - Name and Category */}
-                      <div>
-                        {/* Item Name */}
-                        <h6 
-                          className="item-name"
-                          style={{
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            lineHeight: '1.3',
-                            marginBottom: '4px',
-                            color: '#1a1a1a',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            minHeight: '32px'
-                          }}
-                        >
-                          {item.name}
-                        </h6>
+                      {/* Product Name with Ellipsis */}
+                      <h6 
+                        className="simple-card-title"
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          lineHeight: '1.2',
+                          margin: '0 0 2px 0',
+                          color: '#333',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: '1',
+                          WebkitBoxOrient: 'vertical',
+                          textAlign: 'left'
+                        }}
+                        title={item.name}
+                      >
+                        {item.name}
+                      </h6>
 
-                        {/* Category */}
-                        <p 
-                          className="category"
-                          style={{
-                            fontSize: '11px',
-                            color: '#666',
-                            marginBottom: '6px',
-                            fontWeight: '500'
-                          }}
-                        >
-                          {item.category}
-                        </p>
-                      </div>
+                      {/* NEW: Description - Limited to 42 characters - NO EMPTY SPACE */}
+                      <p 
+                        className="simple-card-description"
+                        style={{
+                          fontSize: '9px',
+                          color: '#666',
+                          lineHeight: '1.2',
+                          margin: '0 0 4px 0',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: '2',
+                          WebkitBoxOrient: 'vertical',
+                          minHeight: '18px'
+                        }}
+                        title={item.description}
+                      >
+                        {truncateDescription(item.description)}
+                      </p>
 
-                      {/* Middle Section - Description */}
-                      <div style={{ marginBottom: '8px' }}>
-                        <p 
-                          className="description"
-                          style={{
-                            fontSize: '10px',
-                            color: '#888',
-                            lineHeight: '1.3',
-                            margin: 0,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}
-                        >
-                          {truncateDescription(item.description)}
-                        </p>
-                      </div>
-
-                      {/* Bottom Section - Price, Rating, Business */}
-                      <div>
-                        {/* Price */}
+                      {/* Price and Rating Row */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        {/* Price - Bold and Prominent */}
                         <div 
-                          className="price"
+                          className="simple-card-price"
                           style={{
-                            fontSize: '14px',
+                            fontSize: '12px',
                             fontWeight: 'bold',
-                            color: '#c45500',
-                            marginBottom: '4px'
+                            color: '#2c5aa0'
                           }}
                         >
                           {formatPrice(item)}
-                          {item.type === 'product' && item.currency === 'USD' && (
-                            <span style={{ fontSize: '10px', color: '#666', marginLeft: '2px' }}>USD</span>
-                          )}
                         </div>
 
-                        {/* Rating and Business */}
-                        <div className="d-flex justify-content-between align-items-center">
-                          {/* Rating */}
-                          <div className="d-flex align-items-center">
-                            <div className="me-1">
-                              {renderStars(item.rating)}
-                            </div>
-                            <small 
-                              className="text-muted"
-                              style={{ fontSize: '9px' }}
-                            >
-                              {item.rating || '4.0'}
-                            </small>
-                          </div>
-
-                          {/* Business Name */}
-                          <small 
-                            className="business-name text-end"
-                            style={{
-                              fontSize: '9px',
-                              color: '#666',
-                              fontWeight: '500',
-                              maxWidth: '60%',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {item.businessName || item.business}
-                          </small>
+                        {/* Rating - Stars Only */}
+                        <div className="d-flex align-items-center">
+                          {renderStars(item.rating)}
                         </div>
                       </div>
                     </div>
@@ -1054,6 +985,124 @@ const SearchResultsPage = () => {
           </>
         )}
       </div>
+
+      {/* Custom CSS for Simplified Cards */}
+      <style>
+        {`
+          .simple-card:hover {
+            border-color: #c45500 !important;
+          }
+
+          .simple-card:hover .simple-card-image {
+            transform: scale(1.05);
+          }
+
+          /* Improved text handling with ellipsis */
+          .simple-card-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .simple-card-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          /* Responsive adjustments */
+          @media (max-width: 576px) {
+            .col-6 {
+              padding: 4px;
+            }
+            
+            .simple-card {
+              height: 240px !important;
+            }
+            
+            .image-section-simple {
+              height: 70% !important;
+            }
+            
+            .details-section-simple {
+              height: 30% !important;
+              padding: 6px !important;
+            }
+            
+            .simple-card-title {
+              font-size: 10px !important;
+              -webkit-line-clamp: 1;
+            }
+            
+            .simple-card-description {
+              font-size: 8px !important;
+              -webkit-line-clamp: 2;
+            }
+            
+            .simple-card-price {
+              font-size: 11px !important;
+            }
+          }
+
+          @media (min-width: 576px) {
+            .col-sm-4 {
+              padding: 6px;
+            }
+            
+            .simple-card {
+              height: 260px !important;
+            }
+
+            .simple-card-title {
+              -webkit-line-clamp: 1;
+            }
+
+            .simple-card-description {
+              -webkit-line-clamp: 2;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .col-md-3 {
+              padding: 8px;
+            }
+            
+            .simple-card {
+              height: 270px !important;
+            }
+
+            .simple-card-title {
+              -webkit-line-clamp: 1;
+            }
+
+            .simple-card-description {
+              -webkit-line-clamp: 2;
+            }
+          }
+
+          @media (min-width: 992px) {
+            .col-lg-2 {
+              padding: 10px;
+            }
+            
+            .simple-card {
+              height: 280px !important;
+            }
+
+            .simple-card-title {
+              -webkit-line-clamp: 1;
+            }
+
+            .simple-card-description {
+              -webkit-line-clamp: 2;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
