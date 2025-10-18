@@ -1,4 +1,4 @@
-// src/HomePage1.jsx - REDESIGNED WITH GLASS MORPHISM CARDS LIKE SEARCH RESULTS
+// src/HomePage1.jsx - REDESIGNED WITH GLASS MORPHISM CARDS AND WHITE BACKGROUND
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
@@ -1066,10 +1066,8 @@ function HomePage1() {
   const location = useLocation();
 
   return (
-    <div className="min-vh-100" style={{ 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      fontFamily: 'Segoe UI, system-ui, sans-serif'
-    }}>
+    <div className="min-vh-100 bg-white" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
+      
       {/* Sidebar Overlay */}
       {showSidebar && (
         <div 
@@ -1085,10 +1083,10 @@ function HomePage1() {
       {showAuthModal && <AuthModal />}
 
       {/* Main Content */}
-      <div className="container-fluid px-0">
+      <div className="container-fluid px-0 bg-white">
         
         {/* Header Section */}
-        <header className="bg-transparent py-3 px-4 position-relative">
+        <header className="bg-white border-bottom py-3 px-4 position-relative">
           <div className="d-flex align-items-center justify-content-between">
             
             {/* Left: Menu Button */}
@@ -1096,11 +1094,10 @@ function HomePage1() {
               className="btn btn-lg p-2 me-3"
               onClick={() => setShowSidebar(true)}
               style={{ 
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
                 borderRadius: '12px',
-                color: 'white'
+                color: '#495057'
               }}
             >
               <i className="fas fa-bars"></i>
@@ -1108,10 +1105,10 @@ function HomePage1() {
 
             {/* Center: Logo */}
             <div className="flex-grow-1 text-center">
-              <h1 className="h3 mb-0 fw-bold text-white">
+              <h1 className="h3 mb-0 fw-bold text-primary">
                 BisRun
               </h1>
-              <small className="text-white-50 opacity-75">
+              <small className="text-muted opacity-75">
                 Find Everything You Need
               </small>
             </div>
@@ -1121,11 +1118,10 @@ function HomePage1() {
               className="btn btn-lg p-2 ms-3"
               onClick={handleAccountClick}
               style={{ 
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
                 borderRadius: '12px',
-                color: 'white'
+                color: '#495057'
               }}
             >
               <i className="fas fa-user"></i>
@@ -1134,17 +1130,18 @@ function HomePage1() {
         </header>
 
         {/* Search Section */}
-        <section className="px-4 py-4">
+        <section className="px-4 py-4 bg-white">
           <div className="row justify-content-center">
             <div className="col-12 col-md-10 col-lg-8">
               
               {/* Search Container */}
               <div className="position-relative">
                 <form onSubmit={handleSearch}>
-                  <div className="input-group input-group-lg shadow" 
+                  <div className="input-group input-group-lg shadow-sm" 
                        style={{ 
                          borderRadius: '16px',
-                         overflow: 'hidden'
+                         overflow: 'hidden',
+                         border: '2px solid #007bff'
                        }}>
                     
                     {/* Search Icon */}
@@ -1173,7 +1170,7 @@ function HomePage1() {
                       type="submit"
                       className="btn btn-primary px-4 border-0"
                       style={{ 
-                        borderRadius: '0 16px 16px 0',
+                        borderRadius: '0 14px 14px 0',
                         fontWeight: '600'
                       }}
                     >
@@ -1186,9 +1183,8 @@ function HomePage1() {
                 {showSuggestions && searchSuggestions.length > 0 && (
                   <div className="position-absolute top-100 start-0 end-0 mt-1 shadow-lg rounded-3 overflow-hidden z-3"
                        style={{ 
-                         background: 'rgba(255, 255, 255, 0.95)',
-                         backdropFilter: 'blur(20px)',
-                         border: '1px solid rgba(255, 255, 255, 0.3)'
+                         background: 'white',
+                         border: '1px solid #dee2e6'
                        }}>
                     
                     {/* Recent Searches Header */}
@@ -1240,12 +1236,11 @@ function HomePage1() {
                 {categoryData.slice(0, 4).map((category) => (
                   <div key={category.id} className="col-6 col-sm-3">
                     <button
-                      className="btn w-100 py-2 text-white border-0 rounded-3"
+                      className="btn w-100 py-2 text-dark border rounded-3"
                       onClick={() => handleCategoryClick(category.name)}
                       style={{ 
-                        background: 'rgba(255, 255, 255, 0.15)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        background: '#f8f9fa',
+                        border: '1px solid #dee2e6',
                         fontSize: '0.8rem',
                         fontWeight: '500'
                       }}
@@ -1261,13 +1256,13 @@ function HomePage1() {
         </section>
 
         {/* Main Content Area */}
-        <main className="pb-5">
+        <main className="pb-5 bg-white">
           
           {/* Categories Section */}
           <section className="px-4 mb-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2 className="h4 text-white fw-bold mb-0">Browse Categories</h2>
-              <Link to="/categories" className="text-white-50 text-decoration-none small">
+              <h2 className="h4 text-dark fw-bold mb-0">Browse Categories</h2>
+              <Link to="/categories" className="text-primary text-decoration-none small">
                 View All <i className="fas fa-chevron-right ms-1"></i>
               </Link>
             </div>
@@ -1280,20 +1275,19 @@ function HomePage1() {
                     onClick={() => handleCategoryClick(category.name)}
                     style={{ 
                       cursor: 'pointer',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      background: 'white',
+                      border: '1px solid #e9ecef',
                       borderRadius: '16px',
                       transition: 'all 0.3s ease',
                       overflow: 'hidden'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-5px)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
                     }}
                   >
                     <div className="card-body text-center p-4">
@@ -1302,17 +1296,17 @@ function HomePage1() {
                         style={{ 
                           width: '60px', 
                           height: '60px',
-                          background: 'rgba(255, 255, 255, 0.2)',
+                          background: `var(--bs-${category.color}-bg-subtle)`,
                           fontSize: '1.5rem',
-                          color: 'white'
+                          color: `var(--bs-${category.color})`
                         }}
                       >
                         <i className={`fas ${category.icon}`}></i>
                       </div>
-                      <h6 className="card-title text-white fw-bold mb-2" style={{ fontSize: '0.9rem' }}>
+                      <h6 className="card-title text-dark fw-bold mb-2" style={{ fontSize: '0.9rem' }}>
                         {category.name}
                       </h6>
-                      <p className="card-text text-white-50 small mb-0" style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
+                      <p className="card-text text-muted small mb-0" style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
                         {category.description}
                       </p>
                     </div>
@@ -1325,8 +1319,8 @@ function HomePage1() {
           {/* Featured Items Section */}
           <section className="px-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2 className="h4 text-white fw-bold mb-0">Featured Items</h2>
-              <Link to="/search-results?q=featured" className="text-white-50 text-decoration-none small">
+              <h2 className="h4 text-dark fw-bold mb-0">Featured Items</h2>
+              <Link to="/search-results?q=featured" className="text-primary text-decoration-none small">
                 View All <i className="fas fa-chevron-right ms-1"></i>
               </Link>
             </div>
@@ -1338,19 +1332,18 @@ function HomePage1() {
                     <div 
                       className="card border-0 shadow-sm h-100"
                       style={{ 
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        background: 'white',
+                        border: '1px solid #e9ecef',
                         borderRadius: '16px',
                         minHeight: '280px'
                       }}
                     >
                       <div className="card-body p-3">
                         <div className="placeholder-glow">
-                          <div className="placeholder rounded-3 mb-3" style={{ height: '120px', background: 'rgba(255,255,255,0.2)' }}></div>
-                          <div className="placeholder col-8 mb-2" style={{ background: 'rgba(255,255,255,0.2)' }}></div>
-                          <div className="placeholder col-6 mb-2" style={{ background: 'rgba(255,255,255,0.2)' }}></div>
-                          <div className="placeholder col-4" style={{ background: 'rgba(255,255,255,0.2)' }}></div>
+                          <div className="placeholder rounded-3 mb-3" style={{ height: '120px', background: '#f8f9fa' }}></div>
+                          <div className="placeholder col-8 mb-2" style={{ background: '#f8f9fa' }}></div>
+                          <div className="placeholder col-6 mb-2" style={{ background: '#f8f9fa' }}></div>
+                          <div className="placeholder col-4" style={{ background: '#f8f9fa' }}></div>
                         </div>
                       </div>
                     </div>
@@ -1361,130 +1354,172 @@ function HomePage1() {
               <div className="row g-3">
                 {featuredItems.map((item) => (
                   <div key={item.id} className="col-6 col-md-4 col-lg-3">
+                    {/* GLASS MORPHISM CARD - SAME AS SEARCH RESULTS */}
                     <div 
-                      className="card border-0 shadow-sm h-100"
+                      className="glass-card"
                       onClick={() => handleFeaturedItemClick(item.id)}
-                      style={{ 
+                      style={{
+                        width: '100%',
+                        height: '254px',
+                        backdropFilter: 'blur(7px)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: '26px',
+                        boxShadow: `
+                          35px 35px 68px 0px rgba(157, 177, 255, 0.2),
+                          inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
+                          inset 0px 11px 28px 0px rgb(255, 255, 255)
+                        `,
+                        transition: 'all 0.3s',
                         cursor: 'pointer',
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        borderRadius: '16px',
-                        transition: 'all 0.3s ease',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        position: 'relative'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-5px)';
-                        e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.15)';
+                        e.currentTarget.style.boxShadow = '35px 35px 68px 0px rgba(157, 177, 255, 0.5)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                        e.currentTarget.style.boxShadow = `
+                          35px 35px 68px 0px rgba(157, 177, 255, 0.2),
+                          inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
+                          inset 0px 11px 28px 0px rgb(255, 255, 255)
+                        `;
                       }}
                     >
                       {/* Product Image */}
                       <div 
-                        className="position-relative overflow-hidden"
-                        style={{ 
-                          height: '140px',
-                          background: `linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)`
+                        className="product-image-container"
+                        style={{
+                          width: '100%',
+                          height: '120px',
+                          overflow: 'hidden',
+                          position: 'relative'
                         }}
                       >
                         <img
                           src={item.images?.[0] || "https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600"}
                           alt={item.name}
-                          className="w-100 h-100 object-fit-cover"
-                          style={{ objectFit: 'cover' }}
-                          onError={(e) => {
-                            e.target.src = "https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600";
+                          className="product-image"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
                           }}
                         />
-                        
-                        {/* Rating Badge */}
-                        <div 
-                          className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-3"
-                          style={{ 
-                            background: 'rgba(255, 255, 255, 0.9)',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(0, 0, 0, 0.1)',
-                            fontSize: '0.7rem'
-                          }}
-                        >
-                          {renderStars(item.rating)}
-                        </div>
-
-                        {/* Country Flag */}
-                        <div 
-                          className="position-absolute bottom-0 start-0 m-2 px-2 py-1 rounded-3"
-                          style={{ 
-                            background: 'rgba(255, 255, 255, 0.9)',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(0, 0, 0, 0.1)',
-                            fontSize: '0.7rem'
-                          }}
-                        >
-                          {getCountryFlag(item.country)}
-                        </div>
+                        {/* Featured Badge */}
+                        {item.featured && (
+                          <div 
+                            className="featured-badge"
+                            style={{
+                              position: 'absolute',
+                              top: '8px',
+                              left: '8px',
+                              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                              color: '#000',
+                              padding: '3px 8px',
+                              borderRadius: '12px',
+                              fontSize: '9px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                              backdropFilter: 'blur(5px)'
+                            }}
+                          >
+                            <i className="fas fa-star me-1" style={{ fontSize: '7px' }}></i>
+                            FEATURED
+                          </div>
+                        )}
                       </div>
 
                       {/* Card Body */}
-                      <div className="card-body p-3">
-                        {/* Product Name */}
-                        <h6 
-                          className="card-title fw-bold text-dark mb-2"
-                          style={{ 
-                            fontSize: '0.85rem',
-                            lineHeight: '1.3',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          {item.name}
-                        </h6>
-
-                        {/* Business Name */}
-                        <p 
-                          className="text-muted small mb-2"
-                          style={{ 
-                            fontSize: '0.7rem',
-                            lineHeight: '1.2'
-                          }}
-                        >
-                          {item.business || item.businessName || 'Unknown Business'}
-                        </p>
-
-                        {/* Description */}
-                        <p 
-                          className="text-muted small mb-2"
-                          style={{ 
-                            fontSize: '0.65rem',
-                            lineHeight: '1.2'
-                          }}
-                        >
-                          {truncateDescription(item.description)}
-                        </p>
-
-                        {/* Price */}
-                        <div className="d-flex justify-content-between align-items-center mt-auto">
-                          <span 
-                            className="fw-bold text-primary"
-                            style={{ fontSize: '0.9rem' }}
+                      <div 
+                        className="card-body"
+                        style={{
+                          padding: '12px',
+                          height: 'calc(100% - 120px)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        {/* Product Info */}
+                        <div>
+                          {/* Product Name */}
+                          <h6 
+                            className="product-name mb-1"
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              lineHeight: '1.2',
+                              color: '#000',
+                              marginBottom: '4px',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden'
+                            }}
                           >
-                            {formatPrice(item)}
-                            {item.type === 'service' && '/night'}
-                          </span>
-                          
-                          {/* Stock/Status */}
-                          {item.type === 'product' && (
-                            <small 
-                              className={`badge ${item.stock > 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}
-                              style={{ fontSize: '0.6rem' }}
+                            {item.name}
+                          </h6>
+
+                          {/* Business Name */}
+                          <p 
+                            className="business-name mb-1"
+                            style={{
+                              fontSize: '9px',
+                              color: '#666',
+                              fontWeight: '500',
+                              marginBottom: '4px'
+                            }}
+                          >
+                            {item.business || item.businessName || 'Unknown Business'}
+                          </p>
+
+                          {/* Description */}
+                          <p 
+                            className="description mb-2"
+                            style={{
+                              fontSize: '9px',
+                              color: '#888',
+                              lineHeight: '1.2',
+                              marginBottom: '8px',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              minHeight: '20px'
+                            }}
+                          >
+                            {truncateDescription(item.description)}
+                          </p>
+                        </div>
+
+                        {/* Bottom Section */}
+                        <div>
+                          {/* Rating and Price Row */}
+                          <div className="d-flex justify-content-between align-items-center">
+                            {/* Rating */}
+                            {renderStars(item.rating)}
+
+                            {/* Price - BLUE COLOR */}
+                            <div 
+                              className="price"
+                              style={{
+                                fontSize: '12px',
+                                fontWeight: '800',
+                                color: '#2563eb', // BLUE COLOR
+                                textShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
+                              }}
                             >
-                              {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
-                            </small>
-                          )}
+                              {formatPrice(item)}
+                              {item.type === 'service' && '/night'}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1495,14 +1530,13 @@ function HomePage1() {
               <div 
                 className="text-center py-5 rounded-3"
                 style={{ 
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                  background: '#f8f9fa',
+                  border: '1px solid #e9ecef'
                 }}
               >
-                <i className="fas fa-search display-4 text-white-50 mb-3"></i>
-                <h5 className="text-white mb-2">No Featured Items Found</h5>
-                <p className="text-white-50 mb-3">Check back later for new featured products and services</p>
+                <i className="fas fa-search display-4 text-muted mb-3"></i>
+                <h5 className="text-dark mb-2">No Featured Items Found</h5>
+                <p className="text-muted mb-3">Check back later for new featured products and services</p>
                 <button 
                   className="btn btn-primary rounded-3 px-4"
                   onClick={() => navigate('/business-dashboard')}
@@ -1515,6 +1549,91 @@ function HomePage1() {
           </section>
         </main>
       </div>
+
+      {/* Custom Styles */}
+      <style>
+        {`
+          .bg-silver {
+            background: linear-gradient(135deg, #ffffffff 0%, #ffffffff 50%, #f0f0f0 100%) !important;
+            background-color: #feffffff !important;
+          }
+
+          .glass-card:active {
+            transform: scale(0.95);
+            border: 1px solid rgba(37, 99, 235, 0.3); /* BLUE BORDER */
+          }
+
+          .glass-card {
+            transition: all 0.3s;
+          }
+
+          .product-image {
+            transition: transform 0.3s ease;
+          }
+
+          .product-image:hover {
+            transform: scale(1.05);
+          }
+
+          /* Responsive adjustments */
+          @media (max-width: 576px) {
+            .col-6 {
+              padding: 4px;
+            }
+            
+            .glass-card {
+              height: 240px !important;
+            }
+            
+            .product-image-container {
+              height: 110px !important;
+            }
+            
+            .card-body {
+              padding: 10px !important;
+              height: calc(100% - 110px) !important;
+            }
+            
+            .product-name {
+              font-size: 11px !important;
+            }
+            
+            .business-name {
+              font-size: 8px !important;
+            }
+            
+            .description {
+              font-size: 8px !important;
+            }
+            
+            .price {
+              font-size: 11px !important;
+            }
+          }
+
+          @media (min-width: 576px) {
+            .col-sm-4 {
+              padding: 6px;
+            }
+            
+            .glass-card {
+              height: 254px !important;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .col-md-3 {
+              padding: 8px;
+            }
+          }
+
+          @media (min-width: 992px) {
+            .col-lg-2 {
+              padding: 10px;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
