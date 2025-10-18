@@ -4,7 +4,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, googleProvider } from './firebase.jsx';
 import { signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
-function HomePage1() {
+const HomePage1 = () => {
   const [featuredItems, setFeaturedItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +26,9 @@ function HomePage1() {
   const [currentLanguage, setCurrentLanguage] = useState("ENG");
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [helpMessage, setHelpMessage] = useState("");
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   
   // New state for dynamic placeholder with animation - FIXED VERSION
   const [placeholderText, setPlaceholderText] = useState("");
@@ -48,7 +51,21 @@ function HomePage1() {
     { code: "KOR", name: "한국어", flag: "🇰🇷" },
     { code: "TUR", name: "Türkçe", flag: "🇹🇷" },
     { code: "DUT", name: "Nederlands", flag: "🇳🇱" },
-    { code: "SWE", name: "Svenska", flag: "🇸🇪" }
+    { code: "SWE", name: "Svenska", flag: "🇸🇪" },
+    { code: "NOR", name: "Norsk", flag: "🇳🇴" },
+    { code: "DAN", name: "Dansk", flag: "🇩🇰" },
+    { code: "FIN", name: "Suomi", flag: "🇫🇮" },
+    { code: "POL", name: "Polski", flag: "🇵🇱" },
+    { code: "CZE", name: "Čeština", flag: "🇨🇿" },
+    { code: "GRE", name: "Ελληνικά", flag: "🇬🇷" },
+    { code: "HEB", name: "עברית", flag: "🇮🇱" },
+    { code: "PER", name: "فارسی", flag: "🇮🇷" },
+    { code: "URD", name: "اردو", flag: "🇵🇰" },
+    { code: "IND", name: "Bahasa Indonesia", flag: "🇮🇩" },
+    { code: "MAL", name: "Bahasa Malaysia", flag: "🇲🇾" },
+    { code: "THA", name: "ไทย", flag: "🇹🇭" },
+    { code: "VIE", name: "Tiếng Việt", flag: "🇻🇳" },
+    { code: "FIL", name: "Filipino", flag: "🇵🇭" }
   ];
 
   // Dynamic placeholder texts
@@ -152,8 +169,20 @@ function HomePage1() {
   // Handle language change
   const handleLanguageChange = (languageCode) => {
     setCurrentLanguage(languageCode);
-    setShowLanguageDropdown(false);
+    setShowLanguageModal(false);
     console.log("Language changed to:", languageCode);
+  };
+
+  // Handle help message submission
+  const handleHelpSubmit = (e) => {
+    e.preventDefault();
+    if (helpMessage.trim()) {
+      // Here you would typically send the message to your backend
+      console.log("Help message sent:", helpMessage);
+      alert("Thank you for your message! We'll get back to you soon.");
+      setHelpMessage("");
+      setShowHelpModal(false);
+    }
   };
 
   // Authentication Functions
@@ -727,16 +756,242 @@ function HomePage1() {
     return description.substring(0, 42) + '...';
   };
 
-  // Sidebar Component
+  // Language Modal Component
+  const LanguageModal = () => {
+    const currentLanguageObj = languages.find(lang => lang.code === currentLanguage) || languages[0];
+
+    return (
+      <div className={`modal fade ${showLanguageModal ? 'show d-block' : ''}`} 
+           style={{ 
+             backgroundColor: 'rgba(0,0,0,0.5)', 
+             position: 'fixed',
+             top: 0,
+             left: 0,
+             right: 0,
+             bottom: 0,
+             zIndex: 9999
+           }} 
+           tabIndex="-1">
+        <div className="d-flex align-items-center justify-content-center min-vh-100 p-3">
+          <div className="modal-dialog modal-dialog-centered" 
+               style={{ 
+                 maxWidth: '500px',
+                 width: '100%',
+                 margin: '0 auto'
+               }}>
+            <div className="modal-content rounded-3 border-0 shadow-lg" 
+                 style={{ 
+                   background: 'white',
+                   transform: 'translateY(0)'
+                 }}>
+              
+              {/* Header */}
+              <div className="modal-header border-0 pb-0 pt-4 px-4 bg-white">
+                <div className="w-100 text-center">
+                  <div className="avatar-placeholder mb-3 mx-auto">
+                    <i className="fas fa-globe-americas display-4 text-primary"></i>
+                  </div>
+                  <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
+                    Choose Language
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    Select your preferred language
+                  </p>
+                </div>
+                <button 
+                  type="button" 
+                  className="btn-close position-absolute top-0 end-0 m-3" 
+                  onClick={() => setShowLanguageModal(false)}
+                  style={{ fontSize: '0.8rem' }}
+                ></button>
+              </div>
+              
+              {/* Body */}
+              <div className="modal-body py-4 px-4 bg-white">
+                <div className="text-center mb-4">
+                  <div className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3">
+                    <span className="me-2" style={{ fontSize: '1.1rem' }}>{currentLanguageObj.flag}</span>
+                    Current: {currentLanguageObj.name}
+                  </div>
+                </div>
+
+                <div className="language-grid" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  <div className="row g-2">
+                    {languages.map((language) => (
+                      <div key={language.code} className="col-6">
+                        <button
+                          className={`btn w-100 text-start rounded-2 py-3 px-3 ${
+                            currentLanguage === language.code 
+                              ? 'bg-primary text-white' 
+                              : 'bg-light text-dark border'
+                          }`}
+                          onClick={() => handleLanguageChange(language.code)}
+                          style={{ 
+                            transition: 'all 0.2s ease',
+                            border: currentLanguage === language.code ? '2px solid #007bff' : '1px solid #dee2e6'
+                          }}
+                        >
+                          <div className="d-flex align-items-center">
+                            <span className="me-3" style={{ fontSize: '1.3rem' }}>{language.flag}</span>
+                            <div className="text-start">
+                              <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{language.name}</div>
+                              <small className="opacity-75" style={{ fontSize: '0.75rem' }}>{language.code}</small>
+                            </div>
+                            {currentLanguage === language.code && (
+                              <i className="fas fa-check ms-auto"></i>
+                            )}
+                          </div>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="text-center mt-4 pt-3 border-top">
+                  <button
+                    className="btn btn-outline-primary px-4 rounded-3"
+                    onClick={() => setShowLanguageModal(false)}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Help Modal Component
+  const HelpModal = () => {
+    return (
+      <div className={`modal fade ${showHelpModal ? 'show d-block' : ''}`} 
+           style={{ 
+             backgroundColor: 'rgba(0,0,0,0.5)', 
+             position: 'fixed',
+             top: 0,
+             left: 0,
+             right: 0,
+             bottom: 0,
+             zIndex: 9999
+           }} 
+           tabIndex="-1">
+        <div className="d-flex align-items-center justify-content-center min-vh-100 p-3">
+          <div className="modal-dialog modal-dialog-centered" 
+               style={{ 
+                 maxWidth: '500px',
+                 width: '100%',
+                 margin: '0 auto'
+               }}>
+            <div className="modal-content rounded-3 border-0 shadow-lg" 
+                 style={{ 
+                   background: 'white',
+                   transform: 'translateY(0)'
+                 }}>
+              
+              {/* Header */}
+              <div className="modal-header border-0 pb-0 pt-4 px-4 bg-white">
+                <div className="w-100 text-center">
+                  <div className="avatar-placeholder mb-3 mx-auto">
+                    <i className="fas fa-headset display-4 text-primary"></i>
+                  </div>
+                  <h4 className="modal-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>
+                    Need Help?
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    We're here to assist you. Send us a message!
+                  </p>
+                </div>
+                <button 
+                  type="button" 
+                  className="btn-close position-absolute top-0 end-0 m-3" 
+                  onClick={() => setShowHelpModal(false)}
+                  style={{ fontSize: '0.8rem' }}
+                ></button>
+              </div>
+              
+              {/* Body */}
+              <div className="modal-body py-4 px-4 bg-white">
+                <form onSubmit={handleHelpSubmit}>
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold text-dark mb-3">
+                      Your Message
+                    </label>
+                    <textarea
+                      className="form-control rounded-3 border"
+                      placeholder="Tell us how we can help you..."
+                      value={helpMessage}
+                      onChange={(e) => setHelpMessage(e.target.value)}
+                      required
+                      rows="5"
+                      style={{ 
+                        padding: '16px', 
+                        fontSize: '16px',
+                        borderColor: '#e0e0e0',
+                        resize: 'none'
+                      }}
+                    ></textarea>
+                  </div>
+
+                  <div className="d-grid gap-2">
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-medium"
+                      style={{ fontSize: '1rem' }}
+                    >
+                      <i className="fas fa-paper-plane me-2"></i>
+                      Send Message
+                    </button>
+                    
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary w-100 py-3 rounded-3 fw-medium"
+                      onClick={() => setShowHelpModal(false)}
+                      style={{ fontSize: '1rem' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+
+                <div className="text-center mt-4 pt-3 border-top">
+                  <h6 className="text-dark fw-semibold mb-2">Other Ways to Reach Us</h6>
+                  <div className="row text-muted small">
+                    <div className="col-12 mb-2">
+                      <i className="fas fa-envelope me-2 text-primary"></i>
+                      support@bisrun.com
+                    </div>
+                    <div className="col-12 mb-2">
+                      <i className="fas fa-phone me-2 text-primary"></i>
+                      +255 123 456 789
+                    </div>
+                    <div className="col-12">
+                      <i className="fas fa-clock me-2 text-primary"></i>
+                      Available 24/7
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Sidebar Component - SIMPLIFIED VERSION
   const Sidebar = () => {
     return (
       <div className={`offcanvas offcanvas-start ${showSidebar ? 'show' : ''}`} 
            style={{ 
              visibility: showSidebar ? 'visible' : 'hidden',
-             width: '280px'
+             width: '280px',
+             background: 'white'
            }}
            tabIndex="-1">
-        <div className="offcanvas-header border-bottom">
+        <div className="offcanvas-header border-bottom bg-white">
           <h5 className="offcanvas-title fw-bold text-primary">BisRun Menu</h5>
           <button
             type="button"
@@ -744,38 +999,73 @@ function HomePage1() {
             onClick={() => setShowSidebar(false)}
           ></button>
         </div>
-        <div className="offcanvas-body p-0">
+        <div className="offcanvas-body p-0 bg-white">
           <div className="list-group list-group-flush">
-            <Link to="/" className="list-group-item list-group-item-action border-0 py-3">
+            
+            {/* Navigation Section */}
+            <Link to="/" className="list-group-item list-group-item-action border-0 py-3 bg-white">
               <i className="fas fa-home me-3 text-primary"></i>
               Home
             </Link>
-            <Link to="/search-results" className="list-group-item list-group-item-action border-0 py-3">
+            <Link to="/search-results" className="list-group-item list-group-item-action border-0 py-3 bg-white">
               <i className="fas fa-search me-3 text-primary"></i>
               Search
             </Link>
-            <Link to="/categories" className="list-group-item list-group-item-action border-0 py-3">
+            <Link to="/categories" className="list-group-item list-group-item-action border-0 py-3 bg-white">
               <i className="fas fa-th-large me-3 text-primary"></i>
               Categories
             </Link>
+            
             <div className="border-top my-2"></div>
-            <h6 className="px-3 pt-2 text-muted small">BUSINESS</h6>
+            
+            {/* Business Section */}
+            <h6 className="px-3 pt-2 text-muted small bg-white">BUSINESS</h6>
             <button 
-              className="list-group-item list-group-item-action border-0 py-3"
+              className="list-group-item list-group-item-action border-0 py-3 bg-white"
               onClick={handleBusinessAuth}
             >
               <i className="fas fa-store me-3 text-success"></i>
               List Your Business
             </button>
-            <Link to="/business-dashboard" className="list-group-item list-group-item-action border-0 py-3">
+            <Link to="/business-dashboard" className="list-group-item list-group-item-action border-0 py-3 bg-white">
               <i className="fas fa-chart-line me-3 text-success"></i>
               Business Dashboard
             </Link>
+            
             <div className="border-top my-2"></div>
-            <h6 className="px-3 pt-2 text-muted small">ACCOUNT</h6>
+            
+            {/* Language Section */}
+            <h6 className="px-3 pt-2 text-muted small bg-white">SETTINGS</h6>
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3 bg-white"
+              onClick={() => {
+                setShowSidebar(false);
+                setShowLanguageModal(true);
+              }}
+            >
+              <i className="fas fa-globe me-3 text-info"></i>
+              Language
+            </button>
+            
+            {/* Help Section */}
+            <button 
+              className="list-group-item list-group-item-action border-0 py-3 bg-white"
+              onClick={() => {
+                setShowSidebar(false);
+                setShowHelpModal(true);
+              }}
+            >
+              <i className="fas fa-headset me-3 text-warning"></i>
+              Help & Support
+            </button>
+            
+            <div className="border-top my-2"></div>
+            
+            {/* Account Section */}
+            <h6 className="px-3 pt-2 text-muted small bg-white">ACCOUNT</h6>
             {user ? (
               <>
-                <div className="list-group-item border-0 py-3">
+                <div className="list-group-item border-0 py-3 bg-white">
                   <div className="d-flex align-items-center">
                     <img 
                       src={user.picture || "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300"} 
@@ -784,13 +1074,13 @@ function HomePage1() {
                       style={{ width: '40px', height: '40px', objectFit: 'cover' }}
                     />
                     <div>
-                      <div className="fw-bold">{user.name}</div>
+                      <div className="fw-bold text-dark">{user.name}</div>
                       <small className="text-muted">{user.email}</small>
                     </div>
                   </div>
                 </div>
                 <button 
-                  className="list-group-item list-group-item-action border-0 py-3 text-danger"
+                  className="list-group-item list-group-item-action border-0 py-3 text-danger bg-white"
                   onClick={handleSignOut}
                 >
                   <i className="fas fa-sign-out-alt me-3"></i>
@@ -799,7 +1089,7 @@ function HomePage1() {
               </>
             ) : (
               <button 
-                className="list-group-item list-group-item-action border-0 py-3"
+                className="list-group-item list-group-item-action border-0 py-3 bg-white"
                 onClick={() => {
                   setShowSidebar(false);
                   setShowAuthModal(true);
@@ -836,15 +1126,14 @@ function HomePage1() {
                  width: '100%',
                  margin: '0 auto'
                }}>
-            <div className="modal-content rounded-3 border shadow-lg" 
+            <div className="modal-content rounded-3 border-0 shadow-lg" 
                  style={{ 
-                   borderColor: '#e0e0e0', 
-                   backdropFilter: 'blur(10px)',
+                   background: 'white',
                    transform: 'translateY(0)'
                  }}>
               
               {/* Header */}
-              <div className="modal-header border-0 pb-0 pt-4 px-4">
+              <div className="modal-header border-0 pb-0 pt-4 px-4 bg-white">
                 <div className="w-100 text-center">
                   <div className="avatar-placeholder mb-3 mx-auto">
                     <i className="fas fa-user display-4 text-primary"></i>
@@ -865,7 +1154,7 @@ function HomePage1() {
               </div>
               
               {/* Body */}
-              <div className="modal-body py-4 px-4">
+              <div className="modal-body py-4 px-4 bg-white">
                 {user ? (
                   // User Profile View
                   <div className="text-center">
@@ -1073,6 +1362,7 @@ function HomePage1() {
         <div 
           className="modal-backdrop fade show" 
           onClick={() => setShowSidebar(false)}
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
         ></div>
       )}
 
@@ -1081,6 +1371,12 @@ function HomePage1() {
 
       {/* Auth Modal */}
       {showAuthModal && <AuthModal />}
+
+      {/* Language Modal */}
+      {showLanguageModal && <LanguageModal />}
+
+      {/* Help Modal */}
+      {showHelpModal && <HelpModal />}
 
       {/* Main Content */}
       <div className="container-fluid px-0 bg-white">
@@ -1113,19 +1409,50 @@ function HomePage1() {
               </small>
             </div>
 
-            {/* Right: Account Button */}
-            <button
-              className="btn btn-lg p-2 ms-3"
-              onClick={handleAccountClick}
-              style={{ 
-                background: '#f8f9fa',
-                border: '1px solid #dee2e6',
-                borderRadius: '12px',
-                color: '#495057'
-              }}
-            >
-              <i className="fas fa-user"></i>
-            </button>
+            {/* Right: Icons for Language and Help */}
+            <div className="d-flex align-items-center">
+              {/* Language Icon */}
+              <button
+                className="btn btn-lg p-2 me-2"
+                onClick={() => setShowLanguageModal(true)}
+                style={{ 
+                  background: '#f8f9fa',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '12px',
+                  color: '#495057'
+                }}
+              >
+                <i className="fas fa-globe"></i>
+              </button>
+
+              {/* Help Icon */}
+              <button
+                className="btn btn-lg p-2 me-2"
+                onClick={() => setShowHelpModal(true)}
+                style={{ 
+                  background: '#f8f9fa',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '12px',
+                  color: '#495057'
+                }}
+              >
+                <i className="fas fa-headset"></i>
+              </button>
+
+              {/* Account Button */}
+              <button
+                className="btn btn-lg p-2"
+                onClick={handleAccountClick}
+                style={{ 
+                  background: '#f8f9fa',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '12px',
+                  color: '#495057'
+                }}
+              >
+                <i className="fas fa-user"></i>
+              </button>
+            </div>
           </div>
         </header>
 
@@ -1573,6 +1900,25 @@ function HomePage1() {
 
           .product-image:hover {
             transform: scale(1.05);
+          }
+
+          /* Language grid scrollbar styling */
+          .language-grid::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .language-grid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+          }
+
+          .language-grid::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+          }
+
+          .language-grid::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
           }
 
           /* Responsive adjustments */

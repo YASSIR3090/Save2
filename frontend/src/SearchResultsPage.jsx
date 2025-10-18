@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH HEADER LIKE HOMEPAGE1
+// src/SearchResultsPage.jsx - UPDATED WITH HEADER LIKE HOMEPAGE1 AND GLASS MORPHISM CARDS
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -840,7 +840,7 @@ const SearchResultsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-vh-100 bg-white d-flex justify-content-center align-items-center">
+      <div className="min-vh-100 bg-silver d-flex justify-content-center align-items-center">
         <div className="text-center">
           <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }}></div>
           <p className="text-dark">Loading search results...</p>
@@ -850,7 +850,7 @@ const SearchResultsPage = () => {
   }
 
   return (
-    <div className="min-vh-100 bg-white" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
+    <div className="min-vh-100 bg-silver">
       
       {/* Sidebar Overlay */}
       {showSidebar && (
@@ -867,7 +867,7 @@ const SearchResultsPage = () => {
       {showAuthModal && <AuthModal />}
 
       {/* Main Content */}
-      <div className="container-fluid px-0 bg-white">
+      <div className="container-fluid px-0 bg-silver">
         
         {/* Header Section - SAME AS HOMEPAGE1 */}
         <header className="bg-white border-bottom py-3 px-4 position-relative">
@@ -914,7 +914,7 @@ const SearchResultsPage = () => {
         </header>
 
         {/* Search Section - SAME AS HOMEPAGE1 */}
-        <section className="px-4 py-4 bg-white">
+        <section className="px-4 py-4 bg-silver">
           <div className="row justify-content-center">
             <div className="col-12 col-md-10 col-lg-8">
               
@@ -1014,248 +1014,183 @@ const SearchResultsPage = () => {
                 )}
               </div>
 
-              {/* Categories Section - SAME AS HOMEPAGE1 */}
-              <div className="mt-4">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="mb-0 fw-bold text-dark">Browse Categories</h6>
-                  <button 
-                    className="btn btn-sm text-primary p-0"
-                    onClick={() => navigate('/categories')}
-                  >
-                    View All
-                  </button>
-                </div>
-                
-                <div className="row g-3">
-                  {categoryData.map((category) => (
-                    <div key={category.id} className="col-6 col-sm-3">
-                      <button
-                        className="btn btn-light w-100 h-100 p-3 border-0 shadow-sm"
-                        onClick={() => handleCategoryClick(category.name)}
-                        style={{ 
-                          borderRadius: '16px',
-                          transition: 'all 0.3s ease',
-                          background: 'white'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.transform = 'translateY(-2px)';
-                          e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.transform = 'translateY(0)';
-                          e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                        }}
-                      >
-                        <div className="text-center">
-                          <div 
-                            className="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
-                            style={{ 
-                              width: '50px', 
-                              height: '50px',
-                              background: `linear-gradient(135deg, var(--bs-${category.color}), #0056b3)`
-                            }}
-                          >
-                            <i className={`fas ${category.icon} text-white`}></i>
-                          </div>
-                          <small className="fw-semibold text-dark d-block" style={{ fontSize: '0.75rem' }}>
-                            {category.name.split(' ')[0]}
-                          </small>
-                          <small className="fw-semibold text-dark d-block" style={{ fontSize: '0.75rem' }}>
-                            {category.name.split(' ').slice(1).join(' ')}
-                          </small>
-                        </div>
-                      </button>
-                    </div>
-                  ))}
-                </div>
+              {/* Quick Categories */}
+              <div className="row g-2 mt-3">
+                {categoryData.slice(0, 4).map((category) => (
+                  <div key={category.id} className="col-6 col-sm-3">
+                    <button
+                      className="btn w-100 py-2 text-dark border rounded-3"
+                      onClick={() => handleCategoryClick(category.name)}
+                      style={{ 
+                        background: '#f8f9fa',
+                        border: '1px solid #dee2e6',
+                        fontSize: '0.8rem',
+                        fontWeight: '500'
+                      }}
+                    >
+                      <i className={`fas ${category.icon} me-1`}></i>
+                      {category.name.split(' ')[0]}
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Search Results Section */}
-        <section className="px-4 py-4 bg-white">
-          <div className="row justify-content-center">
-            <div className="col-12 col-md-10 col-lg-8">
-              
-              {/* Results Header */}
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                  <h4 className="fw-bold text-dark mb-1">
-                    {searchQuery ? `Search Results for "${searchQuery}"` : "All Items"}
-                  </h4>
-                  <p className="text-muted mb-0">
-                    {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
-                  </p>
-                </div>
-                
-                {/* Sort Dropdown */}
-                {searchResults.length > 0 && (
-                  <div className="dropdown">
-                    <button
-                      className="btn btn-outline-secondary dropdown-toggle"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      style={{ borderRadius: '8px' }}
-                    >
-                      <i className="fas fa-sort me-2"></i>
-                      Sort: {sortBy === 'relevance' ? 'Relevance' : 
-                             sortBy === 'price-low' ? 'Price: Low to High' :
-                             sortBy === 'price-high' ? 'Price: High to Low' : 'Rating'}
-                    </button>
-                    <ul className="dropdown-menu shadow-sm border-0 rounded-3">
-                      <li>
-                        <button 
-                          className="dropdown-item"
-                          onClick={() => handleSortChange({ target: { value: 'relevance' } })}
-                        >
-                          Relevance
-                        </button>
-                      </li>
-                      <li>
-                        <button 
-                          className="dropdown-item"
-                          onClick={() => handleSortChange({ target: { value: 'price-low' } })}
-                        >
-                          Price: Low to High
-                        </button>
-                      </li>
-                      <li>
-                        <button 
-                          className="dropdown-item"
-                          onClick={() => handleSortChange({ target: { value: 'price-high' } })}
-                        >
-                          Price: High to Low
-                        </button>
-                      </li>
-                      <li>
-                        <button 
-                          className="dropdown-item"
-                          onClick={() => handleSortChange({ target: { value: 'rating' } })}
-                        >
-                          Rating
-                        </button>
-                      </li>
-                    </ul>
+        {/* Results Section */}
+        <div className="container-fluid py-4">
+          {searchResults.length === 0 ? (
+            <div className="text-center py-5">
+              <div className="mb-4">
+                <i className="fas fa-search fa-3x text-muted mb-3"></i>
+              </div>
+              <h4 className="text-dark mb-3">No Results Found</h4>
+              <p className="text-muted mb-4">
+                {searchQuery ? `No items found for "${searchQuery}". Try different keywords.` : 'Please enter a search term to find items.'}
+              </p>
+              <button 
+                className="btn btn-primary"
+                onClick={() => navigate('/')}
+              >
+                <i className="fas fa-home me-2"></i>
+                Back to Home
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Search Summary */}
+              <div className="row mb-4">
+                <div className="col-12">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="text-muted small">
+                      {searchResults.length} results for "<span className="text-primary">"{searchQuery}"</span>"
+                    </div>
+                    <div className="dropdown">
+                      <button className="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Sort by: {sortBy === 'relevance' ? 'Relevance' : 
+                                sortBy === 'price-low' ? 'Price: Low to High' :
+                                sortBy === 'price-high' ? 'Price: High to Low' : 'Rating'}
+                      </button>
+                      <ul className="dropdown-menu">
+                        <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'relevance'}})}>Relevance</button></li>
+                        <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'price-low'}})}>Price: Low to High</button></li>
+                        <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'price-high'}})}>Price: High to Low</button></li>
+                        <li><button className="dropdown-item small" onClick={() => handleSortChange({target: {value: 'rating'}})}>Highest Rating</button></li>
+                      </ul>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Search Results Grid */}
-              {searchResults.length === 0 ? (
-                <div className="text-center py-5">
-                  <div className="mb-4">
-                    <i className="fas fa-search display-1 text-muted opacity-25"></i>
-                  </div>
-                  <h5 className="text-dark mb-3">No results found</h5>
-                  <p className="text-muted mb-4">
-                    {searchQuery ? `We couldn't find any matches for "${searchQuery}"` : 'No items available'}
-                  </p>
-                  <button
-                    className="btn btn-primary px-4 py-2 rounded-3"
-                    onClick={() => navigate('/')}
-                  >
-                    <i className="fas fa-home me-2"></i>
-                    Back to Home
-                  </button>
-                </div>
-              ) : (
-                <div className="row g-4">
-                  {searchResults.map((item, index) => (
-                    <div key={`${item.id}-${index}`} className="col-6 col-md-4 col-lg-3">
+              {/* GLASS MORPHISM CARDS WITH SILVER BACKGROUND - NO VIEW DETAILS BUTTON */}
+              <div className="row g-3 justify-content-center">
+                {searchResults.map((item) => (
+                  <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+                    {/* GLASS MORPHISM CARD */}
+                    <div 
+                      className="glass-card"
+                      style={{
+                        width: '100%',
+                        height: '254px',
+                        backdropFilter: 'blur(7px)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: '26px',
+                        boxShadow: `
+                          35px 35px 68px 0px rgba(157, 177, 255, 0.2),
+                          inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
+                          inset 0px 11px 28px 0px rgb(255, 255, 255)
+                        `,
+                        transition: 'all 0.3s',
+                        cursor: 'pointer',
+                        overflow: 'hidden',
+                        position: 'relative'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '35px 35px 68px 0px rgba(157, 177, 255, 0.5)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = `
+                          35px 35px 68px 0px rgba(157, 177, 255, 0.2),
+                          inset -8px -8px 16px 0px rgba(157, 177, 255, 0.6),
+                          inset 0px 11px 28px 0px rgb(255, 255, 255)
+                        `;
+                      }}
+                      onClick={() => navigate(`/product/${item.id}`)}
+                    >
+                      {/* Product Image */}
                       <div 
-                        className="card h-100 border-0 shadow-sm position-relative"
-                        style={{ 
-                          borderRadius: '16px',
+                        className="product-image-container"
+                        style={{
+                          width: '100%',
+                          height: '120px',
                           overflow: 'hidden',
-                          transition: 'all 0.3s ease',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => {
-                          if (item.type === 'service') {
-                            navigate(`/service-detail/${item.id}`);
-                          } else {
-                            navigate(`/product-detail/${item.id}`);
-                          }
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-4px)';
-                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                          position: 'relative'
                         }}
                       >
-                        {/* Item Image */}
-                        <div 
-                          className="position-relative"
-                          style={{ 
-                            height: '140px',
-                            overflow: 'hidden',
-                            background: '#f8f9fa'
+                        <img
+                          src={getItemImage(item)}
+                          alt={item.name}
+                          className="product-image"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease'
                           }}
-                        >
-                          <img
-                            src={getItemImage(item)}
-                            alt={item.name}
-                            className="w-100 h-100"
-                            style={{ 
-                              objectFit: 'cover',
-                              transition: 'transform 0.3s ease'
-                            }}
-                            onError={(e) => {
-                              e.target.src = 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=600';
-                            }}
-                          />
-                          
-                          {/* Business Name Badge */}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                          }}
+                        />
+                        {/* Featured Badge */}
+                        {item.featured && (
                           <div 
-                            className="position-absolute top-0 start-0 m-2 px-2 py-1 rounded-pill"
-                            style={{ 
-                              background: 'rgba(255, 255, 255, 0.95)',
-                              backdropFilter: 'blur(10px)',
-                              fontSize: '0.65rem',
-                              fontWeight: '600'
+                            className="featured-badge"
+                            style={{
+                              position: 'absolute',
+                              top: '8px',
+                              left: '8px',
+                              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                              color: '#000',
+                              padding: '3px 8px',
+                              borderRadius: '12px',
+                              fontSize: '9px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                              backdropFilter: 'blur(5px)'
                             }}
                           >
-                            {item.businessName || item.business}
+                            <i className="fas fa-star me-1" style={{ fontSize: '7px' }}></i>
+                            FEATURED
                           </div>
+                        )}
+                      </div>
 
-                          {/* Rating Badge */}
-                          <div 
-                            className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill d-flex align-items-center"
-                            style={{ 
-                              background: 'rgba(255, 255, 255, 0.95)',
-                              backdropFilter: 'blur(10px)'
-                            }}
-                          >
-                            {renderStars(item.rating)}
-                          </div>
-
-                          {/* Fuzzy Match Indicator */}
-                          {item.isFuzzyMatch && (
-                            <div 
-                              className="position-absolute bottom-0 start-0 end-0 text-center p-1"
-                              style={{ 
-                                background: 'rgba(255, 193, 7, 0.9)',
-                                fontSize: '0.7rem',
-                                fontWeight: '600'
-                              }}
-                            >
-                              Similar Match
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Item Details */}
-                        <div className="card-body p-3">
-                          {/* Item Name */}
+                      {/* Card Body */}
+                      <div 
+                        className="card-body"
+                        style={{
+                          padding: '12px',
+                          height: 'calc(100% - 120px)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        {/* Product Info */}
+                        <div>
+                          {/* Product Name */}
                           <h6 
-                            className="card-title fw-bold text-dark mb-2"
-                            style={{ 
-                              fontSize: '0.9rem',
-                              lineHeight: '1.3',
+                            className="product-name mb-1"
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              lineHeight: '1.2',
+                              color: '#000',
+                              marginBottom: '4px',
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
@@ -1265,55 +1200,155 @@ const SearchResultsPage = () => {
                             {item.name}
                           </h6>
 
+                          {/* Business Name */}
+                          <p 
+                            className="business-name mb-1"
+                            style={{
+                              fontSize: '9px',
+                              color: '#666',
+                              fontWeight: '500',
+                              marginBottom: '4px'
+                            }}
+                          >
+                            {item.businessName || item.business}
+                          </p>
+
                           {/* Description */}
                           <p 
-                            className="card-text text-muted mb-2"
-                            style={{ 
-                              fontSize: '0.75rem',
+                            className="description mb-2"
+                            style={{
+                              fontSize: '9px',
+                              color: '#888',
                               lineHeight: '1.2',
+                              marginBottom: '8px',
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
+                              overflow: 'hidden',
+                              minHeight: '20px'
                             }}
                           >
                             {truncateDescription(item.description)}
                           </p>
+                        </div>
 
-                          {/* Price */}
-                          <div className="d-flex justify-content-between align-items-center mt-auto">
-                            <span 
-                              className="fw-bold text-primary"
-                              style={{ fontSize: '0.9rem' }}
+                        {/* Bottom Section - REMOVED VIEW DETAILS BUTTON */}
+                        <div>
+                          {/* Rating and Price Row */}
+                          <div className="d-flex justify-content-between align-items-center">
+                            {/* Rating */}
+                            {renderStars(item.rating)}
+
+                            {/* Price - UPDATED: BLUE COLOR */}
+                            <div 
+                              className="price"
+                              style={{
+                                fontSize: '12px',
+                                fontWeight: '800',
+                                color: '#2563eb', // BLUE COLOR
+                                textShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
+                              }}
                             >
                               {formatPrice(item)}
-                              {item.type === 'service' && '/night'}
-                            </span>
-                            
-                            {/* Stock/Status */}
-                            {item.type === 'product' && (
-                              <small 
-                                className={`fw-semibold ${
-                                  item.stock > 5 ? 'text-success' : 
-                                  item.stock > 0 ? 'text-warning' : 'text-danger'
-                                }`}
-                                style={{ fontSize: '0.7rem' }}
-                              >
-                                {item.stock > 5 ? 'In Stock' : 
-                                 item.stock > 0 ? `Only ${item.stock} left` : 'Out of Stock'}
-                              </small>
-                            )}
+                            </div>
                           </div>
+
+                          {/* REMOVED: View Details Button Section */}
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Add CSS for silver background and glass morphism effects */}
+      <style>
+        {`
+          .bg-silver {
+            background: linear-gradient(135deg, #ffffffff 0%, #ffffffff 50%, #f0f0f0 100%) !important;
+            background-color: #feffffff !important;
+          }
+
+          .glass-card:active {
+            transform: scale(0.95);
+            border: 1px solid rgba(37, 99, 235, 0.3); /* BLUE BORDER */
+          }
+
+          .glass-card {
+            transition: all 0.3s;
+          }
+
+          .product-image {
+            transition: transform 0.3s ease;
+          }
+
+          .product-image:hover {
+            transform: scale(1.05);
+          }
+
+          /* Responsive adjustments */
+          @media (max-width: 576px) {
+            .col-6 {
+              padding: 4px;
+            }
+            
+            .glass-card {
+              height: 240px !important;
+            }
+            
+            .product-image-container {
+              height: 110px !important;
+            }
+            
+            .card-body {
+              padding: 10px !important;
+              height: calc(100% - 110px) !important;
+            }
+            
+            .product-name {
+              font-size: 11px !important;
+            }
+            
+            .business-name {
+              font-size: 8px !important;
+            }
+            
+            .description {
+              font-size: 8px !important;
+            }
+            
+            .price {
+              font-size: 11px !important;
+            }
+          }
+
+          @media (min-width: 576px) {
+            .col-sm-4 {
+              padding: 6px;
+            }
+            
+            .glass-card {
+              height: 254px !important;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .col-md-3 {
+              padding: 8px;
+            }
+          }
+
+          @media (min-width: 992px) {
+            .col-lg-2 {
+              padding: 10px;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
