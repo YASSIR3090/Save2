@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH CUSTOMIZABLE CARD DIMENSIONS
+// src/SearchResultsPage.jsx - UPDATED WITH GRADIENT ANIMATED CARDS
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -14,14 +14,6 @@ const SearchResultsPage = () => {
   const [recentSearches, setRecentSearches] = useState([]);
   const [sortBy, setSortBy] = useState("relevance");
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
-
-  // CUSTOMIZABLE CARD DIMENSIONS - YOU CAN CHANGE THESE VALUES
-  const [cardDimensions, setCardDimensions] = useState({
-    width: "230px",      // Change this for card width
-    height: "280px",     // Change this for card height
-    borderWidth: "2px",  // Change this for border width
-    maxHeight: "330px"   // Change this for maximum height
-  });
 
   // FUZZY SEARCH FUNCTIONS
   const levenshteinDistance = (str1, str2) => {
@@ -840,132 +832,209 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* CUSTOMIZABLE CARDS WITH UIVERSE.IO STYLE */}
+            {/* GRADIENT ANIMATED CARDS */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
-                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2 d-flex justify-content-center">
-                  {/* CUSTOMIZABLE CARD - FROM UIVERSE.IO BY AKSHAT-PATEL28 */}
+                <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+                  {/* GRADIENT ANIMATED CARD */}
                   <div 
-                    className="card"
+                    className="gradient-card"
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      width: cardDimensions.width,      // Customizable width
-                      height: cardDimensions.height,    // Customizable height
-                      maxHeight: cardDimensions.maxHeight, // Customizable max height
-                      backgroundColor: 'var(--white)',
-                      borderRadius: '10px',
-                      boxShadow: '0px 10px 12px rgba(0, 0, 0, 0.08), -4px -4px 12px rgba(0, 0, 0, 0.08)',
+                      position: 'relative',
+                      width: '100%',
+                      height: '280px',
+                      borderRadius: '1rem',
                       overflow: 'hidden',
-                      transition: 'all 0.3s',
-                      cursor: 'pointer',
-                      boxSizing: 'border-box',
-                      padding: '10px',
-                      border: `${cardDimensions.borderWidth} solid #e0e0e0` // Customizable border width
-                    }}
-                    onClick={() => {
-                      if (item.type === 'service') {
-                        navigate(`/service-detail/${item.id}`);
-                      } else {
-                        navigate(`/product-detail/${item.id}`);
-                      }
+                      background: 'linear-gradient(43deg, #4158d0 0%, #c850c0 46%, #ffcc70 100%)',
+                      backgroundSize: '400% 400%',
+                      backgroundPosition: '0% 50%',
+                      boxShadow: `
+                        rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset,
+                        rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset,
+                        rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset,
+                        rgba(0, 0, 0, 0.06) 0px 2px 1px,
+                        rgba(0, 0, 0, 0.09) 0px 4px 2px,
+                        rgba(0, 0, 0, 0.09) 0px 8px 4px,
+                        rgba(0, 0, 0, 0.09) 0px 16px 8px,
+                        rgba(0, 0, 0, 0.09) 0px 32px 16px
+                      `,
+                      animation: 'gradientShift 5s ease infinite'
                     }}
                   >
+                    {/* Card Content */}
                     <div 
-                      className="card-image-container"
+                      className="card-content"
                       style={{
-                        width: '100%',
-                        height: '64%',
-                        borderRadius: '10px',
-                        marginBottom: '12px',
-                        overflow: 'hidden',
-                        backgroundColor: 'rgb(165, 165, 165)',
+                        position: 'relative',
+                        zIndex: 2,
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        margin: '2px',
+                        borderRadius: 'calc(1rem - 2px)',
+                        height: 'calc(100% - 4px)',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
+                        flexDirection: 'column',
+                        overflow: 'hidden'
                       }}
                     >
-                      {getItemImage(item) ? (
-                        <img 
-                          src={getItemImage(item)} 
+                      {/* Product Image */}
+                      <div 
+                        className="product-image-container"
+                        style={{
+                          width: '100%',
+                          height: '120px',
+                          overflow: 'hidden',
+                          position: 'relative',
+                          borderTopLeftRadius: 'calc(1rem - 2px)',
+                          borderTopRightRadius: 'calc(1rem - 2px)'
+                        }}
+                      >
+                        <img
+                          src={getItemImage(item)}
                           alt={item.name}
+                          className="product-image"
                           style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover'
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease'
                           }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
                           }}
                         />
-                      ) : null}
+                        {/* Featured Badge */}
+                        {item.featured && (
+                          <div 
+                            className="featured-badge"
+                            style={{
+                              position: 'absolute',
+                              top: '8px',
+                              left: '8px',
+                              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                              color: '#000',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '8px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                            }}
+                          >
+                            <i className="fas fa-star me-1" style={{ fontSize: '6px' }}></i>
+                            FEATURED
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Card Body */}
                       <div 
-                        className="image-icon"
+                        className="card-body"
                         style={{
-                          fontSize: '40px',
-                          color: '#666',
-                          display: getItemImage(item) ? 'none' : 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
+                          flex: 1,
+                          padding: '12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
                         }}
                       >
-                        <i className="fas fa-image"></i>
+                        {/* Product Info */}
+                        <div>
+                          {/* Product Name */}
+                          <h6 
+                            className="product-name mb-1"
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              lineHeight: '1.2',
+                              color: '#000',
+                              marginBottom: '4px',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {item.name}
+                          </h6>
+
+                          {/* Business Name */}
+                          <p 
+                            className="business-name mb-1"
+                            style={{
+                              fontSize: '9px',
+                              color: '#666',
+                              fontWeight: '500',
+                              marginBottom: '4px'
+                            }}
+                          >
+                            {item.businessName || item.business}
+                          </p>
+
+                          {/* Description */}
+                          <p 
+                            className="description mb-2"
+                            style={{
+                              fontSize: '9px',
+                              color: '#888',
+                              lineHeight: '1.2',
+                              marginBottom: '8px'
+                            }}
+                          >
+                            {truncateDescription(item.description)}
+                          </p>
+                        </div>
+
+                        {/* Bottom Section */}
+                        <div>
+                          {/* Rating and Price Row */}
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            {/* Rating */}
+                            {renderStars(item.rating)}
+
+                            {/* Price */}
+                            <div 
+                              className="price"
+                              style={{
+                                fontSize: '12px',
+                                fontWeight: '800',
+                                color: '#000'
+                              }}
+                            >
+                              {formatPrice(item)}
+                            </div>
+                          </div>
+
+                          {/* View Details Button */}
+                          <button
+                            className="btn w-100"
+                            style={{
+                              background: 'linear-gradient(45deg, #4158d0, #c850c0)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '4px 8px',
+                              fontSize: '10px',
+                              fontWeight: '600',
+                              transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'linear-gradient(45deg, #c850c0, #4158d0)';
+                              e.target.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'linear-gradient(45deg, #4158d0, #c850c0)';
+                              e.target.style.transform = 'translateY(0)';
+                            }}
+                          >
+                            VIEW DETAILS
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <h3 
-                      className="card-title"
-                      style={{
-                        margin: '0',
-                        fontSize: '17px',
-                        fontFamily: '"Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana, sans-serif',
-                        fontWeight: '600',
-                        color: '#1797b8',
-                        cursor: 'default',
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        display: '-webkit-box',
-                        WebkitLineClamp: '1',
-                        lineClamp: '1'
-                      }}
-                    >
-                      {item.name}
-                    </h3>
-
-                    <p 
-                      className="card-des"
-                      style={{
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        display: '-webkit-box',
-                        WebkitLineClamp: '3',
-                        lineClamp: '3',
-                        margin: '4px 0 8px 0',
-                        fontSize: '13px',
-                        fontFamily: '"Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana, sans-serif',
-                        color: '#1797b8',
-                        cursor: 'default',
-                        minHeight: '48px'
-                      }}
-                    >
-                      {truncateDescription(item.description)}
-                    </p>
-
-                    <div className="d-flex justify-content-between align-items-center mt-auto">
-                      <div className="text-primary fw-bold" style={{ fontSize: '14px' }}>
-                        {formatPrice(item)}
-                      </div>
-                      {renderStars(item.rating)}
-                    </div>
-
-                    {item.isFuzzyMatch && (
-                      <div className="position-absolute top-0 end-0 m-1">
-                        <span className="badge bg-warning text-dark" style={{ fontSize: '9px' }}>
-                          Similar
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
@@ -973,6 +1042,39 @@ const SearchResultsPage = () => {
           </>
         )}
       </div>
+
+      {/* Add CSS for gradient animation */}
+      <style>
+        {`
+          @keyframes gradientShift {
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
+            }
+          }
+
+          .gradient-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+
+          .gradient-card:hover {
+            transform: translateY(-5px);
+          }
+
+          .product-image {
+            transition: transform 0.3s ease;
+          }
+
+          .product-image:hover {
+            transform: scale(1.05);
+          }
+        `}
+      </style>
     </div>
   );
 };
