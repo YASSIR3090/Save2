@@ -1,3 +1,4 @@
+
 // src/HomePage1.jsx - REDESIGNED HEADER LIKE AMAZON MOBILE
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
@@ -1174,7 +1175,7 @@ function HomePage1() {
           </div>
         </div>
 
-        {/* Bottom Row: Square Search Bar */}
+        {/* Bottom Row: Soft Square Search Bar */}
         <div className="container pb-2">
           <form onSubmit={handleSearch} className="position-relative">
             <div className="input-group">
@@ -1187,19 +1188,19 @@ function HomePage1() {
                 onFocus={handleSearchInputFocus}
                 onBlur={handleSearchInputBlur}
                 style={{ 
-                  borderRadius: '0',
+                  borderRadius: '8px 0 0 8px',
                   border: '2px solid #007bff',
+                  borderRight: 'none',
                   padding: '12px 20px',
                   fontSize: '16px',
-                  height: '50px',
-                  borderRight: 'none'
+                  height: '50px'
                 }}
               />
               <button 
                 className="btn btn-primary border-0"
                 type="submit"
                 style={{ 
-                  borderRadius: '0',
+                  borderRadius: '0 8px 8px 0',
                   width: '60px',
                   background: '#007bff',
                   border: '2px solid #007bff',
@@ -1213,7 +1214,7 @@ function HomePage1() {
             {/* Search Suggestions */}
             {showSuggestions && (
               <div className="position-absolute top-100 start-0 end-0 mt-1" style={{ zIndex: 1030 }}>
-                <div className="bg-white border rounded-0 shadow-lg overflow-hidden">
+                <div className="bg-white border rounded-2 shadow-lg overflow-hidden">
                   {/* Recent Searches Section */}
                   {searchQuery === "" && recentSearches.length > 0 && (
                     <>
