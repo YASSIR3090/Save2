@@ -1,4 +1,4 @@
-// src/SearchResultsPage.jsx - UPDATED WITH GRADIENT ANIMATED CARDS
+// src/SearchResultsPage.jsx - UPDATED WITH SHORTER GRADIENT BORDER
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -832,11 +832,11 @@ const SearchResultsPage = () => {
               </div>
             </div>
 
-            {/* GRADIENT ANIMATED CARDS */}
+            {/* GRADIENT ANIMATED CARDS WITH SHORTER BORDER */}
             <div className="row g-3 justify-content-center">
               {searchResults.map((item) => (
                 <div key={item.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  {/* GRADIENT ANIMATED CARD */}
+                  {/* GRADIENT ANIMATED CARD WITH SHORT BORDER */}
                   <div 
                     className="gradient-card"
                     style={{
@@ -845,21 +845,15 @@ const SearchResultsPage = () => {
                       position: 'relative',
                       width: '100%',
                       height: '280px',
-                      borderRadius: '1rem',
+                      borderRadius: '12px', // Slightly smaller border radius
                       overflow: 'hidden',
                       background: 'linear-gradient(43deg, #4158d0 0%, #c850c0 46%, #ffcc70 100%)',
                       backgroundSize: '400% 400%',
                       backgroundPosition: '0% 50%',
-                      boxShadow: `
-                        rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset,
-                        rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset,
-                        rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset,
-                        rgba(0, 0, 0, 0.06) 0px 2px 1px,
-                        rgba(0, 0, 0, 0.09) 0px 4px 2px,
-                        rgba(0, 0, 0, 0.09) 0px 8px 4px,
-                        rgba(0, 0, 0, 0.09) 0px 16px 8px,
-                        rgba(0, 0, 0, 0.09) 0px 32px 16px
-                      `,
+                      // SHORTER BORDER - reduced from multiple shadows to single border
+                      border: '3px solid transparent',
+                      backgroundOrigin: 'border-box',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                       animation: 'gradientShift 5s ease infinite'
                     }}
                   >
@@ -869,10 +863,10 @@ const SearchResultsPage = () => {
                       style={{
                         position: 'relative',
                         zIndex: 2,
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        margin: '2px',
-                        borderRadius: 'calc(1rem - 2px)',
-                        height: 'calc(100% - 4px)',
+                        background: 'rgba(255, 255, 255, 0.98)',
+                        margin: '1px', // SHORTER MARGIN for thinner border effect
+                        borderRadius: '10px', // Slightly smaller to match outer border
+                        height: 'calc(100% - 2px)',
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'hidden'
@@ -886,8 +880,8 @@ const SearchResultsPage = () => {
                           height: '120px',
                           overflow: 'hidden',
                           position: 'relative',
-                          borderTopLeftRadius: 'calc(1rem - 2px)',
-                          borderTopRightRadius: 'calc(1rem - 2px)'
+                          borderTopLeftRadius: '10px',
+                          borderTopRightRadius: '10px'
                         }}
                       >
                         <img
@@ -913,8 +907,8 @@ const SearchResultsPage = () => {
                             className="featured-badge"
                             style={{
                               position: 'absolute',
-                              top: '8px',
-                              left: '8px',
+                              top: '6px',
+                              left: '6px',
                               background: 'linear-gradient(45deg, #FFD700, #FFA500)',
                               color: '#000',
                               padding: '2px 6px',
@@ -935,7 +929,7 @@ const SearchResultsPage = () => {
                         className="card-body"
                         style={{
                           flex: 1,
-                          padding: '12px',
+                          padding: '10px',
                           display: 'flex',
                           flexDirection: 'column',
                           justifyContent: 'space-between'
@@ -981,7 +975,12 @@ const SearchResultsPage = () => {
                               fontSize: '9px',
                               color: '#888',
                               lineHeight: '1.2',
-                              marginBottom: '8px'
+                              marginBottom: '8px',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              minHeight: '20px'
                             }}
                           >
                             {truncateDescription(item.description)}
@@ -1011,6 +1010,7 @@ const SearchResultsPage = () => {
                           {/* View Details Button */}
                           <button
                             className="btn w-100"
+                            onClick={() => navigate(`/product/${item.id}`)}
                             style={{
                               background: 'linear-gradient(45deg, #4158d0, #c850c0)',
                               color: 'white',
@@ -1019,7 +1019,8 @@ const SearchResultsPage = () => {
                               padding: '4px 8px',
                               fontSize: '10px',
                               fontWeight: '600',
-                              transition: 'all 0.3s ease'
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
                             }}
                             onMouseEnter={(e) => {
                               e.target.style.background = 'linear-gradient(45deg, #c850c0, #4158d0)';
@@ -1063,7 +1064,8 @@ const SearchResultsPage = () => {
           }
 
           .gradient-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
           }
 
           .product-image {
@@ -1072,6 +1074,71 @@ const SearchResultsPage = () => {
 
           .product-image:hover {
             transform: scale(1.05);
+          }
+
+          /* Responsive adjustments */
+          @media (max-width: 576px) {
+            .col-6 {
+              padding: 4px;
+            }
+            
+            .gradient-card {
+              height: 240px !important;
+            }
+            
+            .product-image-container {
+              height: 100px !important;
+            }
+            
+            .card-body {
+              padding: 8px !important;
+            }
+            
+            .product-name {
+              font-size: 11px !important;
+            }
+            
+            .business-name {
+              font-size: 8px !important;
+            }
+            
+            .description {
+              font-size: 8px !important;
+            }
+            
+            .price {
+              font-size: 11px !important;
+            }
+          }
+
+          @media (min-width: 576px) {
+            .col-sm-4 {
+              padding: 6px;
+            }
+            
+            .gradient-card {
+              height: 260px !important;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .col-md-3 {
+              padding: 8px;
+            }
+            
+            .gradient-card {
+              height: 270px !important;
+            }
+          }
+
+          @media (min-width: 992px) {
+            .col-lg-2 {
+              padding: 10px;
+            }
+            
+            .gradient-card {
+              height: 280px !important;
+            }
           }
         `}
       </style>
